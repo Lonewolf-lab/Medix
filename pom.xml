@@ -43,6 +43,7 @@
       <scope>runtime</scope>
     </dependency>
 
+
     <!-- WebFlux for AI API Calls -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -74,7 +75,12 @@
       <scope>runtime</scope>
     </dependency>
 
-
+    <!-- PDF Extraction -->
+    <dependency>
+        <groupId>org.apache.pdfbox</groupId>
+        <artifactId>pdfbox</artifactId>
+        <version>3.0.1</version>
+    </dependency>
 
     <!-- Testing -->
     <dependency>
@@ -101,12 +107,6 @@
               <artifactId>lombok</artifactId>
             </exclude>
           </excludes>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <configuration>
         </configuration>
       </plugin>
     </plugins>
