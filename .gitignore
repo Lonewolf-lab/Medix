@@ -1,0 +1,8 @@
+target/
+.idea/
+build.log
+build.txt
+*.class
+src/main/resources/application-local.properties
+application.properties
+application-local.properties
