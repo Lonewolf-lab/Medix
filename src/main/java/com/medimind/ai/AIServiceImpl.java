@@ -20,8 +20,8 @@ public class AIServiceImpl implements AIService {
 
     public AIServiceImpl(WebClient anthropicWebClient,
                          ObjectMapper objectMapper,
-                         String geminiApiUrl,
-                         String geminiApiKey) {
+                         @org.springframework.beans.factory.annotation.Value("${ai.api.url}") String geminiApiUrl,
+                         @org.springframework.beans.factory.annotation.Value("${ai.api.key}") String geminiApiKey) {
         this.webClient = anthropicWebClient;
         this.objectMapper = objectMapper;
         this.groqApiUrl = geminiApiUrl;
