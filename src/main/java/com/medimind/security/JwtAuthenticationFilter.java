@@ -42,13 +42,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         userDetails, null, userDetails.getAuthorities());
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                // Add userId to request attributes for easy access in controllers
                 request.setAttribute("userId", userId);
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         } catch (Exception ex) {
-            // Logger can be added here
+            System.err.println("JWT Authentication failed: " + ex.getMessage());
+            ex.printStackTrace();
         }
 
         filterChain.doFilter(request, response);
