@@ -14,4 +14,10 @@ public interface HealthRecordService {
     HealthRecordResponse updateRecord(UUID userId, UUID recordId, HealthRecordRequest request);
     void deleteRecord(UUID userId, UUID recordId);
     List<HealthRecordResponse> getRecordsByType(UUID userId, RecordType recordType);
+
+    com.medimind.record.dto.DocumentAnalysisResponse analyzeRecord(UUID recordId, UUID userId);
+    com.medimind.record.dto.DocumentAnalysisResponse getRecordAnalysis(UUID recordId, UUID userId);
+    com.medimind.record.dto.DocumentChatResponse sendDocumentChatMessage(UUID recordId, UUID userId, com.medimind.record.dto.DocumentChatRequest request);
+    List<com.medimind.record.dto.DocumentChatResponse> getDocumentChatHistory(UUID recordId, UUID userId);
+    void clearDocumentChatHistory(UUID recordId, UUID userId);
 }

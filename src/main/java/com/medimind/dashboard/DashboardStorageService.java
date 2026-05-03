@@ -1,4 +1,4 @@
-package com.medimind.storage;
+package com.medimind.dashboard;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -15,13 +15,13 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-public class StorageServiceImpl implements StorageService {
+public class DashboardStorageService {
 
     private final Path fileStorageLocation;
-    private final List<String> allowedFileTypes = Arrays.asList("application/pdf", "image/jpeg", "image/png");
+    private final List<String> allowedFileTypes = Arrays.asList("application/pdf", "image/jpeg", "image/png", "image/jpg");
     private final long maxFileSize = 10 * 1024 * 1024; // 10MB
 
-    public StorageServiceImpl(@Value("${file.upload-dir}") String uploadDir) {
+    public DashboardStorageService(@Value("${dashboard.upload-dir}") String uploadDir) {
         this.fileStorageLocation = Paths.get(uploadDir).toAbsolutePath().normalize();
         try {
             Files.createDirectories(this.fileStorageLocation);
@@ -30,7 +30,6 @@ public class StorageServiceImpl implements StorageService {
         }
     }
 
-    @Override
     public String store(MultipartFile file) {
         if (file.isEmpty()) {
             throw new IllegalArgumentException("Failed to store empty file.");
@@ -61,16 +60,15 @@ public class StorageServiceImpl implements StorageService {
             Path targetLocation = this.fileStorageLocation.resolve(uniqueFileName);
             Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
 
-            return "/uploads/health-records/" + uniqueFileName;
+            return "/uploads/dashboard-reports/" + uniqueFileName;
         } catch (IOException ex) {
             throw new RuntimeException("Could not store file " + uniqueFileName + ". Please try again!", ex);
         }
     }
 
-    @Override
     public byte[] readFile(String fileUrl) {
         try {
-            if (fileUrl == null || !fileUrl.startsWith("/uploads/health-records/")) {
+            if (fileUrl == null || !fileUrl.startsWith("/uploads/dashboard-reports/")) {
                 throw new IllegalArgumentException("Invalid file URL");
             }
             String fileName = fileUrl.substring(fileUrl.lastIndexOf("/") + 1);

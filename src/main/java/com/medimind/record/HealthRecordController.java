@@ -1,5 +1,8 @@
 package com.medimind.record;
 
+import com.medimind.record.dto.DocumentAnalysisResponse;
+import com.medimind.record.dto.DocumentChatRequest;
+import com.medimind.record.dto.DocumentChatResponse;
 import com.medimind.record.dto.HealthRecordRequest;
 import com.medimind.record.dto.HealthRecordResponse;
 import jakarta.validation.Valid;
@@ -73,5 +76,52 @@ public class HealthRecordController {
             @PathVariable RecordType recordType) {
         UUID userId = UUID.fromString(userIdStr);
         return ResponseEntity.ok(healthRecordService.getRecordsByType(userId, recordType));
+    }
+
+    // --- AI Document Analysis Endpoints ---
+
+    @PostMapping("/{id}/analyze")
+    public ResponseEntity<DocumentAnalysisResponse> analyzeRecord(
+            @RequestAttribute("userId") String userIdStr,
+            @PathVariable UUID id) {
+        UUID userId = UUID.fromString(userIdStr);
+        DocumentAnalysisResponse response = healthRecordService.analyzeRecord(id, userId);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{id}/analysis")
+    public ResponseEntity<DocumentAnalysisResponse> getRecordAnalysis(
+            @RequestAttribute("userId") String userIdStr,
+            @PathVariable UUID id) {
+        UUID userId = UUID.fromString(userIdStr);
+        DocumentAnalysisResponse response = healthRecordService.getRecordAnalysis(id, userId);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/{id}/chat")
+    public ResponseEntity<DocumentChatResponse> sendDocumentChatMessage(
+            @RequestAttribute("userId") String userIdStr,
+            @PathVariable UUID id,
+            @Valid @RequestBody DocumentChatRequest request) {
+        UUID userId = UUID.fromString(userIdStr);
+        DocumentChatResponse response = healthRecordService.sendDocumentChatMessage(id, userId, request);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{id}/chat/history")
+    public ResponseEntity<List<DocumentChatResponse>> getDocumentChatHistory(
+            @RequestAttribute("userId") String userIdStr,
+            @PathVariable UUID id) {
+        UUID userId = UUID.fromString(userIdStr);
+        return ResponseEntity.ok(healthRecordService.getDocumentChatHistory(id, userId));
+    }
+
+    @DeleteMapping("/{id}/chat/history")
+    public ResponseEntity<Void> clearDocumentChatHistory(
+            @RequestAttribute("userId") String userIdStr,
+            @PathVariable UUID id) {
+        UUID userId = UUID.fromString(userIdStr);
+        healthRecordService.clearDocumentChatHistory(id, userId);
+        return ResponseEntity.noContent().build();
     }
 }

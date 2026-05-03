@@ -14,4 +14,10 @@ public interface ChatRepository extends JpaRepository<ChatMessage, UUID> {
     List<ChatMessage> findTop10ByUserIdOrderByTimestampDesc(UUID userId);
 
     void deleteByUserId(UUID userId);
+
+    List<ChatMessage> findTop10ByUserIdAndRecordIdOrderByTimestampDesc(UUID userId, UUID recordId);
+
+    List<ChatMessage> findByUserIdAndRecordIdOrderByTimestampAsc(UUID userId, UUID recordId);
+
+    void deleteByUserIdAndRecordId(UUID userId, UUID recordId);
 }

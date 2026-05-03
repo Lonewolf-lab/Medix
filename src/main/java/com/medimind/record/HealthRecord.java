@@ -52,6 +52,9 @@ public class HealthRecord {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
     public HealthRecord() {}
 
     @PrePersist
@@ -85,6 +88,8 @@ public class HealthRecord {
     public void setRecordDate(LocalDate recordDate) { this.recordDate = recordDate; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 
     public static Builder builder() { return new Builder(); }
 
@@ -95,6 +100,7 @@ public class HealthRecord {
         public Builder description(String v)     { obj.description = v; return this; }
         public Builder recordType(RecordType v)  { obj.recordType = v; return this; }
         public Builder recordDate(LocalDate v)   { obj.recordDate = v; return this; }
+        public Builder updatedAt(LocalDateTime v){ obj.updatedAt = v; return this; }
         public HealthRecord build()              { return obj; }
     }
 }

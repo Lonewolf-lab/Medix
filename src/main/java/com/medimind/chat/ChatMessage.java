@@ -26,6 +26,9 @@ public class ChatMessage {
     @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 
+    @Column(name = "record_id", nullable = true)
+    private UUID recordId;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime timestamp;
 
@@ -46,6 +49,8 @@ public class ChatMessage {
     public void setRole(String role) { this.role = role; }
     public String getContent() { return content; }
     public void setContent(String content) { this.content = content; }
+    public UUID getRecordId() { return recordId; }
+    public void setRecordId(UUID recordId) { this.recordId = recordId; }
     public LocalDateTime getTimestamp() { return timestamp; }
     public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
 
@@ -56,6 +61,7 @@ public class ChatMessage {
         public Builder user(User v)     { obj.user = v; return this; }
         public Builder role(String v)   { obj.role = v; return this; }
         public Builder content(String v){ obj.content = v; return this; }
+        public Builder recordId(UUID v) { obj.recordId = v; return this; }
         public ChatMessage build()      { return obj; }
     }
 }
