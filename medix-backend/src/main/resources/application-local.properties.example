@@ -1,0 +1,11 @@
+# Copy this file to `application-local.properties` and fill in real values.
+# The real file is gitignored and must NEVER be committed.
+
+# PostgreSQL password for the user in application.properties
+spring.datasource.password=your_postgres_password
+
+# JWT signing secret — must be at least 32 characters
+jwt.secret=replace_with_a_long_random_secret_min_32_chars
+
+# Groq API key — get one free at https://console.groq.com
+ai.api.key=gsk_your_groq_api_key_here
