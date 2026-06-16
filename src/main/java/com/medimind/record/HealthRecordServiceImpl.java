@@ -333,7 +333,7 @@ public class HealthRecordServiceImpl implements HealthRecordService {
         }
 
         return String.format(
-                "You are MediMind AI, a personal health assistant helping a patient understand their medical document.\n\n" +
+                "You are Medix AI, a personal health assistant helping a patient understand their medical document.\n\n" +
                 "Patient Profile:\n" +
                 "- Age: %s years\n" +
                 "- Blood Group: %s\n\n" +

@@ -166,7 +166,7 @@ public class ChatServiceImpl implements ChatService {
         }
 
         return String.format(
-                "You are MediMind AI, a personal health assistant.\n" +
+                "You are Medix AI, a personal health assistant.\n" +
                 "You have access to the following patient health data:\n\n" +
                 "Patient Profile:\n" +
                 "- Name: %s\n" +

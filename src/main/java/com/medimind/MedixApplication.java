@@ -6,9 +6,9 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
 @EnableScheduling
-public class MediMindApplication {
+public class MedixApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(MediMindApplication.class, args);
+        SpringApplication.run(MedixApplication.class, args);
     }
 }

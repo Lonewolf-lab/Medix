@@ -311,7 +311,7 @@ public class DashboardServiceImpl implements DashboardService {
         }
 
         String systemPrompt = String.format(
-                "You are MediMind AI, a personal health assistant. A patient is asking about a specific biomarker value from their latest lab report.\n\n" +
+                "You are Medix AI, a personal health assistant. A patient is asking about a specific biomarker value from their latest lab report.\n\n" +
                 "Patient Profile:\n" +
                 "- Age: %s years\n" +
                 "- Blood Group: %s\n\n" +

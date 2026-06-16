@@ -14,15 +14,21 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+import com.medimind.auth.BlacklistedTokenRepository;
+
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider tokenProvider;
     private final CustomUserDetailsService customUserDetailsService;
+    private final BlacklistedTokenRepository blacklistedTokenRepository;
 
-    public JwtAuthenticationFilter(JwtTokenProvider tokenProvider, CustomUserDetailsService customUserDetailsService) {
+    public JwtAuthenticationFilter(JwtTokenProvider tokenProvider, 
+                                   CustomUserDetailsService customUserDetailsService,
+                                   BlacklistedTokenRepository blacklistedTokenRepository) {
         this.tokenProvider = tokenProvider;
         this.customUserDetailsService = customUserDetailsService;
+        this.blacklistedTokenRepository = blacklistedTokenRepository;
     }
 
     @Override
@@ -33,6 +39,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String jwt = getJwtFromRequest(request);
 
             if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
+                if (blacklistedTokenRepository.existsByToken(jwt)) {
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token has been blacklisted");
+                    return;
+                }
+
                 String username = tokenProvider.getUsernameFromJWT(jwt);
                 String userId = tokenProvider.getUserIdFromJWT(jwt);
 
@@ -55,6 +66,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private String getJwtFromRequest(HttpServletRequest request) {
+        if (request.getCookies() != null) {
+            for (jakarta.servlet.http.Cookie cookie : request.getCookies()) {
+                if ("medix_token".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
+        }
+
         String bearerToken = request.getHeader("Authorization");
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
             return bearerToken.substring(7);

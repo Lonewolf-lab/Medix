@@ -46,6 +46,10 @@ public class JwtTokenProvider {
         return extractClaim(token, Claims::getSubject);
     }
 
+    public Date getExpirationDateFromJWT(String token) {
+        return extractClaim(token, Claims::getExpiration);
+    }
+
     public String getUserIdFromJWT(String token) {
         Claims claims = extractAllClaims(token);
         return claims.get("userId", String.class);

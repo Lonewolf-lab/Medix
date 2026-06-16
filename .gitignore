@@ -1,8 +1,17 @@
+# Build output
 target/
-.idea/
+*.class
 build.log
 build.txt
-*.class
+
+# IDE
+.idea/
+
+# Config & secrets — NEVER commit. Use the *.example templates instead.
+src/main/resources/application.properties
 src/main/resources/application-local.properties
 application.properties
 application-local.properties
+
+# Uploaded user files (medical records) — runtime data, not source code
+uploads/

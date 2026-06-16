@@ -7,4 +7,5 @@ import com.medimind.auth.dto.RegisterRequest;
 public interface AuthService {
     AuthResponse register(RegisterRequest registerRequest);
     AuthResponse login(LoginRequest loginRequest);
+    void blacklistToken(String token);
 }

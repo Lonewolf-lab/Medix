@@ -20,15 +20,18 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider tokenProvider;
+    private final BlacklistedTokenRepository blacklistedTokenRepository;
 
     public AuthServiceImpl(AuthenticationManager authenticationManager,
                            UserRepository userRepository,
                            PasswordEncoder passwordEncoder,
-                           JwtTokenProvider tokenProvider) {
+                           JwtTokenProvider tokenProvider,
+                           BlacklistedTokenRepository blacklistedTokenRepository) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.tokenProvider = tokenProvider;
+        this.blacklistedTokenRepository = blacklistedTokenRepository;
     }
 
     @Override
@@ -81,5 +84,24 @@ public class AuthServiceImpl implements AuthService {
                 .name(user.getName())
                 .email(user.getEmail())
                 .build();
+    }
+
+    @Override
+    public void blacklistToken(String token) {
+        if (token != null && !token.isEmpty()) {
+            java.util.Date expiryDate = null;
+            try {
+                expiryDate = tokenProvider.getExpirationDateFromJWT(token);
+            } catch (Exception e) {
+                // if it fails to parse, we can still blacklist but default to +1 day
+            }
+            
+            java.time.LocalDateTime expiresAt = (expiryDate != null) 
+                ? expiryDate.toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime()
+                : java.time.LocalDateTime.now().plusDays(1);
+
+            BlacklistedToken blacklistedToken = new BlacklistedToken(token, expiresAt);
+            blacklistedTokenRepository.save(blacklistedToken);
+        }
     }
 }
