@@ -1,0 +1,25 @@
+# ── Dependencies ────────────────────────────────────────────────
+**/node_modules/
+
+# ── Build output ────────────────────────────────────────────────
+**/dist/
+**/dist-ssr/
+**/target/
+*.class
+
+# ── Secrets & env (NEVER commit) ────────────────────────────────
+**/application-local.properties
+**/.env
+**/.env.production
+**/*.local
+
+# ── Runtime user data (uploaded medical files) ──────────────────
+**/uploads/
+
+# ── IDE / OS ────────────────────────────────────────────────────
+.idea/
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db
+*.log
