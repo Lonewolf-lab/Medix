@@ -1,0 +1,128 @@
+@import 'tailwindcss';
+
+/* ------------------------------------------------------------------ *
+ *  Medix design tokens — "Apple Health meets Notion"
+ *  Light, calm, medical-grade. Navy primary + semantic health colors.
+ * ------------------------------------------------------------------ */
+@theme {
+  /* Brand — navy */
+  --color-navy-50: #eef4fa;
+  --color-navy-100: #d5e3f1;
+  --color-navy-200: #abc7e3;
+  --color-navy-300: #7ba3cf;
+  --color-navy-400: #4a7bb0;
+  --color-navy-500: #2c5a8f;
+  --color-navy-600: #1a3c5e;
+  --color-navy-700: #163450;
+  --color-navy-800: #122a40;
+  --color-navy-900: #0d1e2e;
+
+  /* Accent — a calm teal/mint that pairs with navy */
+  --color-mint-50: #ecfdf6;
+  --color-mint-100: #d1fae7;
+  --color-mint-200: #a7f3d0;
+  --color-mint-300: #6ee7b7;
+  --color-mint-400: #34d399;
+  --color-mint-500: #10b981;
+  --color-mint-600: #059669;
+  --color-mint-700: #047857;
+
+  /* Semantic health-status colors (biomarkers / triage severity) */
+  --color-status-normal: #16a34a; /* green  — NORMAL / LOW severity */
+  --color-status-borderline: #d97706; /* amber  — BORDERLINE        */
+  --color-status-medium: #ea580c; /* orange — MEDIUM severity   */
+  --color-status-high: #dc2626; /* red    — HIGH/LOW / URGENT  */
+
+  /* Surfaces */
+  --color-canvas: #f6f8fb;
+  --color-surface: #ffffff;
+
+  /* Typography */
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Sora', var(--font-sans);
+
+  /* Radii — soft, modern */
+  --radius-card: 1rem;
+
+  /* Shadows — subtle, layered (Notion-like depth) */
+  --shadow-soft: 0 1px 2px rgb(16 36 56 / 0.04), 0 4px 16px rgb(16 36 56 / 0.06);
+  --shadow-lift: 0 2px 4px rgb(16 36 56 / 0.06), 0 12px 32px rgb(16 36 56 / 0.10);
+}
+
+/* ------------------------------------------------------------------ *
+ *  Base layer
+ * ------------------------------------------------------------------ */
+@layer base {
+  * {
+    border-color: var(--color-slate-200);
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--color-canvas);
+    color: var(--color-slate-800);
+    font-family: var(--font-sans);
+    font-feature-settings: 'cv11', 'ss01';
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+    color: var(--color-navy-900);
+  }
+
+  /* Calmer, branded scrollbars */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--color-slate-300);
+    border-radius: 9999px;
+    border: 2px solid var(--color-canvas);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-slate-400);
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ *  Reusable utilities
+ * ------------------------------------------------------------------ */
+@layer utilities {
+  .glass {
+    background-color: rgb(255 255 255 / 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  /* Subtle shimmer for skeleton loaders */
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      var(--color-slate-100) 25%,
+      var(--color-slate-200) 37%,
+      var(--color-slate-100) 63%
+    );
+    background-size: 400% 100%;
+    animation: shimmer 1.4s ease infinite;
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0 50%;
+    }
+  }
+}
