@@ -103,7 +103,7 @@ export default function AppLayout() {
   return (
     <div className="min-h-screen flex bg-cream text-ink">
       {/* Desktop Sidebar (Permanent) */}
-      <aside className="hidden md:block w-64 flex-shrink-0 border-r border-stone-line/60">
+      <aside className="hidden md:block w-64 flex-shrink-0 border-r border-stone-line/60 h-screen sticky top-0">
         <SidebarContent />
       </aside>
 

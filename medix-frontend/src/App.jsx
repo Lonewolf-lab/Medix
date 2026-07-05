@@ -20,8 +20,8 @@ import AppLayout from "./components/layout/AppLayout.jsx";
 import DashboardPage from "./pages/dashboard/DashboardPage.jsx";
 import SymptomCheckerPage from "./pages/dashboard/SymptomCheckerPage.jsx";
 import HealthRecordsPage from "./pages/dashboard/HealthRecordsPage.jsx";
+import MedicationsPage from "./pages/dashboard/MedicationsPage.jsx";
 import {
-  MedicationsPage,
   ChatPage,
   ProfilePage,
 } from "./pages/dashboard/AppPagesStubs.jsx";
