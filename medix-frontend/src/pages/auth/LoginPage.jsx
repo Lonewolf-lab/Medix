@@ -1,17 +1,33 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useAuthStore } from "@/store/authStore";
+import toast from "react-hot-toast";
 import AuthShell, { AuthField, AuthSubmit } from "./AuthShell.jsx";
 
 export default function LoginPage() {
   const [form, setForm] = useState({ email: "", password: "" });
-  const [notice, setNotice] = useState("");
+  const [loading, setLoading] = useState(false);
+  const login = useAuthStore((s) => s.login);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const from = location.state?.from || "/dashboard";
 
   const update = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
 
-  // UI-only for now — the Spring Boot backend gets wired in next phase.
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setNotice("Sign-in activates once the backend is connected — coming next.");
+    setLoading(true);
+
+    try {
+      await login(form);
+      toast.success("Welcome back to Medix!");
+      navigate(from, { replace: true });
+    } catch (err) {
+      toast.error(err.message || "Invalid credentials. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -37,6 +53,7 @@ export default function LoginPage() {
           value={form.email}
           onChange={update("email")}
           required
+          disabled={loading}
         />
         <AuthField
           number="02"
@@ -47,11 +64,11 @@ export default function LoginPage() {
           value={form.password}
           onChange={update("password")}
           required
+          disabled={loading}
         />
-        {notice && (
-          <p className="font-mono-accent text-[11px] tracking-wide text-forest">{notice}</p>
-        )}
-        <AuthSubmit>Sign in</AuthSubmit>
+        <AuthSubmit disabled={loading}>
+          {loading ? "Signing in..." : "Sign in"}
+        </AuthSubmit>
       </form>
     </AuthShell>
   );

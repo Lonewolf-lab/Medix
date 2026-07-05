@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuthStore } from "@/store/authStore";
+import toast from "react-hot-toast";
 import AuthShell, { AuthField, AuthSubmit } from "./AuthShell.jsx";
 
 const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
@@ -12,14 +14,32 @@ export default function RegisterPage() {
     dob: "",
     bloodGroup: "",
   });
-  const [notice, setNotice] = useState("");
+  const [loading, setLoading] = useState(false);
+  const register = useAuthStore((s) => s.register);
+  const navigate = useNavigate();
 
   const update = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
 
-  // UI-only for now — the Spring Boot backend gets wired in next phase.
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setNotice("Registration activates once the backend is connected — coming next.");
+    setLoading(true);
+
+    // Clean up empty optional fields
+    const payload = {
+      ...form,
+      dob: form.dob || null,
+      bloodGroup: form.bloodGroup || null,
+    };
+
+    try {
+      await register(payload);
+      toast.success("Account created successfully!");
+      navigate("/dashboard");
+    } catch (err) {
+      toast.error(err.message || "Registration failed. Please check your inputs.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -44,6 +64,7 @@ export default function RegisterPage() {
           value={form.name}
           onChange={update("name")}
           required
+          disabled={loading}
         />
         <AuthField
           number="02"
@@ -54,6 +75,7 @@ export default function RegisterPage() {
           value={form.email}
           onChange={update("email")}
           required
+          disabled={loading}
         />
         <AuthField
           number="03"
@@ -65,6 +87,7 @@ export default function RegisterPage() {
           value={form.password}
           onChange={update("password")}
           required
+          disabled={loading}
         />
         <div className="grid grid-cols-2 gap-8">
           <AuthField
@@ -73,6 +96,7 @@ export default function RegisterPage() {
             type="date"
             value={form.dob}
             onChange={update("dob")}
+            disabled={loading}
           />
           <div>
             <label className="font-mono-accent text-xs tracking-widest text-stone block mb-2">
@@ -81,21 +105,21 @@ export default function RegisterPage() {
             <select
               value={form.bloodGroup}
               onChange={update("bloodGroup")}
+              disabled={loading}
               className="w-full bg-transparent border-b border-stone-line py-3.5 text-ink focus:outline-none focus:border-forest transition-colors"
             >
-              <option value="">Select</option>
+              <option value="" className="bg-cream text-ink">Select</option>
               {BLOOD_GROUPS.map((g) => (
-                <option key={g} value={g}>
+                <option key={g} value={g} className="bg-cream text-ink">
                   {g}
                 </option>
               ))}
             </select>
           </div>
         </div>
-        {notice && (
-          <p className="font-mono-accent text-[11px] tracking-wide text-forest">{notice}</p>
-        )}
-        <AuthSubmit>Create account</AuthSubmit>
+        <AuthSubmit disabled={loading}>
+          {loading ? "Creating account..." : "Create account"}
+        </AuthSubmit>
         <p className="font-mono-accent text-[10px] tracking-widest text-stone -mt-2">
           MEDIX IS NOT A SUBSTITUTE FOR PROFESSIONAL MEDICAL ADVICE.
         </p>

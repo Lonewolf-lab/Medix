@@ -10,8 +10,6 @@ const LINKS = [
   { n: "02", label: "FEATURES", to: "/features" },
   { n: "03", label: "ABOUT", to: "/about" },
   { n: "04", label: "CONTACT", to: "/contact" },
-  { n: "05", label: "SIGN IN", to: "/login" },
-  { n: "06", label: "GET STARTED", to: "/register" },
 ];
 
 const overlay = {

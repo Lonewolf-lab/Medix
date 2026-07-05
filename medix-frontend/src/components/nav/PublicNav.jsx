@@ -64,46 +64,66 @@ export default function PublicNav() {
           </span>
         </Link>
 
-        {/* RIGHT — hamburger (dots morph to X) */}
-        <motion.button
-          onClick={() => setOpen((v) => !v)}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.95 }}
-          className="relative w-12 h-12 rounded-full bg-forest flex items-center justify-center text-cream-light"
-          aria-label={open ? "Close menu" : "Open menu"}
-          aria-expanded={open}
-        >
-          <div className="relative w-4 h-4 flex items-center justify-center">
-            <AnimatePresence mode="wait" initial={false}>
-              {open ? (
-                <motion.div
-                  key="x"
-                  initial={{ rotate: -90, opacity: 0 }}
-                  animate={{ rotate: 0, opacity: 1 }}
-                  exit={{ rotate: 90, opacity: 0 }}
-                  transition={{ duration: 0.25 }}
-                  className="absolute inset-0 flex items-center justify-center"
+        <div className="flex items-center gap-4">
+          <AnimatePresence>
+            {!open && (
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Link
+                  to="/login"
+                  className="font-mono-accent text-xs tracking-wider border border-stone-line/60 rounded-full px-5 py-2.5 bg-cream/30 backdrop-blur-sm text-ink hover:bg-forest hover:text-cream-light hover:border-forest transition-all duration-300"
                 >
-                  <span className="absolute w-4 h-[1.5px] bg-current rotate-45" />
-                  <span className="absolute w-4 h-[1.5px] bg-current -rotate-45" />
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="dots"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="flex flex-col gap-1"
-                >
-                  <span className="w-1 h-1 rounded-full bg-current" />
-                  <span className="w-1 h-1 rounded-full bg-current" />
-                  <span className="w-1 h-1 rounded-full bg-current" />
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </motion.button>
+                  SIGN IN
+                </Link>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* RIGHT — hamburger (dots morph to X) */}
+          <motion.button
+            onClick={() => setOpen((v) => !v)}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+            className="relative w-12 h-12 rounded-full bg-forest flex items-center justify-center text-cream-light"
+            aria-label={open ? "Close menu" : "Open menu"}
+            aria-expanded={open}
+          >
+            <div className="relative w-4 h-4 flex items-center justify-center">
+              <AnimatePresence mode="wait" initial={false}>
+                {open ? (
+                  <motion.div
+                    key="x"
+                    initial={{ rotate: -90, opacity: 0 }}
+                    animate={{ rotate: 0, opacity: 1 }}
+                    exit={{ rotate: 90, opacity: 0 }}
+                    transition={{ duration: 0.25 }}
+                    className="absolute inset-0 flex items-center justify-center"
+                  >
+                    <span className="absolute w-4 h-[1.5px] bg-current rotate-45" />
+                    <span className="absolute w-4 h-[1.5px] bg-current -rotate-45" />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="dots"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="flex flex-col gap-1"
+                  >
+                    <span className="w-1 h-1 rounded-full bg-current" />
+                    <span className="w-1 h-1 rounded-full bg-current" />
+                    <span className="w-1 h-1 rounded-full bg-current" />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </motion.button>
+        </div>
       </motion.nav>
 
       <FullscreenMenu open={open} onClose={() => setOpen(false)} />
