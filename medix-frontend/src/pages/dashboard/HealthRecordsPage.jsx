@@ -647,7 +647,7 @@ export default function HealthRecordsPage() {
                 </div>
 
                 {/* Chat Messages */}
-                <div className="flex-1 overflow-y-auto pr-1 space-y-3.5 scrollbar-thin">
+                <div className="h-[340px] overflow-y-auto pr-1 space-y-3.5 scrollbar-thin">
                   {chatHistory.length === 0 ? (
                     <div className="h-full flex flex-col items-center justify-center text-center py-10">
                       <ShieldCheck className="w-6 h-6 text-stone mb-2" />
