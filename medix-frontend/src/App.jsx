@@ -18,8 +18,8 @@ import RegisterPage from "./pages/auth/RegisterPage.jsx";
 import ProtectedRoute, { GuestOnlyRoute } from "./routes/ProtectedRoute.jsx";
 import AppLayout from "./components/layout/AppLayout.jsx";
 import DashboardPage from "./pages/dashboard/DashboardPage.jsx";
+import SymptomCheckerPage from "./pages/dashboard/SymptomCheckerPage.jsx";
 import {
-  SymptomCheckerPage,
   HealthRecordsPage,
   MedicationsPage,
   ChatPage,
