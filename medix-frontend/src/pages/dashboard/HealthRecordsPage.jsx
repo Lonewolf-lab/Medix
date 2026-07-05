@@ -237,6 +237,23 @@ export default function HealthRecordsPage() {
     }
   };
 
+  const formatChatMessage = (text) => {
+    if (!text) return "";
+    const parts = text.split(/(\*\*.*?\*\*|\n)/g);
+    return parts.map((part, index) => {
+      if (part.startsWith("**") && part.endsWith("**")) {
+        return (
+          <strong key={index} className="font-semibold text-ink">
+            {part.slice(2, -2)}
+          </strong>
+        );
+      } else if (part === "\n") {
+        return <br key={index} />;
+      }
+      return part;
+    });
+  };
+
   const handleSendChat = async (e) => {
     e.preventDefault();
     const msg = chatMsg.trim();
@@ -615,7 +632,7 @@ export default function HealthRecordsPage() {
                 initial={{ opacity: 0, x: 15 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 15 }}
-                className="flex-1 flex flex-col min-h-[380px] bg-cream-light/30 border border-stone-line/60 rounded-2xl overflow-hidden p-4 space-y-4"
+                className="flex-1 flex flex-col h-[480px] bg-cream-light/30 border border-stone-line/60 rounded-2xl overflow-hidden p-4 space-y-4"
               >
                 <div className="flex items-center justify-between border-b border-stone-line/40 pb-2 flex-shrink-0">
                   <span className="font-mono-accent text-[9px] tracking-widest text-stone uppercase flex items-center gap-1.5">
@@ -630,7 +647,7 @@ export default function HealthRecordsPage() {
                 </div>
 
                 {/* Chat Messages */}
-                <div className="flex-1 overflow-y-auto pr-1 space-y-3.5 scrollbar-thin max-h-[300px]">
+                <div className="flex-1 overflow-y-auto pr-1 space-y-3.5 scrollbar-thin">
                   {chatHistory.length === 0 ? (
                     <div className="h-full flex flex-col items-center justify-center text-center py-10">
                       <ShieldCheck className="w-6 h-6 text-stone mb-2" />
@@ -649,15 +666,15 @@ export default function HealthRecordsPage() {
                         <span className="font-mono-accent text-[8px] tracking-wider text-stone mb-0.5 uppercase">
                           {m.role === "user" ? "YOU" : "MEDIX AI"}
                         </span>
-                        <p
+                        <div
                           className={`px-3 py-2 rounded-xl text-xs font-sans leading-relaxed ${
                             m.role === "user"
                               ? "bg-ink text-cream"
-                              : "bg-cream border border-stone-line/60 text-ink"
+                              : "bg-cream border border-stone-line/40 text-ink-soft"
                           }`}
                         >
-                          {m.content}
-                        </p>
+                          {formatChatMessage(m.content)}
+                        </div>
                       </div>
                     ))
                   )}
