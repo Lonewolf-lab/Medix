@@ -17,6 +17,8 @@ import {
   ShieldCheck,
   Edit2,
   Upload,
+  ChevronDown,
+  Calendar,
 } from "lucide-react";
 
 const RECORD_TYPES = [
@@ -25,6 +27,184 @@ const RECORD_TYPES = [
   { value: "VACCINATION", label: "Vaccination Record" },
   { value: "OTHER", label: "Other Document" },
 ];
+
+// Custom Dropdown select component
+function ThemeSelect({ value, onChange, options }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, []);
+
+  const active = options.find((o) => o.value === value) || options[0];
+
+  return (
+    <div className="relative w-full" ref={containerRef}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full bg-cream-light/60 border border-stone-line/60 rounded-lg pl-3 pr-10 py-2.5 text-xs text-ink text-left focus:outline-none focus:border-forest transition-all flex items-center justify-between cursor-pointer"
+      >
+        <span>{active.label}</span>
+        <ChevronDown className={`w-3.5 h-3.5 text-stone transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`} />
+      </button>
+      {isOpen && (
+        <div className="absolute z-50 mt-1 w-full bg-cream border border-stone-line rounded-lg shadow-lg overflow-hidden py-1">
+          {options.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => {
+                onChange(opt.value);
+                setIsOpen(false);
+              }}
+              className={`w-full text-left px-3.5 py-2 text-xs transition-colors cursor-pointer ${
+                opt.value === value
+                  ? "bg-forest text-cream-light font-medium hover:bg-forest-bright"
+                  : "text-ink hover:bg-forest/10 hover:text-forest"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Custom Datepicker component
+function ThemeDatePicker({ value, onChange }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, []);
+
+  const handlePrevMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+  };
+
+  const handleNextMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+  };
+
+  const daysInMonth = () => {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    const date = new Date(year, month, 1);
+    const days = [];
+    
+    const startDay = date.getDay();
+    for (let i = 0; i < startDay; i++) {
+      days.push(null);
+    }
+    
+    while (date.getMonth() === month) {
+      days.push(new Date(date));
+      date.setDate(date.getDate() + 1);
+    }
+    return days;
+  };
+
+  const selectDay = (day) => {
+    if (!day) return;
+    const yyyy = day.getFullYear();
+    const mm = String(day.getMonth() + 1).padStart(2, "0");
+    const dd = String(day.getDate()).padStart(2, "0");
+    onChange(`${yyyy}-${mm}-${dd}`);
+    setIsOpen(false);
+  };
+
+  const formatDateLabel = () => {
+    if (!value) return "Select date...";
+    const [y, m, d] = value.split("-");
+    return `${m}/${d}/${y}`;
+  };
+
+  const monthNames = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
+
+  return (
+    <div className="relative w-full" ref={containerRef}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full bg-cream-light/60 border border-stone-line/60 rounded-lg pl-3 pr-10 py-2.5 text-xs text-ink text-left focus:outline-none focus:border-forest transition-all flex items-center justify-between cursor-pointer"
+      >
+        <span className={value ? "text-ink" : "text-stone"}>{formatDateLabel()}</span>
+        <Calendar className="w-3.5 h-3.5 text-stone" />
+      </button>
+
+      {isOpen && (
+        <div className="absolute z-50 mt-1 right-0 md:left-0 bg-cream border border-stone-line rounded-xl shadow-xl p-4 w-[260px]">
+          <div className="flex items-center justify-between border-b border-stone-line/40 pb-2 mb-2">
+            <button type="button" onClick={handlePrevMonth} className="text-stone hover:text-ink text-sm font-bold px-1.5 py-0.5 rounded hover:bg-cream-light cursor-pointer">
+              &lt;
+            </button>
+            <span className="font-mono-accent text-[11px] tracking-wide text-ink font-semibold">
+              {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+            </span>
+            <button type="button" onClick={handleNextMonth} className="text-stone hover:text-ink text-sm font-bold px-1.5 py-0.5 rounded hover:bg-cream-light cursor-pointer">
+              &gt;
+            </button>
+          </div>
+
+          <div className="grid grid-cols-7 gap-1 text-center mb-1">
+            {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((d) => (
+              <span key={d} className="font-mono-accent text-[8px] text-stone uppercase font-bold">
+                {d}
+              </span>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-7 gap-1">
+            {daysInMonth().map((day, idx) => {
+              if (!day) return <div key={idx} />;
+              
+              const isSelected = value && 
+                day.getFullYear() === parseInt(value.split("-")[0]) &&
+                day.getMonth() === parseInt(value.split("-")[1]) - 1 &&
+                day.getDate() === parseInt(value.split("-")[2]);
+
+              return (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => selectDay(day)}
+                  className={`aspect-square text-[10px] font-sans rounded-md transition-all flex items-center justify-center cursor-pointer ${
+                    isSelected
+                      ? "bg-forest text-cream-light font-semibold hover:bg-forest-bright"
+                      : "text-ink hover:bg-forest/10 hover:text-forest"
+                  }`}
+                >
+                  {day.getDate()}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function HealthRecordsPage() {
   const [records, setRecords] = useState([]);
@@ -333,7 +513,7 @@ export default function HealthRecordsPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {/* File Input */}
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <label className="font-mono-accent text-[9px] tracking-widest text-stone uppercase block">
                     FILE (PDF, JPG, PNG - MAX 10MB)
                   </label>
@@ -343,12 +523,12 @@ export default function HealthRecordsPage() {
                     onChange={handleFileChange}
                     accept=".pdf,image/jpeg,image/png"
                     required
-                    className="w-full text-xs text-ink file:mr-4 file:py-1.5 file:px-3 file:rounded-full file:border file:border-stone-line/60 file:bg-transparent file:text-ink file:font-mono-accent file:text-[10px] file:tracking-wider hover:file:border-stone transition-all cursor-pointer"
+                    className="w-full bg-cream-light/60 border border-stone-line/60 rounded-lg pl-3 pr-3 py-1.5 text-xs text-ink file:mr-3 file:py-1 file:px-2.5 file:rounded-full file:border-none file:bg-ink file:text-cream file:font-mono-accent file:text-[9px] file:tracking-wider hover:file:bg-forest transition-all cursor-pointer"
                   />
                 </div>
 
                 {/* Title */}
-                <div className="space-y-1">
+                <div className="space-y-1.5">
                   <span className="font-mono-accent text-[9px] tracking-widest text-stone uppercase block">
                     RECORD TITLE
                   </span>
@@ -358,46 +538,38 @@ export default function HealthRecordsPage() {
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     required
-                    className="w-full bg-transparent border-b border-stone-line/60 focus:border-forest focus:outline-none py-1 text-xs text-ink transition-colors"
+                    className="w-full bg-cream-light/60 border border-stone-line/60 rounded-lg px-3 py-2 text-xs text-ink focus:outline-none focus:border-forest transition-colors"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {/* Type Select */}
-                <div className="space-y-1">
+                <div className="space-y-1.5">
                   <span className="font-mono-accent text-[9px] tracking-widest text-stone uppercase block">
                     RECORD TYPE
                   </span>
-                  <select
+                  <ThemeSelect
                     value={recordType}
-                    onChange={(e) => setRecordType(e.target.value)}
-                    className="w-full bg-transparent border-b border-stone-line/60 focus:border-forest focus:outline-none py-1.5 text-xs text-ink transition-colors"
-                  >
-                    {RECORD_TYPES.map((t) => (
-                      <option key={t.value} value={t.value} className="bg-cream text-ink">
-                        {t.label}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(val) => setRecordType(val)}
+                    options={RECORD_TYPES}
+                  />
                 </div>
 
                 {/* Date */}
-                <div className="space-y-1">
+                <div className="space-y-1.5">
                   <span className="font-mono-accent text-[9px] tracking-widest text-stone uppercase block">
                     RECORD DATE (OPTIONAL)
                   </span>
-                  <input
-                    type="date"
+                  <ThemeDatePicker
                     value={recordDate}
-                    onChange={(e) => setRecordDate(e.target.value)}
-                    className="w-full bg-transparent border-b border-stone-line/60 focus:border-forest focus:outline-none py-1 text-xs text-ink transition-colors"
+                    onChange={(val) => setRecordDate(val)}
                   />
                 </div>
               </div>
 
               {/* Description */}
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 <span className="font-mono-accent text-[9px] tracking-widest text-stone uppercase block">
                   DESCRIPTION / NOTES
                 </span>
@@ -406,14 +578,14 @@ export default function HealthRecordsPage() {
                   placeholder="Details or brief summary..."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full bg-transparent border-b border-stone-line/60 focus:border-forest focus:outline-none py-1 text-xs text-ink transition-colors"
+                  className="w-full bg-cream-light/60 border border-stone-line/60 rounded-lg px-3 py-2 text-xs text-ink focus:outline-none focus:border-forest transition-colors"
                 />
               </div>
 
               <div className="flex justify-end">
                 <button
                   type="submit"
-                  className="font-mono-accent text-xs tracking-[0.2em] bg-ink text-cream px-6 py-2.5 rounded-full hover:bg-forest transition-all duration-300 flex items-center gap-2 hover:scale-105"
+                  className="font-mono-accent text-xs tracking-[0.2em] bg-ink text-cream px-8 py-3 rounded-full hover:bg-forest transition-all duration-300 flex items-center gap-2 hover:scale-105"
                 >
                   <Upload className="w-4 h-4" />
                   UPLOAD & ANALYZE
@@ -423,12 +595,12 @@ export default function HealthRecordsPage() {
           ) : (
             /* AI Summary & Extracted Biomarkers (Replaces Form when record selected) */
             <div className="space-y-6">
-              <div className="flex items-center justify-between border-b border-stone-line/60 pb-1.5">
+              <div className="flex items-center justify-between border-b border-stone-line/60 pb-2">
                 <button
                   onClick={() => setSelectedRecord(null)}
-                  className="font-mono-accent text-[10px] tracking-[0.2em] text-stone hover:text-ink flex items-center gap-1.5 uppercase"
+                  className="font-mono-accent text-[10px] tracking-[0.15em] bg-transparent border border-stone-line/60 hover:border-forest text-ink hover:text-forest px-3.5 py-1.5 rounded-full transition-all duration-300 uppercase flex items-center gap-1.5"
                 >
-                  ← Upload New Record
+                  <Plus className="w-3.5 h-3.5" /> New Upload
                 </button>
                 <div className="flex gap-2">
                   {selectedRecord.fileUrl && (
@@ -499,7 +671,7 @@ export default function HealthRecordsPage() {
                 {isEditingFindings ? (
                   /* Edit Mode */
                   <div className="space-y-3">
-                    <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+                    <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
                       {editedFindings.map((finding, idx) => (
                         <div key={idx} className="flex gap-2 items-center bg-cream-light p-2 rounded-lg border border-stone-line/40">
                           <input
@@ -647,7 +819,7 @@ export default function HealthRecordsPage() {
                 </div>
 
                 {/* Chat Messages */}
-                <div className="h-[340px] overflow-y-auto pr-1 space-y-3.5 scrollbar-thin">
+                <div className="h-[340px] overflow-y-auto pr-1 space-y-3.5 custom-scrollbar">
                   {chatHistory.length === 0 ? (
                     <div className="h-full flex flex-col items-center justify-center text-center py-10">
                       <ShieldCheck className="w-6 h-6 text-stone mb-2" />

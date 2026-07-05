@@ -84,3 +84,73 @@
   color: transparent !important;
   -webkit-text-stroke: 2px #f5f3ec;
 }
+
+/* Custom themed scrollbars */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #c2bfb2;
+  border-radius: 99px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #2f5233;
+}
+
+/* Premium styled date inputs: make webkit indicator transparent and stretched over the field */
+input[type="date"] {
+  position: relative;
+}
+input[type="date"]::-webkit-calendar-picker-indicator {
+  background: transparent;
+  bottom: 0;
+  color: transparent;
+  cursor: pointer;
+  height: auto;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: auto;
+}
+
+/* Force select element to strip browser arrows */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+select::-ms-expand {
+  display: none;
+}
+
+/* Date input text styling */
+input[type="date"]::placeholder {
+  color: #8a8778;
+}
+input[type="date"]::-webkit-datetime-edit {
+  color: #5c5a4f;
+  font-family: inherit;
+}
+input[type="date"]::-webkit-datetime-edit-fields-wrapper {
+  padding: 0;
+}
+input[type="date"]::-webkit-datetime-edit-text {
+  color: #8a8778;
+}
+input[type="date"]::-webkit-datetime-edit-month-field {
+  color: #8a8778;
+}
+input[type="date"]::-webkit-datetime-edit-day-field {
+  color: #8a8778;
+}
+input[type="date"]::-webkit-datetime-edit-year-field {
+  color: #8a8778;
+}
+
+
+
