@@ -7,7 +7,6 @@ import {
   Activity,
   Plus,
   X,
-  FileText,
   Clock,
   ChevronRight,
   AlertTriangle,
@@ -35,7 +34,6 @@ export default function SymptomCheckerPage() {
   const fetchHistory = async () => {
     try {
       const data = await symptomApi.getHistory();
-      // Backend returns logs chronologically or reverse. Let's make sure it's newest first.
       setHistory(data.reverse());
     } catch (err) {
       toast.error("Failed to fetch history logs.");
@@ -83,10 +81,8 @@ export default function SymptomCheckerPage() {
       });
       setResult(response);
       toast.success("Analysis report generated successfully!");
-      // Reset form fields
       setSelectedSymptoms([]);
       setNotes("");
-      // Refresh history log list
       fetchHistory();
     } catch (err) {
       toast.error(err.message || "Failed to analyze symptoms. Please try again.");
@@ -104,48 +100,52 @@ export default function SymptomCheckerPage() {
   };
 
   return (
-    <div className="p-6 space-y-10">
-      {/* Page Header */}
-      <div>
-        <span className="font-mono-accent text-xs tracking-widest text-stone uppercase">TRIAGE PORTAL</span>
-        <h1 className="font-display text-4xl uppercase tracking-tight text-ink mt-1">Symptom Checker</h1>
-        <p className="font-sans text-ink-soft max-w-xl text-sm leading-relaxed mt-2">
-          Select your symptoms below, add additional details, and generate a medical AI assessment.
-        </p>
-      </div>
+    <div className="px-6 py-10 max-w-5xl mx-auto space-y-16">
+      {/* 1. Main Symptom Checker Form */}
+      <div className="space-y-10">
+        {/* Header Block */}
+        <div className="space-y-2">
+          <span className="font-mono-accent text-[10px] tracking-[0.3em] text-stone uppercase block">
+            TRIAGE PORTAL
+          </span>
+          <h1 className="font-display text-4xl uppercase tracking-tight text-ink leading-none">
+            Symptom Checker
+          </h1>
+          <p className="font-sans text-xs text-ink-soft max-w-md leading-relaxed">
+            Select matching metrics, input severity indicators, and generate an AI-powered diagnostic first opinion.
+          </p>
+        </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-        {/* Main Checker Panel */}
-        <div className="lg:col-span-2 space-y-8">
-          {loading ? (
-            <div className="border border-stone-line/60 bg-cream-light/40 rounded-xl p-20 flex items-center justify-center min-h-[350px]">
-              <Loader label="AI is analyzing your symptoms..." />
-            </div>
-          ) : result ? (
-            /* Results Screen */
-            <motion.div
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-cream-light/60 border border-stone-line/60 rounded-xl p-6 space-y-6"
-            >
-              <div className="flex flex-wrap items-center justify-between gap-4 border-b border-stone-line/60 pb-4">
-                <div className="space-y-1">
-                  <span className="font-mono-accent text-[10px] tracking-widest text-stone">TRIAGE COMPLETED</span>
-                  <h3 className="font-display text-lg uppercase tracking-wider text-ink">Analysis Report</h3>
-                </div>
-                <div className={`px-4 py-1.5 rounded-full border text-xs font-mono-accent tracking-widest ${getSeverityStyle(result.severity)}`}>
-                  {result.severity?.toUpperCase()} SEVERITY
-                </div>
+        {loading ? (
+          <div className="py-24 flex items-center justify-center">
+            <Loader label="AI is generating triage report..." />
+          </div>
+        ) : result ? (
+          /* Results View */
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-8"
+          >
+            <div className="flex items-center justify-between border-b border-stone-line/60 pb-4">
+              <div className="space-y-1">
+                <span className="font-mono-accent text-[9px] tracking-[0.3em] text-stone">REPORT GENERATED</span>
+                <h3 className="font-display text-2xl uppercase tracking-wider text-ink leading-none">Triage Summary</h3>
               </div>
+              <div className={`px-4 py-1.5 rounded-full border text-[10px] font-mono-accent tracking-widest ${getSeverityStyle(result.severity)}`}>
+                {result.severity?.toUpperCase()} SEVERITY
+              </div>
+            </div>
 
-              {/* Causes */}
-              <div className="space-y-2">
-                <span className="font-mono-accent text-[10px] tracking-widest text-stone uppercase">POSSIBLE CAUSES</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+              {/* Left Column: Causes */}
+              <div className="space-y-3">
+                <span className="font-mono-accent text-[10px] tracking-[0.2em] text-stone uppercase block">POSSIBLE CAUSES</span>
                 <div className="flex flex-wrap gap-2">
                   {result.possibleCauses?.map((cause) => (
                     <span
                       key={cause}
-                      className="px-3 py-1 bg-cream border border-stone-line/60 rounded-lg text-xs font-sans text-ink"
+                      className="px-3.5 py-1.5 bg-cream-light border border-stone-line/60 rounded-full text-xs font-sans text-ink"
                     >
                       {cause}
                     </span>
@@ -153,174 +153,192 @@ export default function SymptomCheckerPage() {
                 </div>
               </div>
 
-              {/* Recommendation */}
-              <div className="space-y-2">
-                <span className="font-mono-accent text-[10px] tracking-widest text-stone uppercase">RECOMMENDED ACTION</span>
-                <p className="font-sans text-sm text-ink-soft leading-relaxed bg-cream/40 border border-stone-line/40 rounded-lg p-4">
+              {/* Right Column: Recommendations */}
+              <div className="space-y-3">
+                <span className="font-mono-accent text-[10px] tracking-[0.2em] text-stone uppercase block">RECOMMENDED ACTION</span>
+                <p className="font-sans text-xs text-ink-soft leading-relaxed bg-cream-light border border-stone-line/40 rounded-xl p-4">
                   {result.recommendation}
                 </p>
               </div>
+            </div>
 
-              {/* Disclaimer */}
-              <div className="flex gap-3 bg-amber-500/5 border border-amber-200/60 rounded-lg p-4 text-xs text-amber-800">
-                <AlertTriangle className="w-5 h-5 flex-shrink-0 text-amber-600" />
-                <p className="font-sans leading-relaxed">{result.disclaimer}</p>
-              </div>
+            {/* Disclaimer */}
+            <div className="flex gap-3 bg-amber-500/5 border border-amber-200/50 rounded-xl p-4 text-xs text-amber-800">
+              <AlertTriangle className="w-5 h-5 flex-shrink-0 text-amber-600" />
+              <p className="font-sans leading-relaxed">{result.disclaimer}</p>
+            </div>
 
-              <div className="flex justify-end pt-2">
-                <button
-                  onClick={() => setResult(null)}
-                  className="font-mono-accent text-xs tracking-wider bg-ink text-cream px-5 py-2.5 rounded-full hover:bg-forest transition-colors duration-300"
-                >
-                  NEW ASSESSMENT
-                </button>
-              </div>
-            </motion.div>
-          ) : (
-            /* Builder Interface */
-            <div className="space-y-6">
-              {/* Category selector */}
-              <div className="space-y-5">
-                <span className="font-mono-accent text-xs tracking-widest text-stone uppercase">01 — SELECT SYMPTOMS</span>
-                <div className="space-y-4">
-                  {Object.entries(POPULAR_SYMPTOMS).map(([category, items]) => (
-                    <div key={category} className="space-y-2">
-                      <span className="font-mono-accent text-[10px] text-stone tracking-wide">{category}</span>
-                      <div className="flex flex-wrap gap-2">
-                        {items.map((symptom) => {
-                          const selected = selectedSymptoms.includes(symptom);
-                          return (
-                            <button
-                              key={symptom}
-                              onClick={() => toggleSymptom(symptom)}
-                              className={`px-3 py-1.5 rounded-lg border text-xs tracking-wide transition-all duration-300 ${
-                                selected
-                                  ? "bg-forest border-forest text-cream-light font-medium"
-                                  : "bg-cream-light/40 border-stone-line/60 text-ink hover:border-stone"
-                              }`}
-                            >
-                              {symptom}
-                            </button>
-                          );
-                        })}
-                      </div>
+            <div className="flex justify-end pt-2 border-t border-stone-line/60">
+              <button
+                onClick={() => setResult(null)}
+                className="font-mono-accent text-xs tracking-[0.15em] bg-ink text-cream px-6 py-3 rounded-full hover:bg-forest transition-all duration-300 hover:scale-105"
+              >
+                NEW ASSESSMENT
+              </button>
+            </div>
+          </motion.div>
+        ) : (
+          /* Form Builder (Editorial, spaced out, max-width contained) */
+          <div className="space-y-8">
+            {/* Category Select Column Layout */}
+            <div className="space-y-4">
+              <span className="font-mono-accent text-[10px] tracking-[0.25em] text-stone uppercase block">
+                01 — SELECT SYMPTOMS
+              </span>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
+                {Object.entries(POPULAR_SYMPTOMS).map(([category, items]) => (
+                  <div key={category} className="space-y-2">
+                    <span className="font-mono-accent text-[10px] tracking-widest text-stone uppercase block border-b border-stone-line/60 pb-1">
+                      {category}
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {items.map((symptom) => {
+                        const selected = selectedSymptoms.includes(symptom);
+                        return (
+                          <button
+                            key={symptom}
+                            onClick={() => toggleSymptom(symptom)}
+                            className={`px-3 py-1.5 rounded-full border text-xs tracking-wide transition-all duration-300 ${
+                              selected
+                                ? "bg-forest border-forest text-cream-light font-medium"
+                                : "bg-transparent border-stone-line/60 text-ink hover:border-stone"
+                            }`}
+                          >
+                            {symptom}
+                          </button>
+                        );
+                      })}
                     </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Custom input */}
-              <form onSubmit={handleAddCustom} className="space-y-2">
-                <span className="font-mono-accent text-xs tracking-widest text-stone uppercase block">02 — ADD CUSTOM SYMPTOM</span>
-                <div className="flex gap-3">
-                  <input
-                    type="text"
-                    placeholder="e.g. Migraine, Numbness"
-                    value={customSymptom}
-                    onChange={(e) => setCustomSymptom(e.target.value)}
-                    className="flex-1 bg-cream-light/40 border border-stone-line/60 rounded-lg px-4 py-2.5 text-xs text-ink focus:outline-none focus:border-forest transition-colors"
-                  />
-                  <button
-                    type="submit"
-                    className="p-2.5 bg-ink text-cream rounded-lg hover:bg-forest transition-colors flex items-center justify-center"
-                    aria-label="Add custom symptom"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
-                </div>
-              </form>
-
-              {/* Selected summary */}
-              {selectedSymptoms.length > 0 && (
-                <div className="space-y-2">
-                  <span className="font-mono-accent text-[10px] tracking-widest text-stone uppercase">SELECTED ({selectedSymptoms.length})</span>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedSymptoms.map((s) => (
-                      <span
-                        key={s}
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-forest/10 border border-forest/20 rounded-md text-xs font-sans text-forest"
-                      >
-                        {s}
-                        <button onClick={() => toggleSymptom(s)} aria-label={`Remove ${s}`}>
-                          <X className="w-3.5 h-3.5 hover:text-rose-500" />
-                        </button>
-                      </span>
-                    ))}
                   </div>
-                </div>
-              )}
+                ))}
+              </div>
+            </div>
+
+            {/* Input Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 pt-4">
+              {/* Custom Input */}
+              <div className="space-y-4">
+                <form onSubmit={handleAddCustom} className="space-y-2">
+                  <span className="font-mono-accent text-[10px] tracking-[0.25em] text-stone uppercase block">
+                    02 — ADD CUSTOM SYMPTOM
+                  </span>
+                  <div className="flex gap-2 border-b border-stone-line/60 focus-within:border-forest transition-colors py-1">
+                    <input
+                      type="text"
+                      placeholder="Type symptom and press enter..."
+                      value={customSymptom}
+                      onChange={(e) => setCustomSymptom(e.target.value)}
+                      className="flex-1 bg-transparent px-1 text-xs text-ink focus:outline-none"
+                    />
+                    <button
+                      type="submit"
+                      className="p-1 text-stone hover:text-forest transition-colors"
+                      aria-label="Add custom symptom"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
+                </form>
+
+                {selectedSymptoms.length > 0 && (
+                  <div className="space-y-2">
+                    <span className="font-mono-accent text-[9px] tracking-[0.2em] text-stone uppercase block">
+                      Active Selection
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {selectedSymptoms.map((s) => (
+                        <span
+                          key={s}
+                          className="inline-flex items-center gap-1.5 px-3 py-1 bg-forest/10 border border-forest/20 rounded-full text-xs font-sans text-forest"
+                        >
+                          {s}
+                          <button onClick={() => toggleSymptom(s)} aria-label={`Remove ${s}`}>
+                            <X className="w-3 h-3 hover:text-rose-500" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
 
               {/* Notes */}
               <div className="space-y-2">
-                <span className="font-mono-accent text-xs tracking-widest text-stone uppercase">03 — ADD ADDITIONAL DETAILS (OPTIONAL)</span>
+                <span className="font-mono-accent text-[10px] tracking-[0.25em] text-stone uppercase block">
+                  03 — ADDITIONAL DETAILS (OPTIONAL)
+                </span>
                 <textarea
-                  placeholder="Describe details like duration, what makes it better/worse, or when it started..."
-                  rows={4}
+                  placeholder="Notes about onset, triggers, or severity logs..."
+                  rows={2}
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  className="w-full bg-cream-light/40 border border-stone-line/60 rounded-lg p-4 text-xs text-ink focus:outline-none focus:border-forest transition-colors resize-none"
+                  className="w-full bg-transparent border-b border-stone-line/60 focus:border-forest focus:outline-none py-2 text-xs text-ink resize-none h-[65px] transition-colors"
                 />
               </div>
+            </div>
 
+            {/* Actions Button (Centered Pill) */}
+            <div className="flex justify-center pt-4">
               <button
                 onClick={handleAnalyze}
                 disabled={selectedSymptoms.length === 0}
-                className="w-full bg-ink text-cream font-mono-accent text-xs tracking-widest py-3 rounded-full hover:bg-forest disabled:opacity-50 disabled:hover:bg-ink transition-all duration-300 flex items-center justify-center gap-2"
+                className="font-mono-accent text-xs tracking-[0.2em] bg-ink text-cream px-8 py-3.5 rounded-full hover:bg-forest disabled:opacity-50 disabled:hover:bg-ink transition-all duration-300 hover:scale-105 flex items-center gap-2"
               >
                 <Activity className="w-4 h-4" />
                 GENERATE ASSESSMENT REPORT
               </button>
             </div>
-          )}
+          </div>
+        )}
+      </div>
+
+      {/* 2. History Section (At the bottom, styled as horizontal cards) */}
+      <div className="border-t border-stone-line/60 pt-10 space-y-6">
+        <div className="flex items-baseline justify-between">
+          <div className="space-y-1">
+            <span className="font-mono-accent text-[10px] tracking-[0.3em] text-stone">HISTORY ARCHIVE</span>
+            <h3 className="font-display text-xl uppercase tracking-wider text-ink">Triage Logs</h3>
+          </div>
+          <span className="font-mono-accent text-[10px] tracking-[0.2em] text-stone">PAST RECORDS</span>
         </div>
 
-        {/* History Panel */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between border-b border-stone-line/60 pb-3">
-            <h3 className="font-display text-md uppercase tracking-wider text-ink flex items-center gap-2">
-              <Clock className="w-4 h-4 text-stone" />
-              History Logs
-            </h3>
+        {historyLoading ? (
+          <div className="py-10 text-center font-mono-accent text-xs text-stone">Loading history logs...</div>
+        ) : history.length === 0 ? (
+          <div className="py-10 text-center font-mono-accent text-xs text-stone border border-dashed border-stone-line/60 rounded-xl">
+            No past logs found.
           </div>
-
-          <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
-            {historyLoading ? (
-              <div className="py-10 text-center font-mono-accent text-xs text-stone">Loading history...</div>
-            ) : history.length === 0 ? (
-              <div className="py-10 text-center font-mono-accent text-xs text-stone border border-dashed border-stone-line/60 rounded-xl bg-cream-light/10">
-                No logs recorded yet.
-              </div>
-            ) : (
-              history.map((log) => (
-                <button
-                  key={log.id}
-                  onClick={() => setViewingLog(log)}
-                  className="w-full text-left bg-cream-light/60 border border-stone-line/60 p-4 rounded-xl hover:border-stone/60 transition-all duration-300 flex items-start justify-between gap-4 group"
-                >
-                  <div className="space-y-1.5 min-w-0">
-                    <span className="font-mono-accent text-[9px] tracking-wide text-stone block">
-                      {new Date(log.timestamp).toLocaleDateString()} — {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </span>
-                    <p className="font-sans text-xs text-ink font-medium truncate">
-                      {log.symptoms?.join(", ")}
-                    </p>
-                    <span className={`inline-block text-[9px] font-mono-accent tracking-widest border px-2 py-0.5 rounded-full ${getSeverityStyle(log.severity)}`}>
-                      {log.severity?.toUpperCase()}
-                    </span>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-stone group-hover:text-forest transition-transform duration-300 group-hover:translate-x-1 flex-shrink-0" />
-                </button>
-              ))
-            )}
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {history.map((log) => (
+              <button
+                key={log.id}
+                onClick={() => setViewingLog(log)}
+                className="text-left bg-transparent border-b border-stone-line/60 hover:border-forest pb-4 transition-all duration-300 flex items-start justify-between gap-3 group"
+              >
+                <div className="space-y-1.5 min-w-0">
+                  <span className="font-mono-accent text-[9px] tracking-wide text-stone block">
+                    {new Date(log.timestamp).toLocaleDateString()} — {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                  <p className="font-sans text-xs text-ink font-semibold truncate group-hover:text-forest transition-colors">
+                    {log.symptoms?.join(", ")}
+                  </p>
+                  <span className={`inline-block text-[9px] font-mono-accent tracking-widest border px-2 py-0.5 rounded-full ${getSeverityStyle(log.severity)}`}>
+                    {log.severity?.toUpperCase()}
+                  </span>
+                </div>
+                <ChevronRight className="w-4 h-4 text-stone group-hover:text-forest transition-transform duration-300 group-hover:translate-x-1 flex-shrink-0 mt-1" />
+              </button>
+            ))}
           </div>
-        </div>
+        )}
       </div>
 
       {/* Log Detail Modal */}
       <AnimatePresence>
         {viewingLog && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
-            {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 0.5 }}
@@ -328,12 +346,11 @@ export default function SymptomCheckerPage() {
               onClick={() => setViewingLog(null)}
               className="fixed inset-0 bg-ink"
             />
-            {/* Modal Body */}
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-cream border border-stone-line max-w-lg w-full rounded-2xl p-6 relative z-10 space-y-6 max-h-[90vh] overflow-y-auto"
+              className="bg-cream border border-stone-line max-w-lg w-full rounded-2xl p-6 relative z-10 space-y-5 max-h-[90vh] overflow-y-auto"
             >
               <div className="flex items-center justify-between border-b border-stone-line/60 pb-4">
                 <div>
@@ -351,62 +368,59 @@ export default function SymptomCheckerPage() {
                 </button>
               </div>
 
-              {/* Symptoms */}
-              <div className="space-y-1.5">
-                <span className="font-mono-accent text-[9px] tracking-widest text-stone uppercase">SYMPTOMS</span>
-                <p className="font-sans text-xs text-ink font-medium bg-cream-light/60 border border-stone-line/60 px-3 py-2 rounded-lg">
-                  {viewingLog.symptoms?.join(", ")}
-                </p>
-              </div>
-
-              {/* Notes */}
-              {viewingLog.additionalNotes && (
+              <div className="space-y-4">
                 <div className="space-y-1.5">
-                  <span className="font-mono-accent text-[9px] tracking-widest text-stone uppercase">ADDITIONAL DETAILS</span>
-                  <p className="font-sans text-xs text-ink-soft bg-cream-light/60 border border-stone-line/60 px-3 py-2 rounded-lg leading-relaxed">
-                    {viewingLog.additionalNotes}
+                  <span className="font-mono-accent text-[9px] tracking-widest text-stone uppercase block">SYMPTOMS</span>
+                  <p className="font-sans text-xs text-ink font-medium bg-cream-light/60 border border-stone-line/60 px-3 py-2 rounded-lg">
+                    {viewingLog.symptoms?.join(", ")}
                   </p>
                 </div>
-              )}
 
-              {/* Severity & Causes */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <span className="font-mono-accent text-[9px] tracking-widest text-stone uppercase">SEVERITY LEVEL</span>
-                  <div className={`text-center py-2.5 rounded-lg border text-xs font-mono-accent tracking-widest ${getSeverityStyle(viewingLog.severity)}`}>
-                    {viewingLog.severity?.toUpperCase()}
+                {viewingLog.additionalNotes && (
+                  <div className="space-y-1.5">
+                    <span className="font-mono-accent text-[9px] tracking-widest text-stone uppercase block">ADDITIONAL DETAILS</span>
+                    <p className="font-sans text-xs text-ink-soft bg-cream-light/60 border border-stone-line/60 px-3 py-2 rounded-lg leading-relaxed">
+                      {viewingLog.additionalNotes}
+                    </p>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <span className="font-mono-accent text-[9px] tracking-widest text-stone uppercase block">SEVERITY LEVEL</span>
+                    <div className={`text-center py-2.5 rounded-lg border text-xs font-mono-accent tracking-widest ${getSeverityStyle(viewingLog.severity)}`}>
+                      {viewingLog.severity?.toUpperCase()}
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <span className="font-mono-accent text-[9px] tracking-widest text-stone uppercase block">POSSIBLE CAUSES</span>
+                    <div className="flex flex-wrap gap-1">
+                      {viewingLog.possibleCauses?.map((cause) => (
+                        <span
+                          key={cause}
+                          className="px-2 py-1 bg-cream-light border border-stone-line/60 rounded text-[10px] font-sans text-ink truncate max-w-full"
+                          title={cause}
+                        >
+                          {cause}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 </div>
+
                 <div className="space-y-1.5">
-                  <span className="font-mono-accent text-[9px] tracking-widest text-stone uppercase">POSSIBLE CAUSES</span>
-                  <div className="flex flex-wrap gap-1">
-                    {viewingLog.possibleCauses?.map((cause) => (
-                      <span
-                        key={cause}
-                        className="px-2 py-1 bg-cream-light border border-stone-line/60 rounded text-[10px] font-sans text-ink truncate max-w-full"
-                        title={cause}
-                      >
-                        {cause}
-                      </span>
-                    ))}
-                  </div>
+                  <span className="font-mono-accent text-[9px] tracking-widest text-stone uppercase block">RECOMMENDATION</span>
+                  <p className="font-sans text-xs text-ink-soft bg-cream-light/60 border border-stone-line/60 p-3 rounded-lg leading-relaxed">
+                    {viewingLog.recommendation || viewingLog.triageResult}
+                  </p>
                 </div>
-              </div>
 
-              {/* Recommendation */}
-              <div className="space-y-1.5">
-                <span className="font-mono-accent text-[9px] tracking-widest text-stone uppercase">RECOMMENDATION</span>
-                <p className="font-sans text-xs text-ink-soft bg-cream-light/60 border border-stone-line/60 p-3 rounded-lg leading-relaxed">
-                  {viewingLog.recommendation || viewingLog.triageResult}
-                </p>
-              </div>
-
-              {/* Disclaimer */}
-              <div className="flex gap-2.5 bg-stone-line/20 border border-stone-line/60 rounded-lg p-3 text-[10px] text-stone">
-                <HeartHandshake className="w-4 h-4 flex-shrink-0 text-stone" />
-                <p className="font-sans leading-relaxed">
-                  This report is powered by AI for informational purposes only. Do not ignore professional advice.
-                </p>
+                <div className="flex gap-2.5 bg-stone-line/20 border border-stone-line/60 rounded-lg p-3 text-[10px] text-stone">
+                  <HeartHandshake className="w-4 h-4 flex-shrink-0 text-stone" />
+                  <p className="font-sans leading-relaxed">
+                    This report is powered by AI for informational purposes only. Do not ignore professional advice.
+                  </p>
+                </div>
               </div>
             </motion.div>
           </div>

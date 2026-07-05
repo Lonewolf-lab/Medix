@@ -109,28 +109,18 @@ export default function AppLayout() {
 
       {/* Main Container */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Header */}
-        <header className="sticky top-0 z-30 flex items-center justify-between px-6 py-4 bg-cream/80 backdrop-blur-md border-b border-stone-line/60">
-          <div className="flex items-center gap-4">
-            {/* Mobile menu trigger */}
-            <button
-              onClick={() => setMobileOpen(true)}
-              className="md:hidden p-2 rounded-lg text-ink hover:bg-stone-line/20"
-              aria-label="Toggle menu"
-            >
-              <Menu className="w-5 h-5" />
-            </button>
-            <h2 className="font-display text-lg tracking-wider uppercase text-ink">
-              {getPageTitle()}
-            </h2>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <span className="font-mono-accent text-[10px] tracking-wider text-stone bg-stone-line/20 px-2.5 py-1 rounded">
-              SECURE SESSION
-            </span>
-          </div>
-        </header>
+        {/* Mobile-only menu bar */}
+        <div className="md:hidden flex items-center justify-between px-6 py-4 bg-cream border-b border-stone-line/60">
+          <button
+            onClick={() => setMobileOpen(true)}
+            className="p-2 -ml-2 rounded-lg text-ink hover:bg-stone-line/20"
+            aria-label="Toggle menu"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+          <span className="font-display text-sm tracking-wider uppercase text-ink">MEDIX</span>
+          <div className="w-8 h-8" /> {/* Balance spacer */}
+        </div>
 
         {/* Content Area */}
         <main className="flex-1 overflow-y-auto">
