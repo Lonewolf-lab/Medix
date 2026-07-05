@@ -20,6 +20,8 @@ public class HealthRecordRequest {
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate recordDate;
 
+    private String aiAnalysis;
+
     public HealthRecordRequest() {}
 
     public String getTitle() { return title; }
@@ -30,4 +32,6 @@ public class HealthRecordRequest {
     public void setRecordType(RecordType recordType) { this.recordType = recordType; }
     public LocalDate getRecordDate() { return recordDate; }
     public void setRecordDate(LocalDate recordDate) { this.recordDate = recordDate; }
+    public String getAiAnalysis() { return aiAnalysis; }
+    public void setAiAnalysis(String aiAnalysis) { this.aiAnalysis = aiAnalysis; }
 }

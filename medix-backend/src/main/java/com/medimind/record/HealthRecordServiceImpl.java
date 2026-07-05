@@ -123,6 +123,9 @@ public class HealthRecordServiceImpl implements HealthRecordService {
         record.setDescription(request.getDescription());
         record.setRecordType(request.getRecordType());
         record.setRecordDate(request.getRecordDate());
+        if (request.getAiAnalysis() != null) {
+            record.setAiAnalysis(request.getAiAnalysis());
+        }
 
         HealthRecord updatedRecord = healthRecordRepository.save(record);
         return mapToResponse(updatedRecord);

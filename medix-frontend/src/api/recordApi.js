@@ -16,6 +16,9 @@ export const recordApi = {
       })
       .then((r) => r.data),
 
+  // -> HealthRecordResponse
+  update: (id, payload) => api.put(`/records/${id}`, payload).then((r) => r.data),
+
   // -> void (204)
   deleteRecord: (id) => api.delete(`/records/${id}`).then((r) => r.data),
 

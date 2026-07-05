@@ -15,6 +15,7 @@ import {
   Filter,
   MessageSquare,
   ShieldCheck,
+  Edit2,
 } from "lucide-react";
 
 const RECORD_TYPES = [
@@ -46,6 +47,10 @@ export default function HealthRecordsPage() {
   const [chatLoading, setChatLoading] = useState(false);
   const chatBottomRef = useRef(null);
 
+  // Biomarkers (Findings) Edit State
+  const [isEditingFindings, setIsEditingFindings] = useState(false);
+  const [editedFindings, setEditedFindings] = useState([]);
+
   const fetchRecords = async () => {
     try {
       const data = await recordApi.getAll();
@@ -61,6 +66,21 @@ export default function HealthRecordsPage() {
     fetchRecords();
   }, []);
 
+  // Sync findings when a record is selected
+  useEffect(() => {
+    if (selectedRecord && selectedRecord.aiAnalysis) {
+      try {
+        const parsed = JSON.parse(selectedRecord.aiAnalysis);
+        setEditedFindings(parsed.findings || []);
+      } catch {
+        setEditedFindings([]);
+      }
+    } else {
+      setEditedFindings([]);
+    }
+    setIsEditingFindings(false);
+  }, [selectedRecord]);
+
   // Fetch document chat history when a record is selected
   useEffect(() => {
     if (selectedRecord) {
@@ -69,6 +89,58 @@ export default function HealthRecordsPage() {
       setChatHistory([]);
     }
   }, [selectedRecord]);
+
+  const handleAddFindingField = () => {
+    setEditedFindings((prev) => [
+      ...prev,
+      { parameter: "", value: "", status: "NORMAL", explanation: "" },
+    ]);
+  };
+
+  const handleRemoveFindingField = (index) => {
+    setEditedFindings((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleFindingChange = (index, field, val) => {
+    setEditedFindings((prev) =>
+      prev.map((item, i) => (i === index ? { ...item, [field]: val } : item))
+    );
+  };
+
+  const handleSaveChanges = async () => {
+    if (!selectedRecord) return;
+    try {
+      let parsed = {};
+      try {
+        parsed = JSON.parse(selectedRecord.aiAnalysis) || {};
+      } catch {
+        parsed = {};
+      }
+
+      const updatedAnalysis = {
+        ...parsed,
+        findings: editedFindings,
+        abnormalCount: editedFindings.filter((f) => f.status !== "NORMAL").length,
+      };
+
+      const updatedRecord = await recordApi.update(selectedRecord.id, {
+        title: selectedRecord.title,
+        recordType: selectedRecord.recordType,
+        recordDate: selectedRecord.recordDate,
+        description: selectedRecord.description,
+        aiAnalysis: JSON.stringify(updatedAnalysis),
+      });
+
+      toast.success("Biomarkers updated successfully!");
+      setSelectedRecord(updatedRecord);
+      setRecords((prev) =>
+        prev.map((r) => (r.id === selectedRecord.id ? updatedRecord : r))
+      );
+      setIsEditingFindings(false);
+    } catch (err) {
+      toast.error("Failed to save edited biomarkers.");
+    }
+  };
 
   const loadChatHistory = async (id) => {
     try {
@@ -460,28 +532,164 @@ export default function HealthRecordsPage() {
                   )}
                 </div>
 
-                {/* AI Analysis View */}
-                <div className="flex-shrink-0">
+                {/* AI Analysis & Biomarkers Scrollable Block */}
+                <div className="flex-1 overflow-y-auto pr-1 space-y-4 max-h-[480px]">
                   {analyzing ? (
-                    <div className="py-6 flex justify-center">
+                    <div className="py-8 flex justify-center">
                       <Loader label="AI is reading medical text..." />
                     </div>
                   ) : selectedRecord.aiAnalysis ? (
-                    <div className="bg-cream-light border border-stone-line/50 rounded-xl p-4 space-y-2 text-xs">
-                      <span className="font-mono-accent text-[9px] tracking-widest text-stone uppercase block flex items-center gap-1">
-                        <Cpu className="w-3.5 h-3.5 text-forest" /> AI Analysis Complete
-                      </span>
-                      {/* Standard JSON description payload parsing helper */}
-                      <p className="font-sans text-ink-soft leading-relaxed text-[11px]">
-                        {(() => {
-                          try {
-                            const parsed = JSON.parse(selectedRecord.aiAnalysis);
-                            return parsed.summary || parsed.assessment || selectedRecord.aiAnalysis;
-                          } catch {
-                            return selectedRecord.aiAnalysis;
-                          }
-                        })()}
-                      </p>
+                    <div className="space-y-4">
+                      {/* Summary Block */}
+                      <div className="bg-cream-light border border-stone-line/50 rounded-xl p-4 space-y-2 text-xs">
+                        <span className="font-mono-accent text-[9px] tracking-widest text-stone uppercase block flex items-center gap-1">
+                          <Cpu className="w-3.5 h-3.5 text-forest" /> AI Assessment Summary
+                        </span>
+                        <p className="font-sans text-ink-soft leading-relaxed text-[11px]">
+                          {(() => {
+                            try {
+                              const parsed = JSON.parse(selectedRecord.aiAnalysis);
+                              return parsed.summary || parsed.overallAssessment || "No summary provided.";
+                            } catch {
+                              return selectedRecord.aiAnalysis;
+                            }
+                          })()}
+                        </p>
+                      </div>
+
+                      {/* Biomarkers Table / Edit Interface */}
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between border-b border-stone-line/40 pb-1">
+                          <span className="font-mono-accent text-[10px] tracking-wider text-stone uppercase">
+                            Extracted Biomarkers
+                          </span>
+                          {!isEditingFindings && (
+                            <button
+                              onClick={() => {
+                                try {
+                                  const parsed = JSON.parse(selectedRecord.aiAnalysis);
+                                  setEditedFindings(parsed.findings || []);
+                                } catch {
+                                  setEditedFindings([]);
+                                }
+                                setIsEditingFindings(true);
+                              }}
+                              className="text-[10px] font-mono-accent text-forest hover:underline flex items-center gap-1"
+                            >
+                              <Edit2 className="w-3 h-3" /> Edit values
+                            </button>
+                          )}
+                        </div>
+
+                        {isEditingFindings ? (
+                          /* Editing mode */
+                          <div className="space-y-3">
+                            <div className="space-y-2">
+                              {editedFindings.map((finding, idx) => (
+                                <div key={idx} className="flex gap-2 items-center bg-cream-light p-2 rounded-lg border border-stone-line/40">
+                                  <input
+                                    type="text"
+                                    placeholder="Biomarker"
+                                    value={finding.parameter}
+                                    onChange={(e) => handleFindingChange(idx, "parameter", e.target.value)}
+                                    className="flex-1 bg-transparent text-[11px] text-ink focus:outline-none border-b border-stone-line/40"
+                                  />
+                                  <input
+                                    type="text"
+                                    placeholder="Value"
+                                    value={finding.value}
+                                    onChange={(e) => handleFindingChange(idx, "value", e.target.value)}
+                                    className="w-20 bg-transparent text-[11px] text-ink focus:outline-none border-b border-stone-line/40"
+                                  />
+                                  <select
+                                    value={finding.status}
+                                    onChange={(e) => handleFindingChange(idx, "status", e.target.value)}
+                                    className="bg-transparent text-[10px] font-mono-accent text-ink focus:outline-none border-b border-stone-line/40"
+                                  >
+                                    <option value="NORMAL">NORMAL</option>
+                                    <option value="HIGH">HIGH</option>
+                                    <option value="LOW">LOW</option>
+                                    <option value="ABNORMAL">ABNORMAL</option>
+                                  </select>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveFindingField(idx)}
+                                    className="text-stone hover:text-rose-500 p-0.5"
+                                  >
+                                    <X className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+
+                            <div className="flex justify-between items-center pt-2">
+                              <button
+                                type="button"
+                                onClick={handleAddFindingField}
+                                className="text-[10px] font-mono-accent text-stone hover:text-ink flex items-center gap-1 border border-dashed border-stone-line/60 px-2 py-1 rounded"
+                              >
+                                <Plus className="w-3 h-3" /> Add Biomarker
+                              </button>
+                              <div className="flex gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => setIsEditingFindings(false)}
+                                  className="text-[10px] font-mono-accent text-stone hover:text-ink px-2.5 py-1"
+                                >
+                                  Cancel
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={handleSaveChanges}
+                                  className="text-[10px] font-mono-accent bg-ink text-cream px-3 py-1 rounded hover:bg-forest"
+                                >
+                                  Save
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          /* View mode */
+                          <div className="space-y-1.5">
+                            {editedFindings.length === 0 ? (
+                              <p className="text-xs text-stone italic">No biomarker values extracted.</p>
+                            ) : (
+                              <div className="border border-stone-line/40 rounded-xl overflow-hidden text-xs">
+                                <table className="w-full text-left border-collapse bg-cream-light/40">
+                                  <thead>
+                                    <tr className="border-b border-stone-line/40 font-mono-accent text-[9px] text-stone uppercase bg-cream-light">
+                                      <th className="px-3 py-1.5 font-medium">Biomarker</th>
+                                      <th className="px-3 py-1.5 font-medium text-right">Value</th>
+                                      <th className="px-3 py-1.5 font-medium text-center">Status</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {editedFindings.map((f, idx) => (
+                                      <tr key={idx} className="border-b border-stone-line/20 last:border-none">
+                                        <td className="px-3 py-2 font-medium text-ink">{f.parameter}</td>
+                                        <td className="px-3 py-2 text-right font-sans text-ink-soft">{f.value}</td>
+                                        <td className="px-3 py-2 text-center">
+                                          <span
+                                            className={`inline-block px-2 py-0.5 rounded text-[9px] font-mono-accent font-semibold ${
+                                              f.status === "NORMAL"
+                                                ? "bg-emerald-500/10 text-emerald-600"
+                                                : f.status === "LOW"
+                                                ? "bg-amber-500/10 text-amber-600"
+                                                : "bg-rose-500/10 text-rose-600"
+                                            }`}
+                                          >
+                                            {f.status}
+                                          </span>
+                                        </td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   ) : (
                     <button
