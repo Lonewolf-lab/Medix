@@ -16,6 +16,14 @@
 # ── Runtime user data (uploaded medical files) ──────────────────
 **/uploads/
 
+# ── Design reference / inspiration (Runable clones — NOT our code) ─
+**/design-reference/
+
+# ── Private project docs (NEVER push) ───────────────────────────
+project_context.md
+future_developments.md
+research.md
+
 # ── IDE / OS ────────────────────────────────────────────────────
 .idea/
 .vscode/*

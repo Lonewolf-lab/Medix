@@ -1,33 +1,28 @@
-import { useEffect } from 'react'
-import { Toaster } from 'react-hot-toast'
-import AppRoutes from '@/routes/AppRoutes'
-import { useAuthStore } from '@/store/authStore'
+import { Routes, Route } from "react-router-dom";
+import PublicLayout from "./components/layout/PublicLayout.jsx";
+import LandingPage from "./pages/landing/LandingPage.jsx";
+import FeaturesPage from "./pages/features/FeaturesPage.jsx";
+import AboutPage from "./pages/about/AboutPage.jsx";
+import ContactPage from "./pages/contact/ContactPage.jsx";
+import LoginPage from "./pages/auth/LoginPage.jsx";
+import RegisterPage from "./pages/auth/RegisterPage.jsx";
+import NotFoundPage from "./pages/NotFoundPage.jsx";
 
-export default function App() {
-  const bootstrap = useAuthStore((s) => s.bootstrap)
-
-  // Detect an existing cookie session once on app load.
-  useEffect(() => {
-    bootstrap()
-  }, [bootstrap])
-
+function App() {
   return (
-    <>
-      <AppRoutes />
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          duration: 3500,
-          style: {
-            borderRadius: '0.75rem',
-            background: '#0d1e2e',
-            color: '#fff',
-            fontSize: '0.875rem',
-          },
-          success: { iconTheme: { primary: '#10b981', secondary: '#fff' } },
-          error: { iconTheme: { primary: '#dc2626', secondary: '#fff' } },
-        }}
-      />
-    </>
-  )
+    <Routes>
+      <Route element={<PublicLayout />}>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/features" element={<FeaturesPage />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/contact" element={<ContactPage />} />
+      </Route>
+      {/* Auth pages carry their own full-screen layout (no public nav/footer) */}
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+      <Route path="*" element={<NotFoundPage />} />
+    </Routes>
+  );
 }
+
+export default App;
