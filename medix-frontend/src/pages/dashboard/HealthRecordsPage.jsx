@@ -804,7 +804,7 @@ export default function HealthRecordsPage() {
                 initial={{ opacity: 0, x: 15 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 15 }}
-                className="flex-1 flex flex-col h-[480px] bg-cream-light/30 border border-stone-line/60 rounded-2xl overflow-hidden p-4 space-y-4"
+                className="flex-shrink-0 flex flex-col max-h-[480px] bg-cream-light/30 border border-stone-line/60 rounded-2xl overflow-hidden p-4 space-y-4"
               >
                 <div className="flex items-center justify-between border-b border-stone-line/40 pb-2 flex-shrink-0">
                   <span className="font-mono-accent text-[9px] tracking-widest text-stone uppercase flex items-center gap-1.5">
@@ -819,7 +819,7 @@ export default function HealthRecordsPage() {
                 </div>
 
                 {/* Chat Messages */}
-                <div className="h-[340px] overflow-y-auto pr-1 space-y-3.5 custom-scrollbar">
+                <div className="flex-1 overflow-y-auto pr-1 space-y-3.5 custom-scrollbar">
                   {chatHistory.length === 0 ? (
                     <div className="h-full flex flex-col items-center justify-center text-center py-10">
                       <ShieldCheck className="w-6 h-6 text-stone mb-2" />
