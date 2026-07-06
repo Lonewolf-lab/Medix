@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { AnimatePresence, motion } from "motion/react";
-import Logo3D from "./Logo3D.jsx";
 import FullscreenMenu from "./FullscreenMenu.jsx";
 import { EASE } from "../common/Reveal.jsx";
 
@@ -37,7 +36,7 @@ export default function PublicNav() {
           scrolled && !open ? "bg-cream/80 backdrop-blur-md border-b border-stone-line/60" : ""
         }`}
       >
-        {/* LEFT — 3D logo slot + animated MEDIX wordmark */}
+        {/* LEFT — logo + animated MEDIX wordmark */}
         <Link to="/" className="group flex items-center gap-3" aria-label="Medix home">
           <motion.div
             initial={{ scale: 0, rotate: -90 }}
@@ -45,7 +44,12 @@ export default function PublicNav() {
             transition={{ duration: 0.7, delay: 0.15, ease: EASE }}
             whileHover={{ rotate: 8, scale: 1.05 }}
           >
-            <Logo3D />
+            <img
+              src="/medix_logo.png"
+              alt=""
+              className="w-10 h-10 object-contain"
+              draggable="false"
+            />
           </motion.div>
           <span className="flex overflow-hidden" aria-hidden="true">
             {LETTERS.map((l, i) => (

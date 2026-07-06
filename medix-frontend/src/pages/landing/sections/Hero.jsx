@@ -1,5 +1,6 @@
 import { motion, useScroll, useTransform } from "motion/react";
 import PillLink from "../../../components/common/PillLink.jsx";
+import Logo3D from "../../../components/nav/Logo3D.jsx";
 import { EASE } from "../../../components/common/Reveal.jsx";
 
 export default function Hero() {
@@ -84,6 +85,21 @@ export default function Hero() {
           </motion.span>
         </motion.div>
       </motion.div>
+
+      {/* Interactive 3D brand mark — vertically centered in the hero's empty
+          right half on desktop; centered up top on mobile. (Positioning lives
+          on this wrapper; the inner motion.div only animates opacity/scale so
+          Framer's transform never fights the centering translates.) */}
+      <div className="absolute left-1/2 -translate-x-1/2 top-[8vh] w-60 h-60 sm:w-72 sm:h-72 md:left-auto md:translate-x-0 md:right-[15vw] md:top-[46%] md:-translate-y-1/2 md:w-[30vw] md:h-[30vw] md:max-w-[500px] md:max-h-[500px]">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.7 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 1, delay: 0.5, ease: EASE }}
+          className="w-full h-full"
+        >
+          <Logo3D interactive className="w-full h-full" />
+        </motion.div>
+      </div>
 
       {/* Vertical scroll cue */}
       <div className="absolute right-6 md:right-16 bottom-16 hidden sm:flex flex-col items-center gap-4">

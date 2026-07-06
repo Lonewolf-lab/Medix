@@ -28,6 +28,12 @@ export default function PublicFooter() {
 
       <div className="mt-16 grid gap-12 md:grid-cols-3 border-t border-ink-line pt-10">
         <div>
+          <img
+            src="/medix_logo.png"
+            alt="Medix logo"
+            className="w-12 h-12 object-contain mb-4"
+            loading="lazy"
+          />
           <p className="font-display uppercase text-xl tracking-tight">
             Your health, finally in one place.
           </p>

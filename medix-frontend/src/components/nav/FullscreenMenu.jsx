@@ -61,17 +61,10 @@ export default function FullscreenMenu({ open, onClose }) {
               exit={{ opacity: 0, transition: { duration: 0.2 } }}
               className="hidden md:flex flex-col items-center justify-center gap-8 border-r border-ink-line h-full"
             >
-              {/* GLB MOUNT POINT — Logo3D swaps to the real 3D model in one file */}
-              <div className="w-56 h-56 rounded-full border border-dashed border-ink-line flex items-center justify-center">
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
-                >
-                  <Logo3D className="w-24 h-24" bg="bg-cream-light" />
-                </motion.div>
-              </div>
+              {/* The 3D mark — model idles/rotates, tilts away from the cursor */}
+              <Logo3D interactive className="w-72 h-72" />
               <span className="font-mono-accent text-[10px] tracking-[0.3em] text-stone">
-                MEDIX — 3D MARK RESERVED
+                MEDIX — AI HEALTH, IN ONE PLACE
               </span>
             </motion.div>
 

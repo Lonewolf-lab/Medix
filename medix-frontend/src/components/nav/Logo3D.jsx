@@ -1,30 +1,39 @@
+import { lazy, Suspense, useRef } from "react";
+
+// Code-split: three.js + R3F live in their own chunk, loaded on demand.
+const LogoModel = lazy(() => import("./LogoModel.jsx"));
+
 /**
- * Logo3D — the brand mark slot, used in the top navbar, the fullscreen
- * menu's reserved logo area, and the auth pages.
+ * Logo3D — the 3D brand mark (public/logo.glb, meshopt-compressed).
+ * Used in the landing hero and the fullscreen-menu stage.
  *
- * ⚠ SWAP POINT (one file, updates everywhere):
- *   The developer will supply a 3D logo as a `.glb` file.
- *   When it arrives: `npm i three @react-three/fiber @react-three/drei`,
- *   then replace the placeholder below with a small <Canvas> mounting the
- *   model (drei's <useGLTF> + gentle idle rotation). Until then this
- *   renders a temporary pulse glyph.
- *
- * `className` controls size; `bg` controls the disc color.
+ * `interactive` enables cursor tilt: the mark leans away from the pointer
+ * (left/right/top/bottom and diagonals) and springs back on leave.
+ * Pages render instantly with the PNG logo as fallback; the 3D model swaps
+ * in as soon as its chunk + model finish loading.
  */
-export default function Logo3D({ className = "w-10 h-10", bg = "bg-ink" }) {
+export default function Logo3D({ className = "w-10 h-10", spin = true, interactive = false }) {
+  // Ref (not state) so pointer enter/leave never re-renders the canvas.
+  const hoveredRef = useRef(false);
+
   return (
     <div
-      className={`relative rounded-full ${bg} flex items-center justify-center overflow-hidden ${className}`}
+      className={`relative ${className}`}
+      onPointerEnter={() => (hoveredRef.current = true)}
+      onPointerLeave={() => (hoveredRef.current = false)}
     >
-      <svg viewBox="0 0 24 24" className="w-[58%] h-[58%]" fill="none">
-        <path
-          d="M3 13h4l2-5 4 9 2.5-6 1 2H21"
-          stroke="#2f5233"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
+      <Suspense
+        fallback={
+          <img
+            src="/medix_logo.png"
+            alt=""
+            className="w-full h-full object-contain"
+            draggable="false"
+          />
+        }
+      >
+        <LogoModel spin={spin} interactive={interactive} hoveredRef={hoveredRef} />
+      </Suspense>
     </div>
   );
 }

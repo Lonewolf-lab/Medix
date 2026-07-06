@@ -38,9 +38,7 @@ export default function AppLayout() {
     <div className="flex flex-col h-full bg-ink text-cream-light p-6">
       {/* Brand Header */}
       <div className="flex items-center gap-3 mb-10">
-        <div className="w-8 h-8 rounded-full bg-forest flex items-center justify-center font-display text-cream-light text-lg">
-          M
-        </div>
+        <img src="/medix_logo.png" alt="Medix logo" className="w-8 h-8 object-contain" />
         <span className="font-display text-xl tracking-wider text-cream-light">MEDIX</span>
       </div>
 

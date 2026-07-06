@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 import { motion } from "motion/react";
-import Logo3D from "../../components/nav/Logo3D.jsx";
 import { EASE } from "../../components/common/Reveal.jsx";
 
 /**
@@ -13,7 +12,7 @@ export default function AuthShell({ title, subtitle, children, footer }) {
       {/* Brand panel */}
       <div className="relative hidden lg:flex lg:col-span-2 flex-col justify-between bg-ink text-cream-light p-12 overflow-hidden">
         <Link to="/" className="flex items-center gap-3 w-fit group">
-          <Logo3D />
+          <img src="/medix_logo.png" alt="Medix logo" className="w-10 h-10 object-contain" />
           <span className="font-display text-2xl tracking-tight text-cream-light group-hover:text-forest-bright transition-colors">
             MEDIX
           </span>
@@ -51,7 +50,7 @@ export default function AuthShell({ title, subtitle, children, footer }) {
       <div className="lg:col-span-3 flex flex-col justify-center px-6 py-16 sm:px-14">
         <div className="w-full max-w-md mx-auto">
           <Link to="/" className="mb-12 flex items-center gap-3 lg:hidden w-fit">
-            <Logo3D />
+            <img src="/medix_logo.png" alt="Medix logo" className="w-10 h-10 object-contain" />
             <span className="font-display text-2xl tracking-tight text-ink">MEDIX</span>
           </Link>
 
