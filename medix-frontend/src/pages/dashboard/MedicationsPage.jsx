@@ -252,7 +252,7 @@ export default function MedicationsPage() {
         frequency,
         startDate,
         endDate: endDate || null,
-        instructions: instructions || null,
+        notes: instructions || null, // backend field is `notes`
       };
       const response = await medicationApi.create(payload);
       toast.success("Medication added to tracker!");
@@ -286,7 +286,13 @@ export default function MedicationsPage() {
     try {
       const response = await medicationApi.extractPrescription(selectedFile);
       toast.success("Prescription scanned successfully!");
-      setExtractedMeds(response.extractedMedications || []);
+      // Extraction returns `notes`; the editable table works with `instructions`
+      setExtractedMeds(
+        (response.extractedMedications || []).map((m) => ({
+          ...m,
+          instructions: m.notes || m.instructions || "",
+        })),
+      );
     } catch (err) {
       toast.error(err.message || "Failed to parse prescription.");
     } finally {
@@ -318,7 +324,7 @@ export default function MedicationsPage() {
         name: m.name,
         dosage: m.dosage,
         frequency: normalizeFrequency(m.frequency),
-        instructions: m.notes || m.instructions || "",
+        notes: m.instructions || m.notes || "", // backend field is `notes`; table edits live in `instructions`
         startDate: today,
         endDate: monthLater,
       }));
@@ -385,9 +391,11 @@ export default function MedicationsPage() {
 
   const handleContinueMed = async (id) => {
     try {
-      const response = await medicationApi.continueMedication(id, {
-        durationDays: continuationDays,
-      });
+      // Backend expects a concrete new end date, not a day count
+      const newEndDate = new Date(Date.now() + continuationDays * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .split("T")[0];
+      const response = await medicationApi.continueMedication(id, { newEndDate });
       toast.success(`Medication extended by ${continuationDays} days.`);
       setMedications((prev) => prev.map((m) => (m.id === id ? response : m)));
       if (selectedMed?.id === id) setSelectedMed(response);
@@ -788,10 +796,10 @@ export default function MedicationsPage() {
                         exit={{ opacity: 0, height: 0 }}
                         className="mt-3 pl-6 space-y-3 border-l border-stone-line/60 overflow-hidden text-xs"
                       >
-                        {med.instructions && (
+                        {med.notes && (
                           <div className="flex gap-1.5 text-ink-soft bg-cream-light/60 p-2 rounded-lg border border-stone-line/40">
                             <AlertCircle className="w-4 h-4 flex-shrink-0 text-stone" />
-                            <p className="font-sans text-[11px] leading-relaxed">{med.instructions}</p>
+                            <p className="font-sans text-[11px] leading-relaxed">{med.notes}</p>
                           </div>
                         )}
 

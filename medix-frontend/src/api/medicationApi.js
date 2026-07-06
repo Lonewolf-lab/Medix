@@ -52,7 +52,7 @@ export const medicationApi = {
   confirmPrescription: (medications) =>
     api.post("/medications/confirm-prescription", medications).then((r) => r.data),
 
-  // data: { durationDays?: number, endDate?: string }
+  // data: { newEndDate: "YYYY-MM-DD", updatedReminderTimes?: ["HH:mm"] }
   // -> MedicationResponse
   continueMedication: (id, data) =>
     api.patch(`/medications/${id}/continue`, data).then((r) => r.data),

@@ -2,6 +2,9 @@ import axios from "axios";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080";
 
+/** Backend origin without the /api suffix — for static file links (uploads). */
+export const API_ORIGIN = baseURL.replace(/\/$/, "");
+
 /**
  * Central axios instance.
  * - withCredentials: true  → the HttpOnly `medix_token` cookie set by the

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { recordApi } from "@/api/recordApi";
+import { API_ORIGIN } from "@/api/axiosInstance";
 import { motion, AnimatePresence } from "motion/react";
 import Loader from "@/components/common/Loader";
 import toast from "react-hot-toast";
@@ -605,7 +606,7 @@ export default function HealthRecordsPage() {
                 <div className="flex gap-2">
                   {selectedRecord.fileUrl && (
                     <a
-                      href={`http://localhost:8080${selectedRecord.fileUrl}`}
+                      href={`${API_ORIGIN}${selectedRecord.fileUrl}`}
                       target="_blank"
                       rel="noreferrer"
                       className="p-1 text-stone hover:text-forest transition-colors"
