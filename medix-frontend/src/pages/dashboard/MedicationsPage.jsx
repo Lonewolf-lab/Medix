@@ -12,7 +12,7 @@ import {
   X,
   FileText,
   Upload,
-  Sparkles,
+  Cpu,
   Play,
   Square,
   AlertCircle,
@@ -468,7 +468,7 @@ export default function MedicationsPage() {
                   : "text-stone hover:text-ink"
               }`}
             >
-              <Sparkles className="w-3.5 h-3.5" /> AI Scanner
+              <Cpu className="w-3.5 h-3.5" /> AI Scanner
             </button>
           </div>
 
