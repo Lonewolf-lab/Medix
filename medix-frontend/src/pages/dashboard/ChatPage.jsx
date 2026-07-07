@@ -263,7 +263,10 @@ export default function ChatPage() {
               {/* Chat Speech Bubbles viewport */}
               <div className="flex-1 overflow-y-auto pr-1 space-y-4 custom-scrollbar min-h-[220px]">
                 {currentThreadMessages.length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center text-center py-10">
+                  <div className="h-full flex flex-col items-center justify-center text-center py-10 space-y-2">
+                    <span className="text-xl font-mono text-stone tracking-wider block">
+                      (•‿•) 💬
+                    </span>
                     <p className="font-sans text-[11px] text-stone leading-relaxed max-w-[240px]">
                       Consultation window clean. Type a custom health query or click a suggestion below to begin.
                     </p>
