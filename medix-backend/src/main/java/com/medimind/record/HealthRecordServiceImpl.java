@@ -17,6 +17,8 @@ import com.medimind.symptom.SymptomRepository;
 import com.medimind.user.User;
 import com.medimind.user.UserRepository;
 import org.apache.pdfbox.pdmodel.PDDocument;
+import com.medimind.dashboard.DashboardReport;
+import com.medimind.dashboard.DashboardReportRepository;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -40,6 +42,7 @@ public class HealthRecordServiceImpl implements HealthRecordService {
     private final ChatRepository chatRepository;
     private final MedicationRepository medicationRepository;
     private final SymptomRepository symptomRepository;
+    private final DashboardReportRepository dashboardReportRepository;
     private final WebClient webClient;
     private final ObjectMapper objectMapper;
 
@@ -55,6 +58,7 @@ public class HealthRecordServiceImpl implements HealthRecordService {
                                    ChatRepository chatRepository,
                                    MedicationRepository medicationRepository,
                                    SymptomRepository symptomRepository,
+                                   DashboardReportRepository dashboardReportRepository,
                                    WebClient.Builder webClientBuilder,
                                    ObjectMapper objectMapper) {
         this.healthRecordRepository = healthRecordRepository;
@@ -63,6 +67,7 @@ public class HealthRecordServiceImpl implements HealthRecordService {
         this.chatRepository = chatRepository;
         this.medicationRepository = medicationRepository;
         this.symptomRepository = symptomRepository;
+        this.dashboardReportRepository = dashboardReportRepository;
         this.webClient = webClientBuilder.build();
         this.objectMapper = objectMapper;
     }
@@ -150,26 +155,51 @@ public class HealthRecordServiceImpl implements HealthRecordService {
     @Transactional
     public DocumentAnalysisResponse analyzeRecord(UUID recordId, UUID userId) {
         HealthRecord record = getHealthRecordAndVerifyOwnership(userId, recordId);
+        boolean isLabReport = record.getRecordType() == RecordType.LAB_REPORT;
 
-        String systemPrompt = "You are a medical document analyst. Analyze the provided medical document and respond in this exact JSON format, no extra text, no markdown:\n" +
-                "{\n" +
-                "  \"summary\": \"brief 2-3 sentence summary of the document\",\n" +
-                "  \"findings\": [\n" +
-                "    {\n" +
-                "      \"parameter\": \"parameter name\",\n" +
-                "      \"value\": \"the value with unit\",\n" +
-                "      \"status\": \"NORMAL or HIGH or LOW or ABNORMAL\",\n" +
-                "      \"explanation\": \"plain English explanation\"\n" +
-                "    }\n" +
-                "  ],\n" +
-                "  \"abnormalCount\": 0,\n" +
-                "  \"overallAssessment\": \"overall health assessment\",\n" +
-                "  \"suggestedQuestions\": [\n" +
-                "    \"question 1 to ask doctor\",\n" +
-                "    \"question 2 to ask doctor\"\n" +
-                "  ],\n" +
-                "  \"disclaimer\": \"This analysis is for informational purposes only. Please consult your doctor.\"\n" +
-                "}";
+        String systemPrompt;
+        if (isLabReport) {
+            systemPrompt = "You are a medical report analyzer specializing in extracting biomarker values from lab reports.\n" +
+                    "Analyze the provided report and respond ONLY with valid JSON, no extra text, no markdown, no code blocks:\n" +
+                    "{\n" +
+                    "  \"biomarkers\": [\n" +
+                    "    {\n" +
+                    "      \"parameter\": \"exact parameter name from report\",\n" +
+                    "      \"value\": \"numeric value as string\",\n" +
+                    "      \"unit\": \"unit of measurement\",\n" +
+                    "      \"normalRange\": \"normal reference range\",\n" +
+                    "      \"status\": \"NORMAL or HIGH or LOW or ABNORMAL\",\n" +
+                    "      \"explanation\": \"one sentence plain English explanation\",\n" +
+                    "      \"category\": \"LIPID or BLOOD_SUGAR or CBC or LIVER or KIDNEY or THYROID or VITAMIN or OTHER\"\n" +
+                    "    }\n" +
+                    "  ],\n" +
+                    "  \"totalBiomarkers\": number,\n" +
+                    "  \"abnormalCount\": number,\n" +
+                    "  \"normalCount\": number,\n" +
+                    "  \"overallAssessment\": \"brief overall health assessment\",\n" +
+                    "  \"disclaimer\": \"This is for informational purposes only. Please consult your doctor.\"\n" +
+                    "}";
+        } else {
+            systemPrompt = "You are a medical document analyst. Analyze the provided medical document and respond in this exact JSON format, no extra text, no markdown:\n" +
+                    "{\n" +
+                    "  \"summary\": \"brief 2-3 sentence summary of the document\",\n" +
+                    "  \"findings\": [\n" +
+                    "    {\n" +
+                    "      \"parameter\": \"parameter name\",\n" +
+                    "      \"value\": \"the value with unit\",\n" +
+                    "      \"status\": \"NORMAL or HIGH or LOW or ABNORMAL\",\n" +
+                    "      \"explanation\": \"plain English explanation\"\n" +
+                    "    }\n" +
+                    "  ],\n" +
+                    "  \"abnormalCount\": 0,\n" +
+                    "  \"overallAssessment\": \"overall health assessment\",\n" +
+                    "  \"suggestedQuestions\": [\n" +
+                    "    \"question 1 to ask doctor\",\n" +
+                    "    \"question 2 to ask doctor\"\n" +
+                    "  ],\n" +
+                    "  \"disclaimer\": \"This analysis is for informational purposes only. Please consult your doctor.\"\n" +
+                    "}";
+        }
 
         List<Map<String, Object>> messages;
         String modelName;
@@ -178,7 +208,7 @@ public class HealthRecordServiceImpl implements HealthRecordService {
             modelName = "llama-3.3-70b-versatile";
             messages = List.of(
                     Map.of("role", "system", "content", systemPrompt),
-                    Map.of("role", "user", "content", "Analyze this medical document:\n" + record.getExtractedText())
+                    Map.of("role", "user", "content", (isLabReport ? "Extract all biomarker values from this lab report:\n" : "Analyze this medical document:\n") + record.getExtractedText())
             );
         } else if (record.getFileUrl() != null && (record.getFileUrl().endsWith(".png") || record.getFileUrl().endsWith(".jpg") || record.getFileUrl().endsWith(".jpeg"))) {
             modelName = "meta-llama/llama-4-scout-17b-16e-instruct";
@@ -219,7 +249,53 @@ public class HealthRecordServiceImpl implements HealthRecordService {
                 jsonText = jsonText.replaceAll("```json", "").replaceAll("```", "").trim();
             }
 
-            record.setAiAnalysis(objectMapper.writeValueAsString(objectMapper.readValue(jsonText, Object.class)));
+            if (isLabReport) {
+                // Ensure valid json structure
+                Map<String, Object> parsedReport = objectMapper.readValue(jsonText, Map.class);
+                String formattedJson = objectMapper.writeValueAsString(parsedReport);
+
+                // Update previous reports latest flag
+                dashboardReportRepository.updateIsLatestFalseForUser(userId);
+
+                // Save to DashboardReport
+                DashboardReport dbReport = DashboardReport.builder()
+                        .user(record.getUser())
+                        .fileName(record.getFileName())
+                        .fileUrl(record.getFileUrl())
+                        .extractedText(record.getExtractedText())
+                        .biomarkersJson(formattedJson)
+                        .isLatest(true)
+                        .uploadedAt(LocalDateTime.now())
+                        .build();
+                dashboardReportRepository.save(dbReport);
+
+                // Map biomarkers back to Generic findings schema for HealthRecord page display
+                List<Map<String, Object>> biomarkersList = (List<Map<String, Object>>) parsedReport.get("biomarkers");
+                List<Map<String, Object>> findingsList = new ArrayList<>();
+                if (biomarkersList != null) {
+                    for (Map<String, Object> bio : biomarkersList) {
+                        Map<String, Object> finding = new HashMap<>();
+                        finding.put("parameter", bio.get("parameter"));
+                        finding.put("value", bio.get("value") + " " + bio.get("unit"));
+                        finding.put("status", bio.get("status"));
+                        finding.put("explanation", bio.get("explanation"));
+                        findingsList.add(finding);
+                    }
+                }
+
+                Map<String, Object> healthAnalysis = new HashMap<>();
+                healthAnalysis.put("summary", "Successfully scanned biomarkers and synchronized to dashboard overview.");
+                healthAnalysis.put("findings", findingsList);
+                healthAnalysis.put("abnormalCount", parsedReport.get("abnormalCount"));
+                healthAnalysis.put("overallAssessment", parsedReport.get("overallAssessment"));
+                healthAnalysis.put("suggestedQuestions", List.of("How can I improve my biomarker values?", "Are any of these readings critical?"));
+                healthAnalysis.put("disclaimer", parsedReport.get("disclaimer"));
+
+                record.setAiAnalysis(objectMapper.writeValueAsString(healthAnalysis));
+            } else {
+                record.setAiAnalysis(objectMapper.writeValueAsString(objectMapper.readValue(jsonText, Object.class)));
+            }
+
             record.setUpdatedAt(LocalDateTime.now());
             healthRecordRepository.save(record);
 

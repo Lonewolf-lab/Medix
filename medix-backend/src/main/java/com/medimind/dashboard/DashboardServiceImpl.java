@@ -193,31 +193,66 @@ public class DashboardServiceImpl implements DashboardService {
 
     @Override
     public DashboardSummaryResponse getHealthSummary(UUID userId) {
-        DashboardReport report = dashboardReportRepository.findByUserIdAndIsLatestTrue(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("No health report uploaded yet"));
-
-        try {
-            Map<String, Object> parsedJson = objectMapper.readValue(report.getBiomarkersJson(), Map.class);
-            
-            List<BiomarkerValue> biomarkers = objectMapper.convertValue(
-                    parsedJson.get("biomarkers"), 
-                    new TypeReference<List<BiomarkerValue>>() {}
-            );
-
-            return DashboardSummaryResponse.builder()
-                    .reportId(report.getId())
-                    .fileName(report.getFileName())
-                    .uploadedAt(report.getUploadedAt())
-                    .biomarkers(biomarkers)
-                    .totalBiomarkers(((Number) parsedJson.get("totalBiomarkers")).intValue())
-                    .abnormalCount(((Number) parsedJson.get("abnormalCount")).intValue())
-                    .normalCount(((Number) parsedJson.get("normalCount")).intValue())
-                    .overallAssessment((String) parsedJson.get("overallAssessment"))
-                    .disclaimer((String) parsedJson.get("disclaimer"))
-                    .build();
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to parse biomarkers JSON", e);
+        List<DashboardReport> reports = dashboardReportRepository.findByUserIdOrderByUploadedAtDesc(userId);
+        if (reports.isEmpty()) {
+            throw new ResourceNotFoundException("No health report uploaded yet");
         }
+
+        DashboardReport latestReport = reports.get(0);
+        List<DashboardReport> chronologicalReports = new java.util.ArrayList<>(reports);
+        java.util.Collections.reverse(chronologicalReports);
+
+        Map<String, BiomarkerValue> mergedMap = new java.util.LinkedHashMap<>();
+        String overallAssessment = "";
+        String disclaimer = "";
+
+        for (DashboardReport r : chronologicalReports) {
+            try {
+                Map<String, Object> parsedJson = objectMapper.readValue(r.getBiomarkersJson(), Map.class);
+                List<BiomarkerValue> biomarkersList = objectMapper.convertValue(
+                        parsedJson.get("biomarkers"),
+                        new TypeReference<List<BiomarkerValue>>() {}
+                );
+
+                if (biomarkersList != null) {
+                    for (BiomarkerValue bio : biomarkersList) {
+                        if (bio.getParameter() != null) {
+                            mergedMap.put(bio.getParameter().trim().toLowerCase(), bio);
+                        }
+                    }
+                }
+
+                if (r.getId().equals(latestReport.getId())) {
+                    overallAssessment = (String) parsedJson.get("overallAssessment");
+                    disclaimer = (String) parsedJson.get("disclaimer");
+                }
+            } catch (Exception ignored) {}
+        }
+
+        List<BiomarkerValue> mergedBiomarkers = new java.util.ArrayList<>(mergedMap.values());
+        int abnormalCount = 0;
+        int normalCount = 0;
+
+        for (BiomarkerValue bio : mergedBiomarkers) {
+            String status = bio.getStatus() != null ? bio.getStatus().toUpperCase() : "NORMAL";
+            if (status.equals("HIGH") || status.equals("LOW") || status.equals("ABNORMAL")) {
+                abnormalCount++;
+            } else {
+                normalCount++;
+            }
+        }
+
+        return DashboardSummaryResponse.builder()
+                .reportId(latestReport.getId())
+                .fileName(latestReport.getFileName())
+                .uploadedAt(latestReport.getUploadedAt())
+                .biomarkers(mergedBiomarkers)
+                .totalBiomarkers(mergedBiomarkers.size())
+                .abnormalCount(abnormalCount)
+                .normalCount(normalCount)
+                .overallAssessment(overallAssessment)
+                .disclaimer(disclaimer)
+                .build();
     }
 
     @Override

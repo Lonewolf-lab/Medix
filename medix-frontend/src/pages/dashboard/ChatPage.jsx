@@ -391,7 +391,15 @@ export default function ChatPage() {
                   <ul className="space-y-1 text-xs text-ink-soft list-disc list-inside">
                     <li>Name: <span className="text-ink font-semibold">{user.name}</span></li>
                     <li>Blood Group: <span className="text-ink font-semibold">{user.bloodGroup || "O+"}</span></li>
-                    <li>DOB: <span className="text-ink font-semibold">{user.dateOfBirth || "N/A"}</span></li>
+                    <li>DOB: <span className="text-ink font-semibold">
+                      {user.dob
+                        ? new Date(user.dob).toLocaleDateString("en-US", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          })
+                        : "N/A"}
+                    </span></li>
                   </ul>
                 </div>
               )}

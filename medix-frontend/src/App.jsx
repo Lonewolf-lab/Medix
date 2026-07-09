@@ -22,9 +22,7 @@ import SymptomCheckerPage from "./pages/dashboard/SymptomCheckerPage.jsx";
 import HealthRecordsPage from "./pages/dashboard/HealthRecordsPage.jsx";
 import MedicationsPage from "./pages/dashboard/MedicationsPage.jsx";
 import ChatPage from "./pages/dashboard/ChatPage.jsx";
-import {
-  ProfilePage,
-} from "./pages/dashboard/AppPagesStubs.jsx";
+import ProfilePage from "./pages/dashboard/ProfilePage.jsx";
 import NotFoundPage from "./pages/NotFoundPage.jsx";
 
 function App() {
