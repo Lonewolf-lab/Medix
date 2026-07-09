@@ -164,6 +164,8 @@ public class DashboardServiceImpl implements DashboardService {
                 .fileUrl(fileUrl)
                 .extractedText(extractedText)
                 .biomarkersJson(jsonText)
+                .isLatest(true)
+                .uploadedAt(LocalDateTime.now())
                 .build();
         
         DashboardReport savedReport = dashboardReportRepository.save(report);
@@ -193,9 +195,22 @@ public class DashboardServiceImpl implements DashboardService {
 
     @Override
     public DashboardSummaryResponse getHealthSummary(UUID userId) {
-        List<DashboardReport> reports = dashboardReportRepository.findByUserIdOrderByUploadedAtDesc(userId);
+        List<DashboardReport> reports = new java.util.ArrayList<>(dashboardReportRepository.findByUserIdOrderByUploadedAtDesc(userId));
         if (reports.isEmpty()) {
             throw new ResourceNotFoundException("No health report uploaded yet");
+        }
+
+        // Sort in Java: handle null uploadedAt values (nulls treated as oldest, put last in descending sort)
+        reports.sort((a, b) -> {
+            if (a.getUploadedAt() == null && b.getUploadedAt() == null) return 0;
+            if (a.getUploadedAt() == null) return 1;
+            if (b.getUploadedAt() == null) return -1;
+            return b.getUploadedAt().compareTo(a.getUploadedAt());
+        });
+
+        System.out.println("DEBUG: getHealthSummary - sorted reports count: " + reports.size());
+        for (DashboardReport r : reports) {
+            System.out.println("DEBUG: Sorted Report ID: " + r.getId() + ", File: " + r.getFileName() + ", UploadedAt: " + r.getUploadedAt() + ", isLatest: " + r.isLatest());
         }
 
         DashboardReport latestReport = reports.get(0);
