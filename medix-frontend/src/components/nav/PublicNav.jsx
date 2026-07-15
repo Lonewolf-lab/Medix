@@ -3,10 +3,13 @@ import { Link } from "react-router-dom";
 import { AnimatePresence, motion } from "motion/react";
 import FullscreenMenu from "./FullscreenMenu.jsx";
 import { EASE } from "../common/Reveal.jsx";
+import { useAuthStore } from "@/store/authStore";
+import { User } from "lucide-react";
 
 const LETTERS = "MEDIX".split("");
 
 export default function PublicNav() {
+  const { user, status } = useAuthStore();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -77,12 +80,22 @@ export default function PublicNav() {
                 exit={{ opacity: 0, x: 20 }}
                 transition={{ duration: 0.3 }}
               >
-                <Link
-                  to="/login"
-                  className="font-mono-accent text-xs tracking-wider border border-stone-line/60 rounded-full px-5 py-2.5 bg-cream/30 backdrop-blur-sm text-ink hover:bg-forest hover:text-cream-light hover:border-forest transition-all duration-300"
-                >
-                  SIGN IN
-                </Link>
+                {status === "authed" && user ? (
+                  <Link
+                    to="/dashboard"
+                    className="w-12 h-12 rounded-full bg-forest hover:bg-ink text-cream-light flex items-center justify-center transition-all duration-300 shadow-sm border border-stone-line/10"
+                    title="Go to Dashboard"
+                  >
+                    <User className="w-5 h-5" />
+                  </Link>
+                ) : (
+                  <Link
+                    to="/login"
+                    className="font-mono-accent text-xs tracking-wider border border-stone-line/60 rounded-full px-5 py-2.5 bg-cream/30 backdrop-blur-sm text-ink hover:bg-forest hover:text-cream-light hover:border-forest transition-all duration-300"
+                  >
+                    SIGN IN
+                  </Link>
+                )}
               </motion.div>
             )}
           </AnimatePresence>

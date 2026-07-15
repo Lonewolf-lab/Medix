@@ -2,8 +2,8 @@
 export default function SectionLabel({ children, light = false, className = "" }) {
   return (
     <span
-      className={`font-mono-accent text-xs tracking-[0.3em] ${
-        light ? "text-stone" : "text-stone"
+      className={`font-mono-accent text-xs tracking-[0.3em] uppercase ${
+        light ? "text-cream-light/60" : "text-forest"
       } ${className}`}
     >
       {children}

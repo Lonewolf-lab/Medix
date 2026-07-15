@@ -40,7 +40,7 @@ function FaqItem({ faq, open, onToggle, index }) {
           aria-expanded={open}
         >
           <span className="flex items-baseline gap-4">
-            <span className="font-mono-accent text-xs text-stone group-hover:text-forest transition-colors">
+            <span className="font-mono-accent text-xs text-forest/60 group-hover:text-forest transition-colors">
               {String(index + 1).padStart(2, "0")}
             </span>
             <span className="font-display uppercase tracking-tight text-xl md:text-3xl text-ink group-hover:text-forest transition-colors">

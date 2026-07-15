@@ -19,7 +19,7 @@ export default function Hero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.1, ease: EASE }}
-          className="font-mono-accent text-xs tracking-[0.3em] text-stone mb-6"
+          className="font-mono-accent text-xs tracking-[0.3em] text-forest mb-6"
         >
           MEDIX® — AI-POWERED PERSONAL HEALTH
         </motion.p>
@@ -101,14 +101,13 @@ export default function Hero() {
         </motion.div>
       </div>
 
-      {/* Vertical scroll cue */}
       <div className="absolute right-6 md:right-16 bottom-16 hidden sm:flex flex-col items-center gap-4">
-        <span className="font-mono-accent text-[10px] tracking-[0.3em] text-stone [writing-mode:vertical-rl]">
+        <span className="font-mono-accent text-[10px] tracking-[0.3em] text-forest [writing-mode:vertical-rl]">
           SCROLL DOWN
         </span>
-        <div className="w-px h-16 bg-stone overflow-hidden relative">
+        <div className="w-px h-16 bg-forest/20 overflow-hidden relative">
           <motion.div
-            className="absolute top-0 left-0 w-full h-1/2 bg-ink"
+            className="absolute top-0 left-0 w-full h-1/2 bg-forest"
             animate={{ y: ["-100%", "200%"] }}
             transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
           />

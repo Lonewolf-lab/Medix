@@ -63,11 +63,11 @@ export default function FullscreenMenu({ open, onClose }) {
             >
               {/* The 3D mark — model idles/rotates, tilts away from the cursor */}
               <Logo3D interactive className="w-72 h-72" />
-              <span className="font-mono-accent text-[10px] tracking-[0.3em] text-stone">
+              <span className="font-mono-accent text-[10px] tracking-[0.3em] text-forest">
                 MEDIX — AI HEALTH, IN ONE PLACE
               </span>
             </motion.div>
-
+ 
             {/* RIGHT — links */}
             <motion.ul
               variants={list}
@@ -86,10 +86,10 @@ export default function FullscreenMenu({ open, onClose }) {
                       onMouseEnter={() => setHovered(i)}
                       className="group flex items-baseline gap-5 py-2 md:py-3"
                     >
-                      <span className="font-mono-accent text-xs text-stone transition-colors group-hover:text-cream-light">
+                      <span className="font-mono-accent text-xs text-forest transition-colors group-hover:text-forest-bright">
                         {link.n}
                       </span>
-                      <span className="font-display uppercase tracking-tight leading-none text-[10vw] md:text-[3.9vw] text-cream-light transition-transform duration-300 group-hover:translate-x-3">
+                      <span className="font-display uppercase tracking-tight leading-none text-[10vw] md:text-[3.9vw] text-cream-light transition-transform duration-[360ms] group-hover:translate-x-3">
                         <RollHollowText text={link.label} active={hovered === i} />
                       </span>
                     </Link>

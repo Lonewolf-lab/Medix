@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import { motion, useScroll, useTransform } from "motion/react";
 import { FEATURES } from "../../data/features.js";
 import SectionLabel from "../../components/common/SectionLabel.jsx";
@@ -10,18 +10,36 @@ import PillLink from "../../components/common/PillLink.jsx";
 function FeaturePanel({ feature, index }) {
   const dark = index % 2 === 1;
   const ref = useRef(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
   const { scrollYProgress } = useScroll({
     target: ref,
-    offset: ["start end", "end start"],
+    offset: ["start start", "end start"],
   });
-  const numberY = useTransform(scrollYProgress, [0, 1], [120, -120]);
+
+  const numberY = useTransform(scrollYProgress, [0, 1], [140, -140]);
+  const leftY = useTransform(scrollYProgress, [0, 1], [isMobile ? 0 : 35, isMobile ? 0 : -35]);
+  const rightY = useTransform(scrollYProgress, [0, 1], [isMobile ? 0 : -45, isMobile ? 0 : 45]);
+
+  // Stacking parallax: scale down and fade out slightly as the next card scrolls over it
+  const scale = useTransform(scrollYProgress, [0.6, 1], [1, 0.94]);
+  const opacity = useTransform(scrollYProgress, [0.6, 1], [1, 0.35]);
+  const exitY = useTransform(scrollYProgress, [0.6, 1], [0, -50]);
 
   return (
     <section
       ref={ref}
-      className={`relative min-h-screen flex items-center overflow-hidden px-6 md:px-16 py-28 ${
-        dark ? "bg-ink text-cream-light" : "bg-cream text-ink"
-      }`}
+      style={{ zIndex: index }}
+      className={`w-full flex items-center overflow-hidden px-6 md:px-16 ${
+        isMobile ? "relative min-h-screen py-28" : "sticky top-0 h-screen"
+      } ${dark ? "bg-ink text-cream-light" : "bg-cream text-ink"}`}
     >
       {/* Parallax giant number */}
       <motion.span
@@ -34,8 +52,11 @@ function FeaturePanel({ feature, index }) {
         {String(index + 1).padStart(2, "0")}
       </motion.span>
 
-      <div className="relative grid md:grid-cols-2 gap-14 items-center w-full">
-        <div>
+      <motion.div
+        style={{ scale: isMobile ? 1 : scale, opacity: isMobile ? 1 : opacity, y: isMobile ? 0 : exitY }}
+        className="relative grid md:grid-cols-2 gap-14 items-center w-full"
+      >
+        <motion.div style={{ y: leftY }}>
           <SectionLabel>{feature.label}</SectionLabel>
           <Reveal>
             <h2 className="mt-6 font-display uppercase tracking-tight leading-[0.95] text-[11vw] md:text-[4.8vw]">
@@ -52,9 +73,9 @@ function FeaturePanel({ feature, index }) {
               {feature.description}
             </p>
           </Reveal>
-        </div>
+        </motion.div>
 
-        <div>
+        <motion.div style={{ y: rightY }}>
           <ul className="flex flex-col">
             {feature.details.map((d, i) => (
               <motion.li
@@ -74,8 +95,8 @@ function FeaturePanel({ feature, index }) {
               </motion.li>
             ))}
           </ul>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </section>
   );
 }

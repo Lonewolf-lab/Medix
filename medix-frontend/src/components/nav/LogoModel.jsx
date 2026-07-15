@@ -6,7 +6,7 @@ import { useGLTF, Center, Environment, Lightformer } from "@react-three/drei";
 const GLB_URL = "/logo.glb"; // meshopt-compressed; drei decodes it out of the box
 const MAX_TILT = 0.45; // ~26° — how far the mark leans away from the cursor
 
-function Model({ spin, interactive, hoveredRef }) {
+function Model({ spin, interactive, hoveredRef, dragStateRef }) {
   const tiltGroup = useRef(); // outer: cursor tilt
   const spinGroup = useRef(); // inner: idle rotation
   const { scene } = useGLTF(GLB_URL);
@@ -35,15 +35,56 @@ function Model({ spin, interactive, hoveredRef }) {
   }, [scene]);
 
   useFrame((state, delta) => {
-    // Idle spin (inner group).
-    if (spin && spinGroup.current) spinGroup.current.rotation.y += delta * 0.6;
+    const ds = dragStateRef.current;
 
-    // Cursor tilt (outer group): the mark leans AWAY from wherever the
-    // pointer is — right hover pushes the right side back (tilts left),
-    // top hover pushes the top back (tilts down), diagonals combine both.
-    // Eases back to neutral when the pointer leaves.
+    if (ds.isDragging) {
+      if (spinGroup.current) {
+        spinGroup.current.rotation.y = ds.dragRotationY;
+        spinGroup.current.rotation.x = ds.dragRotationX;
+      }
+    } else {
+      const speedSq = ds.spinVelocityX * ds.spinVelocityX + ds.spinVelocityY * ds.spinVelocityY;
+      
+      if (speedSq > 0.0001) {
+        if (spinGroup.current) {
+          // Spin with physics speed (flick speed scaled by delta)
+          // 20 is an interactive scaling factor for millisecond velocity in R3F
+          spinGroup.current.rotation.y += ds.spinVelocityX * delta * 20;
+          spinGroup.current.rotation.x += ds.spinVelocityY * delta * 20;
+
+          // Decelerate over time
+          const decay = Math.exp(-delta * 2.8);
+          ds.spinVelocityX *= decay;
+          ds.spinVelocityY *= decay;
+
+          // Save current rotation so if the user clicks again, dragging resumes smoothly
+          ds.dragRotationY = spinGroup.current.rotation.y;
+          ds.dragRotationX = spinGroup.current.rotation.x;
+
+          // Decay X rotation back to 0 (neutral orientation)
+          spinGroup.current.rotation.x += (0 - spinGroup.current.rotation.x) * Math.min(1, delta * 3.2);
+        }
+      } else {
+        ds.spinVelocityX = 0;
+        ds.spinVelocityY = 0;
+
+        if (spinGroup.current) {
+          // Resume standard idle spin on Y axis
+          if (spin) {
+            spinGroup.current.rotation.y += delta * 0.6;
+            ds.dragRotationY = spinGroup.current.rotation.y;
+          }
+          // Decay X rotation back to 0
+          spinGroup.current.rotation.x += (0 - spinGroup.current.rotation.x) * Math.min(1, delta * 3.2);
+          ds.dragRotationX = spinGroup.current.rotation.x;
+        }
+      }
+    }
+
+    // Cursor tilt (outer group): leans away from the cursor
+    // Disabled while dragging to avoid physics collision
     if (interactive && tiltGroup.current) {
-      const active = hoveredRef?.current;
+      const active = hoveredRef?.current && !ds.isDragging;
       const targetX = active ? -state.pointer.y * MAX_TILT : 0;
       const targetY = active ? state.pointer.x * MAX_TILT : 0;
       const k = Math.min(1, delta * 6); // damped spring feel
@@ -64,7 +105,7 @@ function Model({ spin, interactive, hoveredRef }) {
 }
 
 /** The actual WebGL canvas — lazy-loaded so three.js never blocks page load. */
-export default function LogoModel({ spin = true, interactive = false, hoveredRef }) {
+export default function LogoModel({ spin = true, interactive = false, hoveredRef, dragStateRef }) {
   return (
     <Canvas
       dpr={[1, 2]}
@@ -79,7 +120,12 @@ export default function LogoModel({ spin = true, interactive = false, hoveredRef
       <directionalLight position={[3, 4, 5]} intensity={2.2} />
       <directionalLight position={[-4, 2, -3]} intensity={1.2} color="#f5f3ec" />
       <directionalLight position={[0, -3, 2]} intensity={0.7} color="#a8d5b0" />
-      <Model spin={spin} interactive={interactive} hoveredRef={hoveredRef} />
+      <Model
+        spin={spin}
+        interactive={interactive}
+        hoveredRef={hoveredRef}
+        dragStateRef={dragStateRef}
+      />
       {/* Procedural studio environment (rendered locally — no network fetch). */}
       <Environment resolution={256}>
         <Lightformer intensity={2.5} position={[2, 2, 3]} scale={[5, 5, 1]} />

@@ -14,8 +14,8 @@
   --color-stone: #8a8778;
   --color-stone-line: #d8d5c9;
   --color-stone-faded: #c2bfb2;
-  --color-forest: #2f5233;
-  --color-forest-bright: #3f7046;
+  --color-forest: #488257;
+  --color-forest-bright: #5e9b6e;
 
   --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Anton", ui-sans-serif, system-ui, sans-serif;
@@ -33,7 +33,7 @@
   }
 
   ::selection {
-    background: #2f5233;
+    background: #488257;
     color: #f5f3ec;
   }
 }
@@ -70,7 +70,7 @@
 
 /* Outlined display type (giant hollow numbers) */
 .text-outline-ink {
-  -webkit-text-stroke: 1.5px #1a1a17;
+  -webkit-text-stroke: 1.5px var(--color-forest);
   color: transparent;
 }
 .text-outline-cream {
@@ -98,7 +98,7 @@
   border-radius: 99px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #2f5233;
+  background: var(--color-forest);
 }
 
 /* Premium styled date inputs: make webkit indicator transparent and stretched over the field */

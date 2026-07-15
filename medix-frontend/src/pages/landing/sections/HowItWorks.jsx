@@ -26,7 +26,7 @@ function Step({ step, index }) {
         <h3 className="font-display uppercase tracking-tight text-3xl md:text-5xl text-ink">
           {step.title}
         </h3>
-        <p className="mt-5 text-ink-soft leading-relaxed max-w-md">{step.text}</p>
+        <p className="mt-5 text-forest/80 leading-relaxed max-w-md">{step.text}</p>
       </Reveal>
     </div>
   );

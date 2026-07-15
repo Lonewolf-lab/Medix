@@ -37,10 +37,10 @@ export default function AppLayout() {
   const SidebarContent = () => (
     <div className="flex flex-col h-full bg-ink text-cream-light p-6">
       {/* Brand Header */}
-      <div className="flex items-center gap-3 mb-10">
+      <Link to="/" className="flex items-center gap-3 mb-10 hover:opacity-90 transition-opacity">
         <img src="/medix_logo.png" alt="Medix logo" className="w-8 h-8 object-contain" />
         <span className="font-display text-xl tracking-wider text-cream-light">MEDIX</span>
-      </div>
+      </Link>
 
       {/* Nav Links */}
       <nav className="flex-1 space-y-2">
@@ -53,7 +53,7 @@ export default function AppLayout() {
               to={item.to}
               onClick={() => setMobileOpen(false)}
               className={`relative flex items-center gap-4 px-4 py-3 rounded-lg font-sans text-sm tracking-wide transition-all duration-300 ${
-                active ? "text-cream-light font-medium" : "text-stone hover:text-cream-light"
+                active ? "text-cream-light font-medium" : "text-stone hover:text-forest-bright"
               }`}
             >
               {active && (
@@ -116,7 +116,7 @@ export default function AppLayout() {
           >
             <Menu className="w-5 h-5" />
           </button>
-          <span className="font-display text-sm tracking-wider uppercase text-ink">MEDIX</span>
+          <Link to="/" className="font-display text-sm tracking-wider uppercase text-ink hover:text-forest transition-colors">MEDIX</Link>
           <div className="w-8 h-8" /> {/* Balance spacer */}
         </div>
 

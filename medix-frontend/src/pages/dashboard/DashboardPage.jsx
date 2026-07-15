@@ -247,14 +247,14 @@ export default function DashboardPage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, delay: i * 0.1 }}
-                    className="bg-cream-light/60 border border-stone-line/60 rounded-xl p-5 hover:border-stone/60 hover:shadow-sm transition-all duration-300 flex items-start justify-between cursor-pointer"
+                    className="bg-cream-light/60 border border-stone-line/60 rounded-xl p-5 hover:border-forest/50 hover:shadow-sm transition-all duration-300 flex items-start justify-between cursor-pointer"
                   >
                     <div className="space-y-1">
                       <span className="font-mono-accent text-[9px] tracking-widest text-stone uppercase">{stat.label}</span>
                       <p className="text-xl font-bold text-ink">{stat.value}</p>
                       <span className="text-[11px] text-ink-soft block">{stat.desc}</span>
                     </div>
-                    <div className={`p-3 rounded-full bg-stone-line/20 ${stat.color}`}>
+                    <div className="p-3 rounded-full bg-forest/10 text-forest">
                       <Icon className="w-4 h-4" />
                     </div>
                   </motion.div>

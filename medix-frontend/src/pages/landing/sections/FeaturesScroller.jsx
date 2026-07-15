@@ -34,14 +34,14 @@ export default function FeaturesScroller() {
               <div key={f.id} className="flex items-baseline gap-4 py-3 border-b border-stone-line">
                 <span
                   className={`font-mono-accent text-xs transition-colors ${
-                    i === active ? "text-forest" : "text-stone"
+                    i === active ? "text-forest font-bold" : "text-forest/30"
                   }`}
                 >
                   {String(i + 1).padStart(2, "0")}
                 </span>
                 <span
                   className={`font-display uppercase text-2xl md:text-4xl tracking-tight transition-all duration-500 ${
-                    i === active ? "text-ink translate-x-2" : "text-stone-faded"
+                    i === active ? "text-ink translate-x-2" : "text-forest/20"
                   }`}
                 >
                   {f.title}
@@ -67,7 +67,7 @@ export default function FeaturesScroller() {
                 </p>
                 <Link
                   to="/features"
-                  className="link-underline mt-6 inline-block font-mono-accent text-xs tracking-widest uppercase text-ink-soft"
+                  className="link-underline mt-6 inline-block font-mono-accent text-xs tracking-widest uppercase text-forest hover:text-forest-bright transition-colors"
                 >
                   Learn more →
                 </Link>
@@ -76,7 +76,7 @@ export default function FeaturesScroller() {
           </div>
         </div>
 
-        <div className="mt-10 font-mono-accent text-xs text-stone">
+        <div className="mt-10 font-mono-accent text-xs text-forest/60">
           {active + 1}/{FEATURES.length}
         </div>
       </div>
