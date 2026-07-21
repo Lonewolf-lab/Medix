@@ -34,14 +34,14 @@ export default function FeaturesScroller() {
               <div key={f.id} className="flex items-baseline gap-4 py-3 border-b border-stone-line">
                 <span
                   className={`font-mono-accent text-xs transition-colors ${
-                    i === active ? "text-forest font-bold" : "text-forest/30"
+                    i === active ? "text-forest font-bold" : "text-forest/50"
                   }`}
                 >
                   {String(i + 1).padStart(2, "0")}
                 </span>
                 <span
                   className={`font-display uppercase text-2xl md:text-4xl tracking-tight transition-all duration-500 ${
-                    i === active ? "text-ink translate-x-2" : "text-forest/20"
+                    i === active ? "text-ink translate-x-2" : "text-forest/35"
                   }`}
                 >
                   {f.title}

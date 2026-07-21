@@ -14,8 +14,8 @@
   --color-stone: #8a8778;
   --color-stone-line: #d8d5c9;
   --color-stone-faded: #c2bfb2;
-  --color-forest: #488257;
-  --color-forest-bright: #5e9b6e;
+  --color-forest: #0284c7;
+  --color-forest-bright: #38bdf8;
 
   --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Anton", ui-sans-serif, system-ui, sans-serif;
@@ -33,7 +33,7 @@
   }
 
   ::selection {
-    background: #488257;
+    background: #0284c7;
     color: #f5f3ec;
   }
 }
@@ -58,7 +58,7 @@
   bottom: -2px;
   width: 100%;
   height: 1px;
-  background: currentColor;
+  background-color: currentColor;
   transform: scaleX(0);
   transform-origin: right;
   transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
@@ -68,89 +68,38 @@
   transform-origin: left;
 }
 
-/* Outlined display type (giant hollow numbers) */
-.text-outline-ink {
-  -webkit-text-stroke: 1.5px var(--color-forest);
-  color: transparent;
-}
-.text-outline-cream {
-  -webkit-text-stroke: 1.5px #f5f3ec;
-  color: transparent;
-}
-
-/* Hover state for menu links: hollow letters — outline in the text's own
-   color, empty in the middle. */
-.text-hollow-cream {
-  color: transparent !important;
-  -webkit-text-stroke: 2px #f5f3ec;
+/* Marquee infinite scroll */
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
 }
 
-/* Custom themed scrollbars */
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 25s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* Custom sleek scrollbar */
 .custom-scrollbar::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 6px;
 }
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
+  background: rgba(216, 213, 201, 0.4);
+  border-radius: 9999px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #c2bfb2;
-  border-radius: 99px;
+  background: rgba(26, 26, 23, 0.3);
+  border-radius: 9999px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: var(--color-forest);
+  background: rgba(2, 132, 199, 0.7);
 }
-
-/* Premium styled date inputs: make webkit indicator transparent and stretched over the field */
-input[type="date"] {
-  position: relative;
-}
-input[type="date"]::-webkit-calendar-picker-indicator {
-  background: transparent;
-  bottom: 0;
-  color: transparent;
-  cursor: pointer;
-  height: auto;
-  left: 0;
-  position: absolute;
-  right: 0;
-  top: 0;
-  width: auto;
-}
-
-/* Force select element to strip browser arrows */
-select {
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-}
-select::-ms-expand {
-  display: none;
-}
-
-/* Date input text styling */
-input[type="date"]::placeholder {
-  color: #8a8778;
-}
-input[type="date"]::-webkit-datetime-edit {
-  color: #5c5a4f;
-  font-family: inherit;
-}
-input[type="date"]::-webkit-datetime-edit-fields-wrapper {
-  padding: 0;
-}
-input[type="date"]::-webkit-datetime-edit-text {
-  color: #8a8778;
-}
-input[type="date"]::-webkit-datetime-edit-month-field {
-  color: #8a8778;
-}
-input[type="date"]::-webkit-datetime-edit-day-field {
-  color: #8a8778;
-}
-input[type="date"]::-webkit-datetime-edit-year-field {
-  color: #8a8778;
-}
-
-
-

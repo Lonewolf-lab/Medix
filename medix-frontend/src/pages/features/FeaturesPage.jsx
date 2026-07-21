@@ -39,14 +39,14 @@ function FeaturePanel({ feature, index }) {
       style={{ zIndex: index }}
       className={`w-full flex items-center overflow-hidden px-6 md:px-16 ${
         isMobile ? "relative min-h-screen py-28" : "sticky top-0 h-screen"
-      } ${dark ? "bg-ink text-cream-light" : "bg-cream text-ink"}`}
+      } ${dark ? "bg-forest-bright text-ink" : "bg-cream text-ink"}`}
     >
       {/* Parallax giant number */}
       <motion.span
         style={{ y: numberY }}
         aria-hidden="true"
         className={`absolute -right-4 md:right-10 top-10 font-display leading-none text-[45vw] md:text-[24vw] select-none ${
-          dark ? "text-outline-cream opacity-30" : "text-outline-ink opacity-25"
+          dark ? "text-outline-ink opacity-15" : "text-outline-ink opacity-25"
         }`}
       >
         {String(index + 1).padStart(2, "0")}
@@ -57,19 +57,19 @@ function FeaturePanel({ feature, index }) {
         className="relative grid md:grid-cols-2 gap-14 items-center w-full"
       >
         <motion.div style={{ y: leftY }}>
-          <SectionLabel>{feature.label}</SectionLabel>
+          <SectionLabel className={dark ? "text-ink/60" : ""}>{feature.label}</SectionLabel>
           <Reveal>
             <h2 className="mt-6 font-display uppercase tracking-tight leading-[0.95] text-[11vw] md:text-[4.8vw]">
               {feature.title}
             </h2>
           </Reveal>
           <Reveal delay={0.1}>
-            <p className={`mt-4 font-display uppercase tracking-tight text-xl md:text-2xl ${dark ? "text-forest-bright" : "text-forest"}`}>
+            <p className={`mt-4 font-display uppercase tracking-tight text-xl md:text-2xl ${dark ? "text-ink-soft" : "text-forest"}`}>
               {feature.tagline}
             </p>
           </Reveal>
           <Reveal delay={0.2}>
-            <p className={`mt-6 max-w-md leading-relaxed text-sm ${dark ? "text-stone" : "text-ink-soft"}`}>
+            <p className={`mt-6 max-w-md leading-relaxed text-sm ${dark ? "text-ink-soft/90" : "text-ink-soft"}`}>
               {feature.description}
             </p>
           </Reveal>
@@ -85,13 +85,15 @@ function FeaturePanel({ feature, index }) {
                 viewport={{ once: true, amount: 0.4 }}
                 transition={{ duration: 0.6, delay: i * 0.1, ease: EASE }}
                 className={`flex items-baseline gap-4 py-4 border-b ${
-                  dark ? "border-ink-line" : "border-stone-line"
+                  dark ? "border-ink-line/30" : "border-stone-line"
                 }`}
               >
-                <span className={`font-mono-accent text-xs ${dark ? "text-forest-bright" : "text-forest"}`}>
+                <span className={`font-mono-accent text-xs ${dark ? "text-ink/40" : "text-ink/60"}`}>
                   {String(i + 1).padStart(2, "0")}
                 </span>
-                <span className="text-sm md:text-base leading-relaxed">{d}</span>
+                <span className={`text-sm md:text-base leading-relaxed ${dark ? "text-ink" : "text-forest"}`}>
+                  {d}
+                </span>
               </motion.li>
             ))}
           </ul>

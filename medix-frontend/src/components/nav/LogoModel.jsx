@@ -119,7 +119,7 @@ export default function LogoModel({ spin = true, interactive = false, hoveredRef
       <ambientLight intensity={1.4} />
       <directionalLight position={[3, 4, 5]} intensity={2.2} />
       <directionalLight position={[-4, 2, -3]} intensity={1.2} color="#f5f3ec" />
-      <directionalLight position={[0, -3, 2]} intensity={0.7} color="#a8d5b0" />
+      <directionalLight position={[0, -3, 2]} intensity={0.7} color="#80d8ff" />
       <Model
         spin={spin}
         interactive={interactive}
@@ -130,7 +130,7 @@ export default function LogoModel({ spin = true, interactive = false, hoveredRef
       <Environment resolution={256}>
         <Lightformer intensity={2.5} position={[2, 2, 3]} scale={[5, 5, 1]} />
         <Lightformer intensity={1.8} position={[-3, 1, -2]} scale={[4, 4, 1]} color="#f5f3ec" />
-        <Lightformer intensity={1.2} position={[0, -2, 2]} scale={[5, 2, 1]} color="#dfe8df" />
+        <Lightformer intensity={1.2} position={[0, -2, 2]} scale={[5, 2, 1]} color="#e0f7fa" />
         <Lightformer intensity={1.0} position={[0, 4, 0]} rotation={[Math.PI / 2, 0, 0]} scale={[6, 6, 1]} />
       </Environment>
     </Canvas>
