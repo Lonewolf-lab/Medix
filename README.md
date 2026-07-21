@@ -4,13 +4,13 @@
 
 ### An AI-powered personal health management platform
 
-*Stop panic-Googling your symptoms. Triage, records, medications, and lab insights — in one calm place.*
+*Stop panic-Googling your symptoms. Triage, records, medications, calendar scheduling, and lab insights — in one calm place.*
 
 ![Java](https://img.shields.io/badge/Java-17-orange)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2-6DB33F)
 ![React](https://img.shields.io/badge/React-19-61DAFB)
 ![Vite](https://img.shields.io/badge/Vite-8-646CFF)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-38BDF8)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-0284C7)
 ![License](https://img.shields.io/badge/License-MIT-blue)
 
 </div>
@@ -27,7 +27,8 @@ files. Doctor visits for minor issues are slow and expensive.
 
 - 🧠 **AI symptom triage** — a structured *first opinion* (not a diagnosis) with severity, likely causes, and next steps
 - 📁 **Health records** — upload lab reports & prescriptions (PDF/image), with AI explanations and per-document chat
-- 💊 **Medication tracking** — reminders, course expiry, and **AI prescription extraction** from a photo/PDF
+- 💊 **Medication tracking** — active prescription management, dosage tracking, course expiry, and **AI prescription extraction**
+- 📅 **Unified Health Calendar & Scheduler** — full-spread interactive grid, single-card per medication displaying time ranges (`09:00 - 21:00`), daily pop-up agenda, and full CRUD doctor appointment booking
 - 💬 **Context-aware AI chat** — an assistant that knows your age, blood group, medications, and recent symptoms
 - 📊 **Lab dashboard** — automatic **biomarker extraction** from reports, color-coded normal/borderline/high
 
@@ -56,8 +57,8 @@ files. Doctor visits for minor issues are slow and expensive.
 - **All AI calls are proxied through the backend** — the API key never touches the client.
 - **Stateless JWT auth in an HttpOnly cookie** (`medix_token`), with a Bearer-header fallback and a
   DB-backed token blacklist for secure logout.
-- **Per-feature package structure** on the backend (`auth`, `symptom`, `record`, `medication`,
-  `chat`, `dashboard`, …) — each with its own controller/service/repository/DTOs.
+- **Per-feature package structure** on the backend (`auth`, `user`, `symptom`, `record`, `medication`,
+  `appointment`, `chat`, `dashboard`, …) — each with its own controller/service/repository/DTOs.
 - **User context is injected into every AI prompt** (age, blood group, active meds, recent symptoms)
   for personalized responses.
 
@@ -79,12 +80,12 @@ files. Doctor visits for minor issues are slow and expensive.
 
 ```
 Medix/
-├── medix-backend/      # Spring Boot REST API (complete)
+├── medix-backend/      # Spring Boot REST API
 │   └── src/main/java/com/medimind/
-│       ├── auth/  user/  symptom/  record/  medication/  chat/  dashboard/
+│       ├── auth/  user/  symptom/  record/  medication/  appointment/  chat/  dashboard/
 │       ├── ai/  security/  config/  storage/  exception/
 │       └── MedixApplication.java
-└── medix-frontend/     # React app (in progress)
+└── medix-frontend/     # React web application
     └── src/
         ├── api/  store/  routes/  components/  pages/  hooks/  utils/  constants/
         └── App.jsx  main.jsx
@@ -98,72 +99,43 @@ Medix/
 - Java 17+, Maven
 - Node.js 20+
 - PostgreSQL running locally
-- A free [Groq API key](https://console.groq.com)
 
-### 1. Backend
+### 1. Database Setup
+Create a PostgreSQL database named `medimind`:
+```sql
+CREATE DATABASE medimind;
+```
 
+### 2. Backend Setup
 ```bash
 cd medix-backend
-
-# Create your local secrets file from the template
-cp src/main/resources/application-local.properties.example \
-   src/main/resources/application-local.properties
-# → fill in: spring.datasource.password, jwt.secret (32+ chars), ai.api.key
-
-# Create the database
-createdb medimind   # or via psql:  CREATE DATABASE medimind;
-
-mvn spring-boot:run   # starts on http://localhost:8080
+cp src/main/resources/application.properties.example src/main/resources/application.properties
+cp src/main/resources/application-local.properties.example src/main/resources/application-local.properties
 ```
 
-### 2. Frontend
+Edit `application-local.properties` with your credentials:
+```properties
+spring.datasource.password=your_postgres_password
+jwt.secret=your_super_secret_jwt_key_at_least_32_characters
+ai.api.key=your_groq_api_key
+```
 
+Run the API server:
+```bash
+mvn spring-boot:run
+```
+
+### 3. Frontend Setup
 ```bash
 cd medix-frontend
-cp .env.example .env        # VITE_API_BASE_URL=http://localhost:8080
 npm install
-npm run dev                 # starts on http://localhost:5173
+npm run dev
 ```
 
----
-
-## API Surface (selected)
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/auth/register` · `/login` · `/logout` | Cookie-based auth |
-| `POST` | `/api/symptoms/analyze` | AI symptom triage |
-| `POST` | `/api/records` · `/api/records/{id}/analyze` · `/chat` | Upload & AI-analyze documents |
-| `POST` | `/api/medications/extract-prescription` | AI prescription extraction |
-| `POST` | `/api/dashboard/upload-report` · `/health-summary` | Biomarker extraction & insights |
-| `POST` | `/api/chat/message` | Context-aware health assistant |
-
-All `/api/**` routes except `/api/auth/**` require authentication.
+Visit `http://localhost:4000` in your browser.
 
 ---
-
-## Security Notes
-
-- Secrets live only in `application-local.properties` (gitignored) — never committed.
-- Passwords hashed with BCrypt; JWT signed and short-lived; logout blacklists the token.
-- CORS restricted to the frontend origin with credentials enabled.
-
----
-
-## Roadmap
-
-- [ ] Complete frontend feature pages + animated 3D landing experience
-- [ ] Live deployment (managed Postgres + cloud file storage)
-- [ ] Handwritten prescription extraction (vision)
-- [ ] Email medication reminders & PDF health-summary export
-
----
-
-## Author
-
-**Siddhant Sinha** — B.Tech CSE, Amity University Noida
-Full-stack solo project.
 
 ## License
 
-[MIT](./LICENSE)
+Distributed under the MIT License. See `LICENSE` for details.
