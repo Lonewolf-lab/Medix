@@ -13,6 +13,7 @@ import {
   Menu,
   X,
   ShieldAlert,
+  Calendar,
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -20,6 +21,7 @@ const NAV_ITEMS = [
   { label: "Symptom Checker", to: "/symptoms", icon: Activity },
   { label: "Health Records", to: "/records", icon: FileText },
   { label: "Medication Tracker", to: "/medications", icon: Pill },
+  { label: "Calendar & Scheduler", to: "/calendar", icon: Calendar },
   { label: "AI Health Chat", to: "/chat", icon: MessageSquare },
   { label: "Profile", to: "/profile", icon: User },
 ];

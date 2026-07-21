@@ -21,6 +21,7 @@ import DashboardPage from "./pages/dashboard/DashboardPage.jsx";
 import SymptomCheckerPage from "./pages/dashboard/SymptomCheckerPage.jsx";
 import HealthRecordsPage from "./pages/dashboard/HealthRecordsPage.jsx";
 import MedicationsPage from "./pages/dashboard/MedicationsPage.jsx";
+import CalendarPage from "./pages/dashboard/CalendarPage.jsx";
 import ChatPage from "./pages/dashboard/ChatPage.jsx";
 import ProfilePage from "./pages/dashboard/ProfilePage.jsx";
 import NotFoundPage from "./pages/NotFoundPage.jsx";
@@ -64,6 +65,7 @@ function App() {
             <Route path="/symptoms" element={<SymptomCheckerPage />} />
             <Route path="/records" element={<HealthRecordsPage />} />
             <Route path="/medications" element={<MedicationsPage />} />
+            <Route path="/calendar" element={<CalendarPage />} />
             <Route path="/chat" element={<ChatPage />} />
             <Route path="/profile" element={<ProfilePage />} />
           </Route>
