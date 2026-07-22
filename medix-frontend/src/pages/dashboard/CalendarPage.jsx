@@ -134,9 +134,13 @@ export default function CalendarPage() {
     );
   };
 
-  // String YYYY-MM-DD date check (hides medications for past dates)
+  // String YYYY-MM-DD date check (only shows active, non-expired medications for today & future dates)
   const isMedicationActiveOnDate = (med, targetDate) => {
-    if (med.isActive === false) return false;
+    // Safely check active & expired status (Jackson serializes Java boolean isActive getter as JSON 'active')
+    const isActive = med.active !== undefined ? med.active : med.isActive;
+    const isExpired = med.expired !== undefined ? med.expired : med.isExpired;
+
+    if (isActive === false || isExpired === true) return false;
 
     const todayObj = new Date();
     const todayYMD =
