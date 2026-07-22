@@ -134,9 +134,17 @@ export default function CalendarPage() {
     );
   };
 
-  // String YYYY-MM-DD date check
+  // String YYYY-MM-DD date check (hides medications for past dates)
   const isMedicationActiveOnDate = (med, targetDate) => {
     if (med.isActive === false) return false;
+
+    const todayObj = new Date();
+    const todayYMD =
+      todayObj.getFullYear() +
+      "-" +
+      String(todayObj.getMonth() + 1).padStart(2, "0") +
+      "-" +
+      String(todayObj.getDate()).padStart(2, "0");
 
     const targetYMD =
       targetDate.getFullYear() +
@@ -145,17 +153,20 @@ export default function CalendarPage() {
       "-" +
       String(targetDate.getDate()).padStart(2, "0");
 
+    // Do NOT display medications for dates that have passed
+    if (targetYMD < todayYMD) return false;
+
     if (med.startDate && med.startDate > targetYMD) return false;
     if (med.endDate && med.endDate < targetYMD) return false;
 
     return true;
   };
 
-  // Get events for a specific date (Consolidating medications to 1 entry per med)
+  // Get events for a specific date
   const getEventsForDate = (targetDate, currentFilter = "ALL") => {
     const events = [];
 
-    // 1. Doctor Appointments
+    // 1. Doctor Appointments (retained for all dates, past and future, as a history log)
     if (currentFilter === "ALL" || currentFilter === "APPOINTMENTS") {
       appointments.forEach((appt) => {
         const apptTime = new Date(appt.appointmentTime);
@@ -175,7 +186,7 @@ export default function CalendarPage() {
       });
     }
 
-    // 2. Active Medications (CONSOLIDATED: 1 single entry per active medication per day)
+    // 2. Active Medications (Only shown for today & future dates; hidden for past dates)
     if (currentFilter === "ALL" || currentFilter === "MEDICATIONS") {
       medications.forEach((med) => {
         if (isMedicationActiveOnDate(med, targetDate)) {
@@ -214,7 +225,7 @@ export default function CalendarPage() {
 
   // Open Scheduler drawer
   const handleOpenScheduler = (appt = null) => {
-    setIsAgendaModalOpen(false); // Close agenda modal when opening form
+    setIsAgendaModalOpen(false);
     if (appt) {
       const apptTime = new Date(appt.appointmentTime);
       const hour = String(apptTime.getHours()).padStart(2, "0");
@@ -303,6 +314,12 @@ export default function CalendarPage() {
   const selectedDayEvents = getEventsForDate(selectedDate, filterType);
   const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
+  // Group days into 6 week rows to check if any week row is completely empty
+  const weekRowHasEvents = [0, 1, 2, 3, 4, 5].map((rowIndex) => {
+    const rowDays = days.slice(rowIndex * 7, (rowIndex + 1) * 7);
+    return rowDays.some((item) => getEventsForDate(item.date, "ALL").length > 0);
+  });
+
   const formatMonthYear = (date) => {
     return date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
   };
@@ -341,7 +358,7 @@ export default function CalendarPage() {
       ) : (
         <div className="space-y-10">
           
-          {/* SPACIOUS BIG-BOX GRID CALENDAR */}
+          {/* SPACIOUS RECTANGULAR GRID CALENDAR */}
           <div className="bg-cream-light border border-stone-line rounded-2xl p-6 md:p-8 shadow-sm">
             
             {/* Header Controls */}
@@ -391,11 +408,18 @@ export default function CalendarPage() {
                 const today = isSameDay(item.date, new Date());
                 const dayEvents = getEventsForDate(item.date, "ALL");
 
+                const rowIndex = Math.floor(idx / 7);
+                const isRowEmpty = !weekRowHasEvents[rowIndex];
+
                 return (
                   <div
                     key={idx}
                     onClick={() => handleDayClick(item.date)}
-                    className={`min-h-[130px] md:min-h-[155px] p-3 rounded-xl border transition-all cursor-pointer flex flex-col justify-between ${
+                    className={`p-3 rounded-xl border transition-all cursor-pointer flex flex-col justify-between ${
+                      isRowEmpty
+                        ? "min-h-[75px] md:min-h-[85px]"
+                        : "min-h-[110px] md:min-h-[125px]"
+                    } ${
                       active
                         ? "bg-cream-light border-2 border-forest ring-2 ring-forest/30 shadow-md"
                         : item.isCurrentMonth
@@ -404,7 +428,7 @@ export default function CalendarPage() {
                     }`}
                   >
                     {/* Top Row: Date Number */}
-                    <div className="flex justify-between items-center w-full mb-2">
+                    <div className="flex justify-between items-center w-full mb-1">
                       <span
                         className={`text-sm font-semibold ${
                           today
@@ -422,35 +446,37 @@ export default function CalendarPage() {
                       )}
                     </div>
 
-                    {/* Content Event Tags Inside Big Box (1 chip per medicine with time range) */}
-                    <div className="flex flex-col gap-1.5 overflow-hidden flex-1 justify-end">
-                      {dayEvents.slice(0, 3).map((ev, evIdx) => (
-                        <div
-                          key={evIdx}
-                          className={`text-[10px] md:text-[11px] font-mono-accent px-2.5 py-1 rounded-lg border truncate flex items-center justify-between ${
-                            ev.type === "appointment"
-                              ? "bg-ink text-cream-light border-ink"
-                              : "bg-forest/15 text-forest border-forest/30 font-medium"
-                          }`}
-                        >
-                          <div className="flex items-center gap-1.5 min-w-0">
-                            {ev.type === "appointment" ? (
-                              <Stethoscope className="w-3 h-3 shrink-0" />
-                            ) : (
-                              <Pill className="w-3 h-3 shrink-0" />
-                            )}
-                            <span className="truncate">{ev.title}</span>
+                    {/* Content Event Tags (Max 2 visible items shown, +X more if overflowing) */}
+                    {dayEvents.length > 0 && (
+                      <div className="flex flex-col gap-1.5 overflow-hidden flex-1 justify-end mt-1">
+                        {dayEvents.slice(0, 2).map((ev, evIdx) => (
+                          <div
+                            key={evIdx}
+                            className={`text-[10px] md:text-[11px] font-mono-accent px-2.5 py-1 rounded-lg border truncate flex items-center justify-between ${
+                              ev.type === "appointment"
+                                ? "bg-ink text-cream-light border-ink"
+                                : "bg-forest/15 text-forest border-forest/30 font-medium"
+                            }`}
+                          >
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              {ev.type === "appointment" ? (
+                                <Stethoscope className="w-3 h-3 shrink-0" />
+                              ) : (
+                                <Pill className="w-3 h-3 shrink-0" />
+                              )}
+                              <span className="truncate">{ev.title}</span>
+                            </div>
+                            <span className="text-[9px] opacity-80 ml-1 shrink-0 font-bold">{ev.time}</span>
                           </div>
-                          <span className="text-[9px] opacity-80 ml-1 shrink-0 font-bold">{ev.time}</span>
-                        </div>
-                      ))}
+                        ))}
 
-                      {dayEvents.length > 3 && (
-                        <span className="text-[10px] font-mono-accent text-stone italic pl-1">
-                          +{dayEvents.length - 3} more items
-                        </span>
-                      )}
-                    </div>
+                        {dayEvents.length > 2 && (
+                          <span className="text-[10px] font-mono-accent text-stone italic pl-1">
+                            +{dayEvents.length - 2} more items
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -530,7 +556,7 @@ export default function CalendarPage() {
                 </div>
               </div>
 
-              {/* Compact Event Row Items Container with Scrollbar (1 card per medicine, showing "09:00 - 21:00") */}
+              {/* Compact Event Row Items Container with Scrollbar */}
               <div className="p-4 sm:p-5 space-y-2.5 overflow-y-auto flex-1 custom-scrollbar min-h-0">
                 {selectedDayEvents.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-10 text-center">
@@ -538,7 +564,7 @@ export default function CalendarPage() {
                       <CalendarIcon className="w-5 h-5 text-stone/50" />
                     </div>
                     <p className="font-mono-accent text-xs text-stone italic">
-                      No scheduled medications or doctor visits for this date.
+                      No scheduled items for this date.
                     </p>
                     <button
                       onClick={() => handleOpenScheduler()}
