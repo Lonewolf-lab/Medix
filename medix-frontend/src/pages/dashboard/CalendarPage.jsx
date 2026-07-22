@@ -176,12 +176,17 @@ export default function CalendarPage() {
         const apptTime = new Date(appt.appointmentTime);
         if (isSameDay(apptTime, targetDate)) {
           const tStr = apptTime.toTimeString().slice(0, 5);
+          // Clean up any duplicate 'Dr. Dr. ' prefixes
+          const formattedTitle = appt.doctorName
+            ? appt.doctorName.replace(/^(Dr\.\s*)+/i, "Dr. ")
+            : "Doctor Visit";
+
           events.push({
             id: `appt-${appt.id}`,
             type: "appointment",
             time: tStr,
             primaryTime: tStr,
-            title: `Dr. ${appt.doctorName}`,
+            title: formattedTitle,
             subtitle: appt.specialty || "Doctor Visit",
             notes: appt.notes,
             raw: appt,
@@ -305,7 +310,9 @@ export default function CalendarPage() {
   const handleDeleteAppointment = async (apptId) => {
     if (!confirm("Cancel this appointment?")) return;
     try {
-      await appointmentApi.deleteAppointment(apptId);
+      // Strip 'appt-' prefix if present from event wrapper ID
+      const cleanId = String(apptId).replace(/^appt-/, "");
+      await appointmentApi.deleteAppointment(cleanId);
       toast.success("Appointment cancelled");
       fetchData();
       setIsAgendaModalOpen(false);
@@ -637,7 +644,7 @@ export default function CalendarPage() {
                               <Edit3 className="w-3.5 h-3.5" />
                             </button>
                             <button
-                              onClick={() => handleDeleteAppointment(ev.id)}
+                              onClick={() => handleDeleteAppointment(ev.raw ? ev.raw.id : ev.id)}
                               className="text-stone hover:text-red-400 transition-colors p-1 cursor-pointer"
                               title="Cancel appointment"
                             >
