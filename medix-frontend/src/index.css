@@ -132,5 +132,5 @@
    color, empty in the middle. */
 .text-hollow-cream {
   color: transparent !important;
-  -webkit-text-stroke: 2px #f5f3ec;
+  -webkit-text-stroke: 1px #f5f3ec;
 }
