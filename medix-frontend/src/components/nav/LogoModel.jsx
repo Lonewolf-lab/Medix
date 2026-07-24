@@ -48,9 +48,9 @@ function Model({ spin, interactive, hoveredRef, dragStateRef }) {
       if (speedSq > 0.0001) {
         if (spinGroup.current) {
           // Spin with physics speed (flick speed scaled by delta)
-          // 20 is an interactive scaling factor for millisecond velocity in R3F
-          spinGroup.current.rotation.y += ds.spinVelocityX * delta * 20;
-          spinGroup.current.rotation.x += ds.spinVelocityY * delta * 20;
+          // 6.5 is a tuned interactive scaling factor to prevent insanely fast spins
+          spinGroup.current.rotation.y += ds.spinVelocityX * delta * 6.5;
+          spinGroup.current.rotation.x += ds.spinVelocityY * delta * 6.5;
 
           // Decelerate over time
           const decay = Math.exp(-delta * 2.8);
