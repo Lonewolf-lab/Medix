@@ -89,7 +89,7 @@ export default function FullscreenMenu({ open, onClose }) {
                       <span className="font-mono-accent text-xs text-forest transition-colors group-hover:text-forest-bright">
                         {link.n}
                       </span>
-                      <span className="font-display uppercase tracking-tight leading-none text-[10vw] md:text-[3.9vw] text-cream-light transition-transform duration-[360ms] group-hover:translate-x-3">
+                      <span className="font-display uppercase tracking-tight leading-none text-[10vw] md:text-[3.9vw] text-cream-light transition-transform duration-[400ms] group-hover:translate-x-3">
                         <RollHollowText text={link.label} active={hovered === i} />
                       </span>
                     </Link>
