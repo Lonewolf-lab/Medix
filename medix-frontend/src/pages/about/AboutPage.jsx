@@ -57,7 +57,7 @@ export default function AboutPage() {
       <section className="min-h-[80vh] flex flex-col justify-end px-6 md:px-16 pb-16 pt-32">
         <SectionLabel>ABOUT MEDIX</SectionLabel>
         <h1 className="mt-6 font-display uppercase tracking-tight leading-[0.95] text-[13vw] md:text-[7.5vw] text-ink">
-          <WordReveal text="Built because 2 AM Google is a terrible doctor." />
+          <WordReveal text="Built because your health deserves clarity, not guesswork." />
         </h1>
       </section>
 
