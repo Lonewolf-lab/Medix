@@ -103,3 +103,17 @@
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(2, 132, 199, 0.7);
 }
+
+/* Premium Text Shine Keyframes & Class */
+@keyframes text-shine {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+.animate-text-shine {
+  animation: text-shine 4s linear infinite;
+}
