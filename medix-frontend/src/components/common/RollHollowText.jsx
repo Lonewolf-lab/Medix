@@ -25,14 +25,14 @@ export default function RollHollowText({ text, active, className = "" }) {
             <motion.span
               className="block"
               animate={{ y: active ? "-105%" : "0%" }}
-              transition={{ duration: 0.46, delay: i * 0.04, ease: EASE }}
+              transition={{ duration: 0.44, delay: i * 0.038, ease: EASE }}
             >
               {ch === " " ? " " : ch}
             </motion.span>
             <motion.span
               className="absolute inset-0 block text-hollow-cream"
               animate={{ y: active ? "0%" : "105%" }}
-              transition={{ duration: 0.46, delay: i * 0.04, ease: EASE }}
+              transition={{ duration: 0.44, delay: i * 0.038, ease: EASE }}
             >
               {ch === " " ? " " : ch}
             </motion.span>
