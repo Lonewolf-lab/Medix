@@ -11,7 +11,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Stethoscope,
-  Pill
+  Pill,
+  Bell
 } from "lucide-react";
 import { appointmentApi } from "../../api/appointmentApi";
 import { medicationApi } from "../../api/medicationApi";
@@ -38,8 +39,22 @@ export default function CalendarPage() {
     notes: "",
   });
 
+  // Medication Timings Modal State
+  const [isMedModalOpen, setIsMedModalOpen] = useState(false);
+  const [editingMedication, setEditingMedication] = useState(null);
+  const [newMedReminderTime, setNewMedReminderTime] = useState("");
+
   useEffect(() => {
     fetchData();
+
+    const handleScheduleUpdate = () => {
+      fetchData();
+    };
+
+    window.addEventListener("medix:schedule-updated", handleScheduleUpdate);
+    return () => {
+      window.removeEventListener("medix:schedule-updated", handleScheduleUpdate);
+    };
   }, []);
 
   const fetchData = async () => {
@@ -218,6 +233,7 @@ export default function CalendarPage() {
               med.frequency ? med.frequency.replace(/_/g, " ") : "DAILY"
             }`,
             notes: med.notes,
+            raw: med,
           });
         }
       });
@@ -321,6 +337,56 @@ export default function CalendarPage() {
     }
   };
 
+  const handleOpenMedTimingsModal = (med) => {
+    setIsAgendaModalOpen(false);
+    setEditingMedication(med);
+    setNewMedReminderTime("");
+    setIsMedModalOpen(true);
+  };
+
+  const handleAddMedReminder = async (e) => {
+    e.preventDefault();
+    if (!newMedReminderTime || !editingMedication) return;
+
+    try {
+      const payload = { reminderTime: newMedReminderTime };
+      const updated = await medicationApi.addReminder(editingMedication.id, payload);
+      setEditingMedication(updated);
+      toast.success("Reminder added");
+      setNewMedReminderTime("");
+      fetchData();
+    } catch (err) {
+      toast.error("Failed to add reminder");
+    }
+  };
+
+  const handleDeleteMedReminder = async (reminderId) => {
+    if (!editingMedication) return;
+    try {
+      await medicationApi.deleteReminder(editingMedication.id, reminderId);
+      // Re-fetch current medication
+      const updated = await medicationApi.getById(editingMedication.id);
+      setEditingMedication(updated);
+      toast.success("Reminder removed");
+      fetchData();
+    } catch (err) {
+      toast.error("Failed to remove reminder");
+    }
+  };
+
+  const handleDeleteMedication = async (medId) => {
+    if (!confirm("Are you sure you want to stop/delete this medication log?")) return;
+    try {
+      const cleanId = String(medId).replace(/^med-/, "");
+      await medicationApi.deleteMedication(cleanId);
+      toast.success("Medication tracker deleted");
+      fetchData();
+      setIsAgendaModalOpen(false);
+    } catch (err) {
+      toast.error("Failed to delete medication");
+    }
+  };
+
   const days = getDaysInMonth(currentMonth);
   const selectedDayEvents = getEventsForDate(selectedDate, filterType);
   const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -337,6 +403,15 @@ export default function CalendarPage() {
 
   const formatLongDate = (date) => {
     return date.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" });
+  };
+
+  const formatGridTime = (timeDisplay) => {
+    if (!timeDisplay) return "";
+    const parts = timeDisplay.split(" - ");
+    if (parts.length > 1) {
+      return `${parts[0]} (+${parts.length - 1})`;
+    }
+    return timeDisplay;
   };
 
   return (
@@ -477,7 +552,7 @@ export default function CalendarPage() {
                               )}
                               <span className="truncate">{ev.title}</span>
                             </div>
-                            <span className="text-[9px] opacity-80 ml-1 shrink-0 font-bold">{ev.time}</span>
+                            <span className="text-[9px] opacity-80 ml-1 shrink-0 font-bold">{formatGridTime(ev.time)}</span>
                           </div>
                         ))}
 
@@ -622,19 +697,26 @@ export default function CalendarPage() {
                         </div>
                       </div>
 
-                      {/* Right: Time Badge & Edit Actions (if appointment) */}
+                      {/* Right: Time Badge & Edit Actions */}
                       <div className="flex items-center gap-2 shrink-0">
-                        <div
-                          className={`px-2.5 py-1.5 rounded-lg font-mono-accent text-xs font-bold text-center ${
-                            ev.type === "appointment"
-                              ? "bg-forest text-cream-light"
-                              : "bg-forest/15 text-forest border border-forest/30"
-                          }`}
-                        >
-                          {ev.time}
-                        </div>
+                        {ev.type === "appointment" ? (
+                          <div className="px-2.5 py-1.5 rounded-lg font-mono-accent text-xs font-bold text-center bg-forest text-cream-light">
+                            {ev.time}
+                          </div>
+                        ) : (
+                          <div className="flex flex-wrap gap-1 items-center justify-end max-w-[140px] md:max-w-[180px]">
+                            {ev.time.split(" - ").map((t, idx) => (
+                              <div
+                                key={idx}
+                                className="px-2 py-0.5 rounded-md font-mono-accent text-[10px] font-bold bg-forest/15 text-forest border border-forest/20 whitespace-nowrap"
+                              >
+                                {t}
+                              </div>
+                            ))}
+                          </div>
+                        )}
 
-                        {ev.type === "appointment" && (
+                        {ev.type === "appointment" ? (
                           <div className="flex items-center gap-1">
                             <button
                               onClick={() => handleOpenScheduler(ev.raw)}
@@ -647,6 +729,23 @@ export default function CalendarPage() {
                               onClick={() => handleDeleteAppointment(ev.raw ? ev.raw.id : ev.id)}
                               className="text-stone hover:text-red-400 transition-colors p-1 cursor-pointer"
                               title="Cancel appointment"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => handleOpenMedTimingsModal(ev.raw)}
+                              className="text-stone hover:text-forest transition-colors p-1 cursor-pointer"
+                              title="Edit timings"
+                            >
+                              <Edit3 className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteMedication(ev.raw ? ev.raw.id : ev.id)}
+                              className="text-stone hover:text-rose-500 transition-colors p-1 cursor-pointer"
+                              title="Delete medication"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
@@ -796,6 +895,125 @@ export default function CalendarPage() {
               )}
             </motion.div>
           </>
+        )}
+      </AnimatePresence>
+
+      {/* MEDICATIONS TIMINGS EDIT MODAL */}
+      <AnimatePresence>
+        {isMedModalOpen && editingMedication && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMedModalOpen(false)}
+              className="fixed inset-0 bg-ink/75 backdrop-blur-md"
+            />
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="relative w-full max-w-md bg-cream-light border border-stone-line shadow-2xl rounded-2xl p-6 overflow-hidden flex flex-col z-50 my-auto space-y-6"
+            >
+              {/* Header */}
+              <div className="flex justify-between items-center pb-4 border-b border-stone-line/60">
+                <div>
+                  <span className="font-mono-accent text-[9px] text-forest uppercase tracking-widest block">
+                    Edit Timings
+                  </span>
+                  <h3 className="font-display text-lg uppercase tracking-wide text-ink mt-0.5">
+                    {editingMedication.name}
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setIsMedModalOpen(false)}
+                  className="p-1.5 rounded-full border border-stone-line/60 hover:bg-stone-line/30 transition-colors text-ink cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Medication Details Card */}
+              <div className="bg-cream border border-stone-line/50 p-4 rounded-xl space-y-1.5 text-xs text-ink-soft">
+                <p>Dosage: <span className="font-semibold text-ink">{editingMedication.dosage}</span></p>
+                <p>Frequency: <span className="font-semibold text-ink uppercase font-mono-accent">{editingMedication.frequency?.replace(/_/g, " ")}</span></p>
+                {editingMedication.notes && (
+                  <p className="italic text-[11px] mt-1 pt-1.5 border-t border-stone-line/30">
+                    "{editingMedication.notes}"
+                  </p>
+                )}
+              </div>
+
+              {/* Reminders List & Add Form */}
+              <div className="space-y-4">
+                <span className="font-mono-accent text-[10px] tracking-widest text-stone uppercase block flex items-center gap-1.5">
+                  <Bell className="w-4 h-4 text-forest" /> Current Reminders
+                </span>
+
+                {editingMedication.reminders?.length === 0 ? (
+                  <p className="text-xs text-stone italic">No reminders set. Add one below.</p>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {editingMedication.reminders?.map((r) => (
+                      <span
+                        key={r.id}
+                        className="inline-flex items-center gap-1.5 px-3 py-1 bg-forest/10 border border-forest/25 rounded-full text-xs text-forest font-semibold"
+                      >
+                        {r.reminderTime}
+                        <button
+                          onClick={() => handleDeleteMedReminder(r.id)}
+                          className="hover:text-rose-500 cursor-pointer"
+                          title="Remove reminder"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {/* Add Time Form */}
+                <form onSubmit={handleAddMedReminder} className="flex gap-2 pt-2">
+                  <input
+                    type="time"
+                    required
+                    value={newMedReminderTime}
+                    onChange={(e) => setNewMedReminderTime(e.target.value)}
+                    className="bg-cream border border-stone-line/60 rounded-xl px-3 py-2 text-xs text-ink focus:outline-none focus:border-forest"
+                  />
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-ink hover:bg-forest text-cream-light text-xs font-mono-accent rounded-xl transition-colors cursor-pointer"
+                  >
+                    Add Time
+                  </button>
+                </form>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="pt-4 border-t border-stone-line/60 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsMedModalOpen(false)}
+                  className="flex-1 py-3 border border-stone-line rounded-xl text-xs font-mono-accent uppercase tracking-wider text-ink hover:bg-stone-line/10 transition-colors cursor-pointer"
+                >
+                  Close
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleDeleteMedication(editingMedication.id);
+                    setIsMedModalOpen(false);
+                  }}
+                  className="py-3 px-4 border border-rose-200 text-rose-500 rounded-xl text-xs font-mono-accent uppercase tracking-wider hover:bg-rose-500/10 transition-colors cursor-pointer"
+                >
+                  Delete
+                </button>
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </div>

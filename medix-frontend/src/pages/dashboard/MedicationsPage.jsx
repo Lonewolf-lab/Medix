@@ -7,6 +7,7 @@ import {
   Pill,
   Plus,
   Trash2,
+  Edit3,
   Clock,
   ChevronRight,
   X,
@@ -211,6 +212,11 @@ export default function MedicationsPage() {
   const [instructions, setInstructions] = useState("");
   const [formLoading, setFormLoading] = useState(false);
 
+  // Edit Mode & Form Reminders
+  const [editingMedId, setEditingMedId] = useState(null);
+  const [reminderTimes, setReminderTimes] = useState([]);
+  const [newFormReminderTime, setNewFormReminderTime] = useState("");
+
   // Prescription Scanner State
   const [scanLoading, setScanLoading] = useState(false);
   const [extractedMeds, setExtractedMeds] = useState([]);
@@ -235,9 +241,18 @@ export default function MedicationsPage() {
 
   useEffect(() => {
     fetchMedications();
+
+    const handleScheduleUpdate = () => {
+      fetchMedications();
+    };
+
+    window.addEventListener("medix:schedule-updated", handleScheduleUpdate);
+    return () => {
+      window.removeEventListener("medix:schedule-updated", handleScheduleUpdate);
+    };
   }, []);
 
-  const handleCreateManual = async (e) => {
+  const handleCreateOrUpdateManual = async (e) => {
     e.preventDefault();
     if (!name || !dosage || !startDate) {
       toast.error("Medication Name, Dosage, and Start Date are required.");
@@ -253,10 +268,22 @@ export default function MedicationsPage() {
         startDate,
         endDate: endDate || null,
         notes: instructions || null, // backend field is `notes`
+        reminderTimes: reminderTimes, // replaces reminders list cleanly!
       };
-      const response = await medicationApi.create(payload);
-      toast.success("Medication added to tracker!");
-      setMedications((prev) => [response, ...prev]);
+
+      if (editingMedId) {
+        const response = await medicationApi.update(editingMedId, payload);
+        toast.success("Medication updated successfully!");
+        setMedications((prev) =>
+          prev.map((m) => (m.id === editingMedId ? response : m))
+        );
+        // Reset Edit Mode
+        setEditingMedId(null);
+      } else {
+        const response = await medicationApi.create(payload);
+        toast.success("Medication added to tracker!");
+        setMedications((prev) => [response, ...prev]);
+      }
       
       // Reset Form
       setName("");
@@ -265,11 +292,27 @@ export default function MedicationsPage() {
       setStartDate("");
       setEndDate("");
       setInstructions("");
+      setReminderTimes([]);
+      setNewFormReminderTime("");
     } catch (err) {
-      toast.error(err.message || "Failed to log medication.");
+      toast.error(err.message || "Failed to save medication.");
     } finally {
       setFormLoading(false);
     }
+  };
+
+  const handleStartEdit = (med) => {
+    setActiveTab("add-manual");
+    setEditingMedId(med.id);
+    setName(med.name);
+    setDosage(med.dosage || "");
+    setFrequency(med.frequency || "ONCE_DAILY");
+    setStartDate(med.startDate || "");
+    setEndDate(med.endDate || "");
+    setInstructions(med.notes || "");
+    setReminderTimes(med.reminders ? med.reminders.map((r) => r.reminderTime) : []);
+    setNewFormReminderTime("");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleScan = async (e) => {
@@ -474,7 +517,31 @@ export default function MedicationsPage() {
 
           {activeTab === "add-manual" ? (
             /* Manual Log Form */
-            <form onSubmit={handleCreateManual} className="space-y-5">
+            <form onSubmit={handleCreateOrUpdateManual} className="space-y-5">
+              {editingMedId && (
+                <div className="flex justify-between items-center bg-forest/10 border border-forest/20 px-4 py-2.5 rounded-xl text-xs text-forest">
+                  <span className="font-semibold">
+                    EDIT MODE: Updating Medication Details
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingMedId(null);
+                      setName("");
+                      setDosage("");
+                      setFrequency("ONCE_DAILY");
+                      setStartDate("");
+                      setEndDate("");
+                      setInstructions("");
+                      setReminderTimes([]);
+                      setNewFormReminderTime("");
+                    }}
+                    className="underline hover:text-rose-500 cursor-pointer font-medium"
+                  >
+                    Cancel Edit
+                  </button>
+                </div>
+              )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {/* Medication Name */}
                 <div className="space-y-1.5">
@@ -559,13 +626,63 @@ export default function MedicationsPage() {
                 />
               </div>
 
-              <div className="flex justify-end pt-2">
+              {/* Reminder Timings List Editor */}
+              <div className="space-y-2.5 pt-2">
+                <span className="font-mono-accent text-[9px] tracking-widest text-stone uppercase block flex items-center gap-1.5">
+                  <Bell className="w-3.5 h-3.5 text-forest" /> Reminder Timings
+                </span>
+                
+                <div className="flex flex-wrap gap-1.5 min-h-[30px] items-center">
+                  {reminderTimes.length === 0 ? (
+                    <p className="text-[10px] text-stone italic">No timings specified. Add at least one below.</p>
+                  ) : (
+                    reminderTimes.map((time, idx) => (
+                      <span
+                        key={idx}
+                        className="inline-flex items-center gap-1.5 px-3 py-1 bg-forest/10 border border-forest/20 rounded-full text-[11px] text-forest font-semibold"
+                      >
+                        {time}
+                        <button
+                          type="button"
+                          onClick={() => setReminderTimes((prev) => prev.filter((_, i) => i !== idx))}
+                          className="hover:text-rose-500 cursor-pointer"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))
+                  )}
+                </div>
+
+                <div className="flex gap-2 items-center">
+                  <input
+                    type="time"
+                    value={newFormReminderTime}
+                    onChange={(e) => setNewFormReminderTime(e.target.value)}
+                    className="bg-cream border border-stone-line/60 rounded-lg px-3 py-2 text-xs text-ink focus:outline-none focus:border-forest transition-colors"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (newFormReminderTime && !reminderTimes.includes(newFormReminderTime)) {
+                        setReminderTimes((prev) => [...prev, newFormReminderTime].sort());
+                        setNewFormReminderTime("");
+                      }
+                    }}
+                    className="px-4 py-2 bg-ink hover:bg-forest text-cream text-[10px] font-mono-accent rounded-lg transition-colors cursor-pointer"
+                  >
+                    Add Time
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-4 border-t border-stone-line/30">
                 <button
                   type="submit"
                   disabled={formLoading}
                   className="font-mono-accent text-xs tracking-[0.2em] bg-ink text-cream px-8 py-3 rounded-full hover:bg-forest disabled:opacity-50 transition-all duration-300 hover:scale-105"
                 >
-                  LOG MEDICATION
+                  {editingMedId ? "SAVE CHANGES" : "LOG MEDICATION"}
                 </button>
               </div>
             </form>
@@ -752,13 +869,22 @@ export default function MedicationsPage() {
 
                     <div className="flex items-center gap-2 flex-shrink-0">
                       {med.active ? (
-                        <button
-                          onClick={() => handleStopMed(med.id)}
-                          className="p-1 text-stone hover:text-rose-500 rounded border border-stone-line/50 transition-colors"
-                          title="Stop tracker log"
-                        >
-                          <Square className="w-3.5 h-3.5 fill-current" />
-                        </button>
+                        <>
+                          <button
+                            onClick={() => handleStartEdit(med)}
+                            className="p-1 text-stone hover:text-forest rounded border border-stone-line/50 transition-colors cursor-pointer"
+                            title="Edit medication"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleStopMed(med.id)}
+                            className="p-1 text-stone hover:text-rose-500 rounded border border-stone-line/50 transition-colors cursor-pointer"
+                            title="Stop tracker log"
+                          >
+                            <Square className="w-3.5 h-3.5 fill-current" />
+                          </button>
+                        </>
                       ) : (
                         <div className="flex items-center gap-1">
                           <input
@@ -770,7 +896,7 @@ export default function MedicationsPage() {
                           />
                           <button
                             onClick={() => handleContinueMed(med.id)}
-                            className="p-1 text-stone hover:text-forest rounded border border-stone-line/50 transition-colors"
+                            className="p-1 text-stone hover:text-forest rounded border border-stone-line/50 transition-colors cursor-pointer"
                             title="Renew tracker log"
                           >
                             <Play className="w-3.5 h-3.5 fill-current" />
@@ -779,7 +905,7 @@ export default function MedicationsPage() {
                       )}
                       <button
                         onClick={() => handleDeleteMed(med.id)}
-                        className="p-1 text-stone hover:text-rose-500 rounded border border-stone-line/50 transition-colors"
+                        className="p-1 text-stone hover:text-rose-500 rounded border border-stone-line/50 transition-colors cursor-pointer"
                         title="Delete log"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
