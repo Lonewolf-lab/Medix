@@ -116,6 +116,23 @@ public class MedicationServiceImpl implements MedicationService {
         medication.setStartDate(request.getStartDate());
         medication.setEndDate(request.getEndDate());
         medication.setNotes(request.getNotes());
+
+        if (request.getReminderTimes() != null) {
+            medication.getReminders().clear();
+            medicationRepository.saveAndFlush(medication); // force deletion via orphanRemoval/flush
+            addReminderTimes(medication, request.getReminderTimes());
+        }
+
+        return toResponse(medicationRepository.save(medication));
+    }
+
+    @Override
+    @Transactional
+    public MedicationResponse updateReminderTimes(UUID medicationId, List<String> reminderTimes, UUID userId) {
+        Medication medication = findAndVerifyOwnership(medicationId, userId);
+        medication.getReminders().clear();
+        medicationRepository.saveAndFlush(medication); // force deletion via orphanRemoval/flush
+        addReminderTimes(medication, reminderTimes);
         return toResponse(medicationRepository.save(medication));
     }
 

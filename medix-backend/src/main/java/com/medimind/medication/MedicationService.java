@@ -22,6 +22,7 @@ public interface MedicationService {
     // Reminder management
     MedicationReminderResponse addReminder(UUID medicationId, MedicationReminderRequest request, UUID userId);
     void deleteReminder(UUID medicationId, UUID reminderId, UUID userId);
+    MedicationResponse updateReminderTimes(UUID medicationId, List<String> reminderTimes, UUID userId);
 
     // Prescription extraction
     PrescriptionExtractionResponse extractPrescription(MultipartFile file);
