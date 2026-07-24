@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useLocation, Outlet } from "react-router-dom";
 import { useAuthStore } from "@/store/authStore";
 import { motion, AnimatePresence } from "motion/react";
+import GlobalAIAssistantDrawer from "@/components/ai/GlobalAIAssistantDrawer";
 import {
   LayoutDashboard,
   Activity,
@@ -12,8 +13,8 @@ import {
   LogOut,
   Menu,
   X,
-  ShieldAlert,
   Calendar,
+  Bot,
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -31,15 +32,10 @@ export default function AppLayout() {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const getPageTitle = () => {
-    const current = NAV_ITEMS.find((item) => item.to === location.pathname);
-    return current ? current.label : "Medix Space";
-  };
-
   const SidebarContent = () => (
     <div className="flex flex-col h-full bg-ink text-cream-light p-6">
       {/* Brand Header */}
-      <Link to="/" className="flex items-center gap-3 mb-10 hover:opacity-90 transition-opacity">
+      <Link to="/" className="flex items-center gap-3 mb-8 hover:opacity-90 transition-opacity">
         <img src="/medix_logo.png" alt="Medix logo" className="w-8 h-8 object-contain" />
         <span className="font-display text-xl tracking-wider text-cream-light">MEDIX</span>
       </Link>
@@ -91,7 +87,7 @@ export default function AppLayout() {
         )}
         <button
           onClick={logout}
-          className="flex items-center gap-4 px-4 py-3 rounded-lg font-sans text-sm tracking-wide text-rose-400/80 hover:text-rose-400 hover:bg-rose-950/20 transition-all duration-300 w-full text-left"
+          className="flex items-center gap-4 px-4 py-3 rounded-lg font-sans text-sm tracking-wide text-rose-400/80 hover:text-rose-400 hover:bg-rose-950/20 transition-all duration-300 w-full text-left cursor-pointer"
         >
           <LogOut className="w-4 h-4" />
           <span>Sign Out</span>
@@ -113,13 +109,15 @@ export default function AppLayout() {
         <div className="md:hidden flex items-center justify-between px-6 py-4 bg-cream border-b border-stone-line/60">
           <button
             onClick={() => setMobileOpen(true)}
-            className="p-2 -ml-2 rounded-lg text-ink hover:bg-stone-line/20"
+            className="p-2 -ml-2 rounded-lg text-ink hover:bg-stone-line/20 cursor-pointer"
             aria-label="Toggle menu"
           >
             <Menu className="w-5 h-5" />
           </button>
-          <Link to="/" className="font-display text-sm tracking-wider uppercase text-ink hover:text-forest transition-colors">MEDIX</Link>
-          <div className="w-8 h-8" /> {/* Balance spacer */}
+          <Link to="/" className="font-display text-sm tracking-wider uppercase text-ink hover:text-forest transition-colors">
+            MEDIX
+          </Link>
+          <div className="w-8 h-8" />
         </div>
 
         {/* Content Area */}
@@ -130,11 +128,13 @@ export default function AppLayout() {
         </main>
       </div>
 
-      {/* Mobile Drawer (Overlay) */}
+      {/* Global AI Assistant Floating Widget (Available on Every Page) */}
+      <GlobalAIAssistantDrawer />
+
+      {/* Mobile Drawer Overlay */}
       <AnimatePresence>
         {mobileOpen && (
           <>
-            {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 0.5 }}
@@ -142,7 +142,6 @@ export default function AppLayout() {
               onClick={() => setMobileOpen(false)}
               className="fixed inset-0 z-40 bg-ink md:hidden"
             />
-            {/* Drawer */}
             <motion.aside
               initial={{ x: "-100%" }}
               animate={{ x: 0 }}
@@ -150,10 +149,9 @@ export default function AppLayout() {
               transition={{ type: "tween", duration: 0.3 }}
               className="fixed inset-y-0 left-0 z-50 w-64 bg-ink md:hidden"
             >
-              {/* Close Button */}
               <button
                 onClick={() => setMobileOpen(false)}
-                className="absolute top-4 right-4 p-2 text-cream-light hover:bg-ink-line rounded-lg"
+                className="absolute top-4 right-4 p-2 text-cream-light hover:bg-ink-line rounded-lg cursor-pointer"
                 aria-label="Close menu"
               >
                 <X className="w-5 h-5" />
