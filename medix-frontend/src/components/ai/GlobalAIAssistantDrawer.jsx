@@ -35,6 +35,7 @@ export default function GlobalAIAssistantDrawer() {
   ]);
   const [inputMsg, setInputMsg] = useState("");
   const [loading, setLoading] = useState(false);
+  const [activeBiomarkers, setActiveBiomarkers] = useState([]);
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -46,6 +47,27 @@ export default function GlobalAIAssistantDrawer() {
       scrollToBottom();
     }
   }, [isOpen, messages, loading]);
+
+  useEffect(() => {
+    const handleBiosUpdate = (e) => {
+      setActiveBiomarkers(e.detail || []);
+    };
+    const handleOpen = () => {
+      setIsOpen(true);
+    };
+    window.addEventListener("medix:active-biomarkers", handleBiosUpdate);
+    window.addEventListener("medix:open-ai-assistant", handleOpen);
+    return () => {
+      window.removeEventListener("medix:active-biomarkers", handleBiosUpdate);
+      window.removeEventListener("medix:open-ai-assistant", handleOpen);
+    };
+  }, []);
+
+  const handleRemoveBio = (paramName) => {
+    window.dispatchEvent(new CustomEvent("medix:deselect-biomarker", {
+      detail: paramName
+    }));
+  };
 
   const handleSend = async (promptText) => {
     const text = (promptText || inputMsg).trim();
@@ -64,8 +86,16 @@ export default function GlobalAIAssistantDrawer() {
     setMessages((prev) => [...prev, userMsg]);
 
     try {
+      let textToSend = text;
+      if (activeBiomarkers.length > 0) {
+        const contextStr = activeBiomarkers
+          .map((b) => `${b.parameter}: ${b.value} ${b.unit} (${b.status})`)
+          .join(", ");
+        textToSend = `[Biomarker Context: ${contextStr}] ${text}`;
+      }
+
       // First try executing scheduler agent
-      const res = await schedulerApi.executePrompt(text);
+      const res = await schedulerApi.executePrompt(textToSend);
 
       if (res && res.intentType && res.intentType !== "UNKNOWN") {
         // AI recognized an appointment or medication schedule intent!
@@ -98,7 +128,7 @@ export default function GlobalAIAssistantDrawer() {
       } else {
         try {
           // Fallback to contextual chat assistant for general Q&A
-          const chatRes = await chatApi.sendMessage(text);
+          const chatRes = await chatApi.sendMessage(textToSend);
           const assistantMsg = {
             id: Math.random().toString(),
             role: "assistant",
@@ -302,6 +332,30 @@ export default function GlobalAIAssistantDrawer() {
                   ))}
                 </div>
               </div>
+
+              {/* Active Biomarker Context Chips */}
+              {activeBiomarkers.length > 0 && (
+                <div className="px-4 py-2.5 bg-cream-light border-t border-stone-line/45 flex flex-wrap gap-1.5 max-h-20 overflow-y-auto custom-scrollbar flex-shrink-0">
+                  <div className="w-full text-[8px] font-mono-accent text-stone uppercase tracking-widest mb-0.5">
+                    Active Biomarker Context:
+                  </div>
+                  {activeBiomarkers.map((bio) => (
+                    <div
+                      key={bio.parameter}
+                      className="bg-forest/10 border border-forest/20 text-forest text-[9px] font-mono-accent uppercase rounded-full px-2.5 py-0.5 flex items-center gap-1.5"
+                    >
+                      <span>{bio.parameter}: {bio.value} {bio.unit}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveBio(bio.parameter)}
+                        className="hover:text-rose-500 font-bold focus:outline-none cursor-pointer text-xs leading-none"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               {/* Input Bar */}
               <form
