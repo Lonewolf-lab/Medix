@@ -314,24 +314,26 @@ export default function GlobalAIAssistantDrawer() {
               </div>
 
               {/* Suggestions Footer */}
-              <div className="px-4 py-3 border-t border-stone-line/50 bg-cream-light/80 flex-shrink-0">
-                <span className="font-mono-accent text-[9px] text-stone uppercase tracking-widest block mb-2">
-                  Try AI Scheduling Prompts:
-                </span>
-                <div className="flex flex-col gap-1.5">
-                  {SUGGESTION_PROMPTS.map((prompt, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => handleSend(prompt)}
-                      disabled={loading}
-                      className="text-left text-[10px] font-mono-accent text-ink-soft hover:text-forest bg-cream border border-stone-line/60 hover:border-forest px-2.5 py-1.5 rounded-lg transition-colors truncate flex items-center justify-between cursor-pointer"
-                    >
-                      <span className="truncate">{prompt}</span>
-                      <ChevronRight className="w-3 h-3 text-stone shrink-0 ml-1" />
-                    </button>
-                  ))}
+              {!inputMsg.trim() && activeBiomarkers.length === 0 && (
+                <div className="px-4 py-3 border-t border-stone-line/50 bg-cream-light/80 flex-shrink-0">
+                  <span className="font-mono-accent text-[9px] text-stone uppercase tracking-widest block mb-2">
+                    Try AI Scheduling Prompts:
+                  </span>
+                  <div className="flex flex-col gap-1.5">
+                    {SUGGESTION_PROMPTS.map((prompt, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => handleSend(prompt)}
+                        disabled={loading}
+                        className="text-left text-[10px] font-mono-accent text-ink-soft hover:text-forest bg-cream border border-stone-line/60 hover:border-forest px-2.5 py-1.5 rounded-lg transition-colors truncate flex items-center justify-between cursor-pointer"
+                      >
+                        <span className="truncate">{prompt}</span>
+                        <ChevronRight className="w-3 h-3 text-stone shrink-0 ml-1" />
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Active Biomarker Context Chips */}
               {activeBiomarkers.length > 0 && (

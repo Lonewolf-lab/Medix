@@ -664,127 +664,136 @@ export default function CalendarPage() {
         </div>
       )}
 
-      {/* SLIDING SIDE PANEL (Scheduler Form Drawer) */}
+      {/* CENTURED POPUP MODAL (Scheduler Form Modal) */}
       <AnimatePresence>
         {isDrawerOpen && (
-          <>
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
             {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
-              animate={{ opacity: 0.6 }}
+              animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsDrawerOpen(false)}
-              className="fixed inset-0 bg-ink/70 backdrop-blur-xs z-50"
+              className="fixed inset-0 bg-ink/75 backdrop-blur-md z-50"
             />
 
-            {/* Full Screen Length Sliding Drawer */}
+            {/* Modal Box */}
             <motion.div
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed inset-y-0 right-0 h-screen h-full w-full max-w-md bg-cream-light border-l border-stone-line shadow-2xl z-50 p-6 md:p-8 flex flex-col justify-between overflow-y-auto rounded-none"
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="relative w-full max-w-md bg-cream-light border border-stone-line shadow-2xl rounded-2xl p-6 overflow-y-auto max-h-[90vh] z-50 my-auto space-y-5"
             >
-              <div>
-                {/* Drawer Header */}
-                <div className="flex justify-between items-start border-b border-stone-line pb-5 mb-6">
-                  <div>
-                    <span className="font-mono-accent text-[10px] text-forest uppercase tracking-widest">
-                      Appointment Booking
-                    </span>
-                    <h3 className="font-display text-2xl uppercase tracking-wider text-ink mt-0.5">
-                      {editingAppointment ? "Edit Visit" : "Schedule Visit"}
-                    </h3>
-                    <p className="text-xs text-stone font-mono-accent mt-1">
-                      Date: {formatLongDate(selectedDate)}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => setIsDrawerOpen(false)}
-                    className="p-2 border border-stone-line rounded-full hover:bg-stone-line/20 transition-colors cursor-pointer"
-                  >
-                    <X className="w-5 h-5 text-ink" />
-                  </button>
+              {/* Header */}
+              <div className="flex justify-between items-start border-b border-stone-line/65 pb-4">
+                <div>
+                  <span className="font-mono-accent text-[9px] text-forest uppercase tracking-widest block">
+                    Appointment Booking
+                  </span>
+                  <h3 className="font-display text-lg uppercase tracking-wide text-ink mt-0.5">
+                    {editingAppointment ? "Edit Visit" : "Schedule Visit"}
+                  </h3>
+                  <p className="text-[10px] text-stone font-mono-accent mt-0.5">
+                    Date: {formatLongDate(selectedDate)}
+                  </p>
                 </div>
-
-                {/* Clean Aligned Form */}
-                <form onSubmit={handleFormSubmit} className="space-y-5">
-                  <div>
-                    <label className="block text-xs font-mono-accent text-stone uppercase tracking-widest mb-2">
-                      Doctor Name *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="Dr. Sharma"
-                      value={formData.doctorName}
-                      onChange={(e) => setFormData({ ...formData, doctorName: e.target.value })}
-                      className="w-full bg-cream border border-stone-line rounded-xl px-4 py-3 text-sm text-ink font-sans focus:outline-none focus:border-forest transition-colors"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-mono-accent text-stone uppercase tracking-widest mb-2">
-                      Specialty
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Cardiology, General Physician"
-                      value={formData.specialty}
-                      onChange={(e) => setFormData({ ...formData, specialty: e.target.value })}
-                      className="w-full bg-cream border border-stone-line rounded-xl px-4 py-3 text-sm text-ink font-sans focus:outline-none focus:border-forest transition-colors"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-mono-accent text-stone uppercase tracking-widest mb-2">
-                      Time Slot
-                    </label>
-                    <input
-                      type="time"
-                      required
-                      value={formData.time}
-                      onChange={(e) => setFormData({ ...formData, time: e.target.value })}
-                      className="w-full bg-cream border border-stone-line rounded-xl px-4 py-3 text-sm text-ink font-sans focus:outline-none focus:border-forest transition-colors"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-mono-accent text-stone uppercase tracking-widest mb-2">
-                      Notes / Instructions
-                    </label>
-                    <textarea
-                      placeholder="Add key symptoms or questions you want to ask..."
-                      rows={4}
-                      value={formData.notes}
-                      onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                      className="w-full bg-cream border border-stone-line rounded-xl p-4 text-sm text-ink font-sans focus:outline-none focus:border-forest transition-colors resize-none"
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-forest text-cream-light font-mono-accent text-xs tracking-wider uppercase hover:bg-forest-bright shadow-sm transition-all cursor-pointer mt-8"
-                  >
-                    {editingAppointment ? "Save Changes" : "Confirm Appointment"}
-                  </button>
-                </form>
+                <button
+                  onClick={() => setIsDrawerOpen(false)}
+                  className="p-1.5 rounded-full border border-stone-line/60 hover:bg-stone-line/30 transition-colors text-ink cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
 
+              {/* Form Content */}
+              <form onSubmit={handleFormSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-[10px] font-mono-accent text-stone uppercase tracking-widest mb-1.5">
+                    Doctor Name *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Dr. Sharma"
+                    value={formData.doctorName}
+                    onChange={(e) => setFormData({ ...formData, doctorName: e.target.value })}
+                    className="w-full bg-cream border border-stone-line/80 rounded-xl px-3.5 py-2.5 text-xs text-ink font-sans focus:outline-none focus:border-forest transition-colors"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-mono-accent text-stone uppercase tracking-widest mb-1.5">
+                    Specialty
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Cardiology, General Physician"
+                    value={formData.specialty}
+                    onChange={(e) => setFormData({ ...formData, specialty: e.target.value })}
+                    className="w-full bg-cream border border-stone-line/80 rounded-xl px-3.5 py-2.5 text-xs text-ink font-sans focus:outline-none focus:border-forest transition-colors"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-mono-accent text-stone uppercase tracking-widest mb-1.5">
+                    Time Slot
+                  </label>
+                  <input
+                    type="time"
+                    required
+                    value={formData.time}
+                    onChange={(e) => setFormData({ ...formData, time: e.target.value })}
+                    className="w-full bg-cream border border-stone-line/80 rounded-xl px-3.5 py-2.5 text-xs text-ink font-sans focus:outline-none focus:border-forest transition-colors"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-mono-accent text-stone uppercase tracking-widest mb-1.5">
+                    Notes / Instructions
+                  </label>
+                  <textarea
+                    placeholder="Add key symptoms or questions you want to ask..."
+                    rows={3}
+                    value={formData.notes}
+                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                    className="w-full bg-cream border border-stone-line/80 rounded-xl p-3 text-xs text-ink font-sans focus:outline-none focus:border-forest transition-colors resize-none"
+                  />
+                </div>
+
+                <div className="pt-2 flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setIsDrawerOpen(false)}
+                    className="flex-1 py-3 border border-stone-line rounded-xl text-xs font-mono-accent uppercase tracking-wider text-ink hover:bg-stone-line/10 transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 py-3 rounded-xl bg-forest text-cream-light font-mono-accent text-xs tracking-wider uppercase hover:bg-forest-bright shadow-sm transition-all cursor-pointer"
+                  >
+                    {editingAppointment ? "Save" : "Confirm"}
+                  </button>
+                </div>
+              </form>
+
               {editingAppointment && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    handleDeleteAppointment(editingAppointment.id);
-                    setIsDrawerOpen(false);
-                  }}
-                  className="w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl border border-red-200 text-red-500 font-mono-accent text-xs tracking-wider uppercase hover:bg-red-500/10 transition-colors cursor-pointer mt-6"
-                >
-                  <Trash2 className="w-4 h-4" /> Cancel Appointment
-                </button>
+                <div className="pt-2 border-t border-stone-line/50">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleDeleteAppointment(editingAppointment.id);
+                      setIsDrawerOpen(false);
+                    }}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-rose-200 text-rose-500 font-mono-accent text-[10px] tracking-wider uppercase hover:bg-rose-500/10 transition-colors cursor-pointer"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" /> Stop Tracker / Delete Visit
+                  </button>
+                </div>
               )}
             </motion.div>
-          </>
+          </div>
         )}
       </AnimatePresence>
 
