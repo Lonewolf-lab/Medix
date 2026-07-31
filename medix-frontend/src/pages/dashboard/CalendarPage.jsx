@@ -88,24 +88,13 @@ export default function CalendarPage() {
     }
   };
 
-  // Helper: Get days in a month grid (42 cells: 6 rows of 7)
+  // Helper: Get days in a month grid (padded to multiple of 5 columns)
   const getDaysInMonth = (date) => {
     const year = date.getFullYear();
     const month = date.getMonth();
-    const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
 
     const days = [];
-    const startOffset = firstDay.getDay();
-    const prevMonthLastDay = new Date(year, month, 0).getDate();
-
-    // Previous month offset days
-    for (let i = startOffset - 1; i >= 0; i--) {
-      days.push({
-        date: new Date(year, month - 1, prevMonthLastDay - i),
-        isCurrentMonth: false,
-      });
-    }
 
     // Current month days
     for (let i = 1; i <= lastDay.getDate(); i++) {
@@ -115,9 +104,10 @@ export default function CalendarPage() {
       });
     }
 
-    // Next month padding
-    const endOffset = 42 - days.length;
-    for (let i = 1; i <= endOffset; i++) {
+    // Next month padding to keep neat 5-column grid layout
+    const totalCells = Math.ceil(days.length / 5) * 5;
+    const paddingCount = totalCells - days.length;
+    for (let i = 1; i <= paddingCount; i++) {
       days.push({
         date: new Date(year, month + 1, i),
         isCurrentMonth: false,
@@ -389,11 +379,10 @@ export default function CalendarPage() {
 
   const days = getDaysInMonth(currentMonth);
   const selectedDayEvents = getEventsForDate(selectedDate, filterType);
-  const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-
-  // Group days into 6 week rows to check if any week row is completely empty
-  const weekRowHasEvents = [0, 1, 2, 3, 4, 5].map((rowIndex) => {
-    const rowDays = days.slice(rowIndex * 7, (rowIndex + 1) * 7);
+  // Group days into 5-day rows to check if any row is completely empty
+  const numRows = Math.ceil(days.length / 5);
+  const weekRowHasEvents = Array.from({ length: numRows }, (_, rowIndex) => {
+    const rowDays = days.slice(rowIndex * 5, (rowIndex + 1) * 5);
     return rowDays.some((item) => getEventsForDate(item.date, "ALL").length > 0);
   });
 
@@ -480,31 +469,24 @@ export default function CalendarPage() {
               </div>
             </div>
 
-            {/* Weekdays Row */}
-            <div className="grid grid-cols-7 gap-3 text-center font-mono-accent text-xs font-semibold text-stone uppercase tracking-widest mb-4 pb-2 border-b border-stone-line/50">
-              {weekDays.map((d) => (
-                <div key={d} className="py-1">{d}</div>
-              ))}
-            </div>
-
-            {/* Big Rectangular Box Grid */}
-            <div className="grid grid-cols-7 gap-3">
+            {/* Big Rectangular Box Grid (Spacious 5-column wrap layout) */}
+            <div className="grid grid-cols-5 gap-4">
               {days.map((item, idx) => {
                 const active = isSameDay(item.date, selectedDate);
                 const today = isSameDay(item.date, new Date());
                 const dayEvents = getEventsForDate(item.date, "ALL");
 
-                const rowIndex = Math.floor(idx / 7);
+                const rowIndex = Math.floor(idx / 5);
                 const isRowEmpty = !weekRowHasEvents[rowIndex];
 
                 return (
                   <div
                     key={idx}
                     onClick={() => handleDayClick(item.date)}
-                    className={`p-3 rounded-xl border transition-all cursor-pointer flex flex-col justify-between ${
+                    className={`p-3.5 rounded-xl border transition-all cursor-pointer flex flex-col justify-between ${
                       isRowEmpty
-                        ? "min-h-[75px] md:min-h-[85px]"
-                        : "min-h-[110px] md:min-h-[125px]"
+                        ? "min-h-[85px] md:min-h-[95px]"
+                        : "min-h-[125px] md:min-h-[140px]"
                     } ${
                       active
                         ? "bg-cream-light border-2 border-forest ring-2 ring-forest/30 shadow-md"
@@ -513,22 +495,27 @@ export default function CalendarPage() {
                         : "bg-cream/40 border-stone-line/30 text-stone/40 hover:bg-cream/60"
                     }`}
                   >
-                    {/* Top Row: Date Number */}
+                    {/* Top Row: Date Number & Weekday Label */}
                     <div className="flex justify-between items-center w-full mb-1">
-                      <span
-                        className={`text-sm font-semibold ${
-                          today
-                            ? "bg-forest text-cream-light px-2.5 py-0.5 rounded-md font-bold"
-                            : active
-                            ? "text-forest font-bold text-base"
-                            : "text-ink font-mono-accent"
-                        }`}
-                      >
-                        {item.date.getDate()}
-                      </span>
+                      <div className="flex items-baseline gap-1.5">
+                        <span
+                          className={`text-sm font-semibold px-2 py-0.5 rounded-md ${
+                            today
+                              ? "bg-forest text-cream-light font-bold"
+                              : active
+                              ? "text-forest font-bold bg-forest/10"
+                              : "text-ink font-mono-accent"
+                          }`}
+                        >
+                          {item.date.getDate()}
+                        </span>
+                        <span className="text-[9px] font-mono-accent text-stone uppercase font-medium">
+                          {item.date.toLocaleDateString("en-US", { weekday: "short" })}
+                        </span>
+                      </div>
 
                       {today && !active && (
-                        <span className="w-2 h-2 rounded-full bg-forest" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-forest" />
                       )}
                     </div>
 
