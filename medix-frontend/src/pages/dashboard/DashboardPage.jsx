@@ -39,11 +39,7 @@ export default function DashboardPage() {
   const [uploading, setUploading] = useState(false);
   const [selectedBios, setSelectedBios] = useState([]); // List of parameter names
 
-  // Floating Chat Drawer State
-  const [chatOpen, setChatOpen] = useState(false);
-  const [chatMsg, setChatMsg] = useState("");
-  const [chatLogs, setChatLogs] = useState([]);
-  const [chatLoading, setChatLoading] = useState(false);
+
 
   const loadDashboardData = async () => {
     try {
@@ -94,28 +90,47 @@ export default function DashboardPage() {
   }, []);
 
   const toggleBioSelection = (paramName) => {
-    setSelectedBios((prev) =>
-      prev.includes(paramName)
+    setSelectedBios((prev) => {
+      const newSelection = prev.includes(paramName)
         ? prev.filter((name) => name !== paramName)
-        : [...prev, paramName]
-    );
+        : [...prev, paramName];
+      
+      if (!prev.includes(paramName)) {
+        window.dispatchEvent(new Event("medix:open-ai-assistant"));
+      }
+      return newSelection;
+    });
   };
 
-  const handleOpenFloatingChat = () => {
-    setChatOpen(true);
-    let greeting = "Hello! I am your clinical health assistant.";
-    if (selectedBios.length > 0) {
-      greeting += ` I've successfully loaded context for: ${selectedBios.join(", ")}. Ask me anything about these metrics!`;
+  useEffect(() => {
+    if (summary?.biomarkers) {
+      const selectedDetails = selectedBios
+        .map((name) => summary.biomarkers.find((b) => b.parameter === name))
+        .filter(Boolean);
+      
+      window.dispatchEvent(new CustomEvent("medix:active-biomarkers", {
+        detail: selectedDetails,
+      }));
     } else {
-      greeting += " You can select any biomarker boxes on the left to inject them directly into my active query context.";
+      window.dispatchEvent(new CustomEvent("medix:active-biomarkers", {
+        detail: [],
+      }));
     }
-    setChatLogs([
-      {
-        role: "assistant",
-        content: greeting,
-      },
-    ]);
-  };
+  }, [selectedBios, summary]);
+
+  useEffect(() => {
+    const handleDeselect = (e) => {
+      const paramName = e.detail;
+      setSelectedBios((prev) => prev.filter((name) => name !== paramName));
+    };
+    window.addEventListener("medix:deselect-biomarker", handleDeselect);
+    return () => {
+      window.removeEventListener("medix:deselect-biomarker", handleDeselect);
+      window.dispatchEvent(new CustomEvent("medix:active-biomarkers", {
+        detail: [],
+      }));
+    };
+  }, []);
 
   const handleReportUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -140,40 +155,6 @@ export default function DashboardPage() {
     }
   };
 
-  const handleSendQuery = async (e) => {
-    e.preventDefault();
-    const query = chatMsg.trim();
-    if (!query) return;
-
-    setChatMsg("");
-    setChatLoading(true);
-
-    const tempUserMsg = { role: "user", content: query };
-    setChatLogs((prev) => [...prev, tempUserMsg]);
-
-    try {
-      const firstBio = selectedBios[0] || "General Health";
-      let enrichedQuery = query;
-      
-      if (selectedBios.length > 0 && summary?.biomarkers) {
-        const contextStr = selectedBios
-          .map((name) => {
-            const match = summary.biomarkers.find((b) => b.parameter === name);
-            return match ? `${match.parameter}: ${match.value} ${match.unit} (${match.status})` : name;
-          })
-          .join(", ");
-        enrichedQuery = `[Biomarker Context: ${contextStr}] ${query}`;
-      }
-
-      const response = await dashboardApi.biomarkerChat(firstBio, enrichedQuery);
-      setChatLogs((prev) => [...prev, response]);
-    } catch {
-      toast.error("Failed to deliver assistant message.");
-      setChatLogs((prev) => prev.filter((m) => m !== tempUserMsg));
-    } finally {
-      setChatLoading(false);
-    }
-  };
 
   const getStatusStyles = (status) => {
     const s = status?.toUpperCase();
@@ -407,122 +388,6 @@ export default function DashboardPage() {
           </div>
         </>
       )}
-
-      {/* Floating AI Consultation Widget Trigger */}
-      {hasReport && (
-        <button
-          onClick={handleOpenFloatingChat}
-          className="fixed bottom-6 right-6 z-40 rounded-full w-14 h-14 bg-ink hover:bg-forest text-cream flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer"
-          aria-label="Open AI Assistant"
-        >
-          <MessageSquare className="w-6 h-6" />
-        </button>
-      )}
-
-      {/* Floating Chat Drawer Overlay */}
-      <AnimatePresence>
-        {chatOpen && (
-          <div className="fixed inset-0 z-50 flex justify-end">
-            <div className="absolute inset-0 bg-ink/15 backdrop-blur-xs" onClick={() => setChatOpen(false)} />
-            
-            <motion.div
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="relative w-full max-w-md bg-cream h-full border-l border-stone-line shadow-2xl flex flex-col p-6 space-y-4"
-            >
-              {/* Header */}
-              <div className="flex items-center justify-between border-b border-stone-line/45 pb-3">
-                <div>
-                  <span className="font-mono-accent text-[9px] tracking-widest text-stone uppercase block flex items-center gap-1.5">
-                    <Cpu className="w-3.5 h-3.5 text-forest" /> CLINICAL CHAT AGENT
-                  </span>
-                  <h4 className="font-display text-lg uppercase text-ink mt-0.5">Contextual Assistant</h4>
-                </div>
-                <button
-                  onClick={() => setChatOpen(false)}
-                  className="w-7 h-7 rounded-full bg-cream-light hover:bg-stone-line/30 flex items-center justify-center transition-colors cursor-pointer"
-                >
-                  <X className="w-4 h-4 text-ink" />
-                </button>
-              </div>
-
-              {/* Messages Viewport */}
-              <div className="flex-1 overflow-y-auto pr-1 space-y-3.5 custom-scrollbar text-xs">
-                {chatLogs.map((log, idx) => (
-                  <div
-                    key={idx}
-                    className={`flex flex-col max-w-[85%] ${
-                      log.role === "user" ? "self-end items-end ml-auto" : "self-start items-start mr-auto"
-                    }`}
-                  >
-                    <span className="font-mono-accent text-[8px] tracking-wider text-stone mb-0.5 uppercase">
-                      {log.role === "user" ? "YOU" : "MEDIX AI"}
-                    </span>
-                    <div
-                      className={`px-3 py-2 rounded-xl leading-relaxed ${
-                        log.role === "user"
-                          ? "bg-ink text-cream"
-                          : "bg-cream-light border border-stone-line/40 text-ink-soft"
-                      }`}
-                    >
-                      {log.content}
-                    </div>
-                  </div>
-                ))}
-                {chatLoading && (
-                  <div className="self-start flex flex-col max-w-[85%]">
-                    <span className="font-mono-accent text-[8px] tracking-wider text-stone mb-0.5 uppercase">MEDIX AI</span>
-                    <span className="text-[11px] italic text-stone animate-pulse">Thinking...</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Form Input + Context Tags Container */}
-              <div className="border-t border-stone-line/40 pt-3 flex-shrink-0 space-y-2">
-                {selectedBios.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 max-h-16 overflow-y-auto custom-scrollbar">
-                    {selectedBios.map((name) => (
-                      <div
-                        key={name}
-                        className="bg-forest/10 border border-forest/20 text-forest text-[9px] font-mono-accent uppercase rounded-full px-2.5 py-0.5 flex items-center gap-1.5"
-                      >
-                        <span>{name}</span>
-                        <button
-                          type="button"
-                          onClick={() => toggleBioSelection(name)}
-                          className="hover:text-rose-500 font-bold focus:outline-none cursor-pointer text-xs"
-                        >
-                          ×
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                
-                <form onSubmit={handleSendQuery} className="flex gap-2">
-                  <input
-                    type="text"
-                    placeholder="Ask about active values, health metrics..."
-                    value={chatMsg}
-                    onChange={(e) => setChatMsg(e.target.value)}
-                    disabled={chatLoading}
-                    className="flex-1 bg-cream border border-stone-line/60 rounded-full px-4 py-2 text-xs text-ink focus:outline-none focus:border-forest transition-colors"
-                  />
-                  <button
-                    type="submit"
-                    disabled={chatLoading || !chatMsg.trim()}
-                    className="w-8 h-8 rounded-full bg-ink text-cream flex items-center justify-center hover:bg-forest disabled:opacity-50 transition-colors cursor-pointer"
-                  >
-                    <Send className="w-3.5 h-3.5" />
-                  </button>
-                </form>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
