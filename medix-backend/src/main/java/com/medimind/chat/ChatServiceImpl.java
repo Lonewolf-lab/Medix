@@ -17,6 +17,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.LocalDate;
 import java.time.Period;
+import com.medimind.dashboard.DashboardReportRepository;
+import com.medimind.dashboard.DashboardReport;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -27,6 +29,7 @@ public class ChatServiceImpl implements ChatService {
     private final UserRepository userRepository;
     private final MedicationRepository medicationRepository;
     private final SymptomRepository symptomRepository;
+    private final DashboardReportRepository dashboardReportRepository;
     private final WebClient webClient;
     private final ObjectMapper objectMapper;
 
@@ -40,12 +43,14 @@ public class ChatServiceImpl implements ChatService {
                            UserRepository userRepository,
                            MedicationRepository medicationRepository,
                            SymptomRepository symptomRepository,
+                           DashboardReportRepository dashboardReportRepository,
                            WebClient.Builder webClientBuilder,
                            ObjectMapper objectMapper) {
         this.chatRepository = chatRepository;
         this.userRepository = userRepository;
         this.medicationRepository = medicationRepository;
         this.symptomRepository = symptomRepository;
+        this.dashboardReportRepository = dashboardReportRepository;
         this.webClient = webClientBuilder.build();
         this.objectMapper = objectMapper;
     }
@@ -165,6 +170,33 @@ public class ChatServiceImpl implements ChatService {
             }
         }
 
+        // Biomarkers (from latest lab report)
+        StringBuilder biomarkersBuilder = new StringBuilder();
+        Optional<DashboardReport> latestReportOpt = dashboardReportRepository.findByUserIdAndIsLatestTrue(user.getId());
+        if (latestReportOpt.isPresent()) {
+            try {
+                DashboardReport report = latestReportOpt.get();
+                Map<String, Object> parsedJson = objectMapper.readValue(report.getBiomarkersJson(), Map.class);
+                List<Map<String, Object>> biomarkers = (List<Map<String, Object>>) parsedJson.get("biomarkers");
+                if (biomarkers != null && !biomarkers.isEmpty()) {
+                    for (Map<String, Object> b : biomarkers) {
+                        biomarkersBuilder.append("- ").append(b.get("parameter"))
+                                .append(": ").append(b.get("value"))
+                                .append(" ").append(b.get("unit") != null ? b.get("unit") : "")
+                                .append(" (Status: ").append(b.get("status"))
+                                .append(", Range: ").append(b.get("normalRange") != null ? b.get("normalRange") : "N/A")
+                                .append(")\n");
+                    }
+                } else {
+                    biomarkersBuilder.append("None");
+                }
+            } catch (Exception e) {
+                biomarkersBuilder.append("None (Failed to parse biomarkers)");
+            }
+        } else {
+            biomarkersBuilder.append("None (No lab report uploaded)");
+        }
+
         return String.format(
                 "You are Medix AI, a personal health assistant.\n" +
                 "You have access to the following patient health data:\n\n" +
@@ -172,12 +204,13 @@ public class ChatServiceImpl implements ChatService {
                 "- Name: %s\n" +
                 "- Age: %s years\n" +
                 "- Blood Group: %s\n\n" +
-                "Current Active Medications:\n%s\n" +
-                "Recent Symptom History (last 3 checks):\n%s\n" +
+                "Current Active Medications:\n%s\n\n" +
+                "Recent Symptom History (last 3 checks):\n%s\n\n" +
+                "Latest Lab Report Biomarkers:\n%s\n\n" +
                 "Based on this context, answer the user's health questions in a clear, empathetic, and helpful manner.\n" +
                 "Always remind the user to consult a doctor for serious concerns. Never provide a definitive medical diagnosis.\n" +
                 "Keep responses concise and easy to understand.",
-                name, age, bloodGroup, medsBuilder.toString().trim(), sympBuilder.toString().trim()
+                name, age, bloodGroup, medsBuilder.toString().trim(), sympBuilder.toString().trim(), biomarkersBuilder.toString().trim()
         );
     }
 

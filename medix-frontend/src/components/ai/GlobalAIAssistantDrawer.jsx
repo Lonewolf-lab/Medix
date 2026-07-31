@@ -243,7 +243,7 @@ export default function GlobalAIAssistantDrawer() {
                           : "bg-cream border border-stone-line/70 text-ink rounded-tl-none"
                       }`}
                     >
-                      {m.content}
+                      {m.role === "user" ? m.content : <FormattedMessage content={m.content} />}
                     </div>
 
                     {/* Action Confirmation Card Object */}
@@ -314,7 +314,7 @@ export default function GlobalAIAssistantDrawer() {
               </div>
 
               {/* Suggestions Footer */}
-              {!inputMsg.trim() && activeBiomarkers.length === 0 && (
+              {!inputMsg.trim() && activeBiomarkers.length === 0 && messages.length === 1 && (
                 <div className="px-4 py-3 border-t border-stone-line/50 bg-cream-light/80 flex-shrink-0">
                   <span className="font-mono-accent text-[9px] text-stone uppercase tracking-widest block mb-2">
                     Try AI Scheduling Prompts:
@@ -390,3 +390,78 @@ export default function GlobalAIAssistantDrawer() {
     </>
   );
 }
+
+// Beautified Markdown/Formatted Text Renderer for AI messages
+const FormattedMessage = ({ content }) => {
+  if (!content) return null;
+
+  const lines = content.split("\n");
+
+  return (
+    <div className="space-y-1.5 text-xs font-sans leading-relaxed">
+      {lines.map((line, lineIdx) => {
+        const trimmed = line.trim();
+
+        if (!trimmed) {
+          return <div key={lineIdx} className="h-1.5" />;
+        }
+
+        // Headers: ###, ##, #
+        if (trimmed.startsWith("### ")) {
+          return (
+            <h4 key={lineIdx} className="font-display text-[13px] uppercase tracking-wide text-forest mt-3 mb-1.5">
+              {parseBold(trimmed.substring(4))}
+            </h4>
+          );
+        }
+        if (trimmed.startsWith("## ") || trimmed.startsWith("# ")) {
+          const text = trimmed.startsWith("## ") ? trimmed.substring(3) : trimmed.substring(2);
+          return (
+            <h3 key={lineIdx} className="font-display text-sm uppercase tracking-wide text-ink mt-3.5 mb-2 border-b border-stone-line/45 pb-0.5">
+              {parseBold(text)}
+            </h3>
+          );
+        }
+
+        // Bullet point: - or *
+        if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
+          return (
+            <div key={lineIdx} className="flex items-start gap-2 pl-1.5 mt-0.5">
+              <span className="text-forest font-bold select-none">•</span>
+              <span className="flex-1">{parseBold(trimmed.substring(2))}</span>
+            </div>
+          );
+        }
+
+        // Numbered list: 1. 2. etc.
+        const numMatch = trimmed.match(/^(\d+)\.\s+(.*)/);
+        if (numMatch) {
+          return (
+            <div key={lineIdx} className="flex items-start gap-2 pl-1.5 mt-0.5">
+              <span className="font-mono-accent text-[9px] text-stone mt-0.5 select-none">{numMatch[1]}.</span>
+              <span className="flex-1">{parseBold(numMatch[2])}</span>
+            </div>
+          );
+        }
+
+        // Standard line
+        return <p key={lineIdx}>{parseBold(trimmed)}</p>;
+      })}
+    </div>
+  );
+};
+
+// Simple bold parser helper (**bold**)
+const parseBold = (text) => {
+  const parts = text.split(/(\*\*.*?\*\*)/g);
+  return parts.map((part, idx) => {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return (
+        <strong key={idx} className="font-bold text-ink bg-forest/10 px-1 rounded mx-0.5">
+          {part.slice(2, -2)}
+        </strong>
+      );
+    }
+    return part;
+  });
+};
