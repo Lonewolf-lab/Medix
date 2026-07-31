@@ -63,7 +63,7 @@ export default function Hero() {
           transition={{ duration: 0.7, delay: 0.6, ease: EASE }}
           className="max-w-md mt-8 text-ink-soft text-base leading-relaxed"
         >
-          Stop panic-searching symptoms at 2 AM. Medix gives you AI symptom
+          Stop panic searching symptoms at 2 AM. Medix gives you AI symptom
           triage, organized health records, smart medication tracking and
           decoded lab reports — calm, private, and personal to you.
         </motion.p>
