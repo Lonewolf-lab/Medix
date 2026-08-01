@@ -2,7 +2,8 @@ import api from "./axiosInstance";
 
 export const chatApi = {
   // -> ChatResponse
-  sendMessage: (message) => api.post("/chat/message", { message }).then((r) => r.data),
+  sendMessage: (message, pinnedBiomarkers) =>
+    api.post("/chat/message", { message, pinnedBiomarkers }).then((r) => r.data),
 
   // -> ChatResponse[]
   getHistory: () => api.get("/chat/history").then((r) => r.data),
