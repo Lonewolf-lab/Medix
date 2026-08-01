@@ -128,7 +128,8 @@ export default function GlobalAIAssistantDrawer() {
       } else {
         try {
           // Fallback to contextual chat assistant for general Q&A
-          const chatRes = await chatApi.sendMessage(textToSend);
+          const pinnedList = activeBiomarkers.map((b) => b.parameter);
+          const chatRes = await chatApi.sendMessage(textToSend, pinnedList);
           const assistantMsg = {
             id: Math.random().toString(),
             role: "assistant",
