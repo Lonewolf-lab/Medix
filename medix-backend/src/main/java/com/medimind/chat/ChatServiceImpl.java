@@ -69,8 +69,27 @@ public class ChatServiceImpl implements ChatService {
                 .build();
         chatRepository.save(userMessage);
 
+        // Extract pinned biomarkers if passed in request or formatted string
+        List<String> pinnedBiomarkers = request.getPinnedBiomarkers();
+        if ((pinnedBiomarkers == null || pinnedBiomarkers.isEmpty()) && request.getMessage() != null && request.getMessage().startsWith("[Biomarker Context:")) {
+            try {
+                int endIdx = request.getMessage().indexOf("]");
+                if (endIdx > 19) {
+                    String contextText = request.getMessage().substring(19, endIdx);
+                    String[] parts = contextText.split(",");
+                    pinnedBiomarkers = new ArrayList<>();
+                    for (String p : parts) {
+                        String[] pair = p.trim().split(":");
+                        if (pair.length > 0 && !pair[0].trim().isEmpty()) {
+                            pinnedBiomarkers.add(pair[0].trim());
+                        }
+                    }
+                }
+            } catch (Exception ignored) {}
+        }
+
         // 2. Fetch context
-        String systemPrompt = buildSystemPrompt(user);
+        String systemPrompt = buildSystemPrompt(user, pinnedBiomarkers);
 
         // 3. Fetch history (excluding the one we just saved to avoid duplication in history array, 
         // though we can just fetch top 10 including it and reverse)
@@ -135,7 +154,7 @@ public class ChatServiceImpl implements ChatService {
         chatRepository.deleteByUserId(userId);
     }
 
-    private String buildSystemPrompt(User user) {
+    private String buildSystemPrompt(User user, List<String> pinnedBiomarkers) {
         // Profile
         String name = user.getName() != null ? user.getName() : "Unknown";
         String age = user.getDob() != null ? String.valueOf(Period.between(user.getDob(), LocalDate.now()).getYears()) : "Unknown";
@@ -171,6 +190,7 @@ public class ChatServiceImpl implements ChatService {
         }
 
         // Biomarkers (from latest lab report)
+        boolean hasPinned = pinnedBiomarkers != null && !pinnedBiomarkers.isEmpty();
         StringBuilder biomarkersBuilder = new StringBuilder();
         Optional<DashboardReport> latestReportOpt = dashboardReportRepository.findByUserIdAndIsLatestTrue(user.getId());
         if (latestReportOpt.isPresent()) {
@@ -180,14 +200,23 @@ public class ChatServiceImpl implements ChatService {
                 List<Map<String, Object>> biomarkers = (List<Map<String, Object>>) parsedJson.get("biomarkers");
                 if (biomarkers != null && !biomarkers.isEmpty()) {
                     for (Map<String, Object> b : biomarkers) {
-                        biomarkersBuilder.append("- ").append(b.get("parameter"))
+                        String param = (String) b.get("parameter");
+                        if (hasPinned) {
+                            boolean isPinned = pinnedBiomarkers.stream()
+                                    .anyMatch(p -> p.equalsIgnoreCase(param) || (param != null && (param.toLowerCase().contains(p.toLowerCase()) || p.toLowerCase().contains(param.toLowerCase()))));
+                            if (!isPinned) {
+                                continue;
+                            }
+                        }
+                        biomarkersBuilder.append("- ").append(param)
                                 .append(": ").append(b.get("value"))
                                 .append(" ").append(b.get("unit") != null ? b.get("unit") : "")
                                 .append(" (Status: ").append(b.get("status"))
                                 .append(", Range: ").append(b.get("normalRange") != null ? b.get("normalRange") : "N/A")
                                 .append(")\n");
                     }
-                } else {
+                }
+                if (biomarkersBuilder.length() == 0) {
                     biomarkersBuilder.append("None");
                 }
             } catch (Exception e) {
@@ -195,6 +224,22 @@ public class ChatServiceImpl implements ChatService {
             }
         } else {
             biomarkersBuilder.append("None (No lab report uploaded)");
+        }
+
+        String strictInstructionBlock;
+        if (hasPinned) {
+            strictInstructionBlock = String.format(
+                "CRITICAL PINNED BIOMARKER DIRECTIVE:\n" +
+                "The patient has explicitly attached/pinned specific biomarkers for discussion: %s.\n" +
+                "You MUST restrict your medical analysis, health explanations, and recommendations EXCLUSIVELY to these pinned biomarkers.\n" +
+                "Do NOT mention, analyze, or bring up any unselected or unpinned biomarkers.\n\n",
+                String.join(", ", pinnedBiomarkers)
+            );
+        } else {
+            strictInstructionBlock = 
+                "GENERAL RELEVANCE & CONTEXT DIRECTIVE:\n" +
+                "1. If the user asks a health or medical question, answer using the patient's context above.\n" +
+                "2. RELEVANCE GUARDRAIL: If the user asks a general, non-health question (e.g. coding, programming, general knowledge, casual greetings, math), answer directly and accurately. DO NOT force, shoehorn, or mention any health profile, blood group, or biomarker data unless the query is health-related.\n\n";
         }
 
         return String.format(
@@ -207,10 +252,12 @@ public class ChatServiceImpl implements ChatService {
                 "Current Active Medications:\n%s\n\n" +
                 "Recent Symptom History (last 3 checks):\n%s\n\n" +
                 "Latest Lab Report Biomarkers:\n%s\n\n" +
-                "Based on this context, answer the user's health questions in a clear, empathetic, and helpful manner.\n" +
-                "Always remind the user to consult a doctor for serious concerns. Never provide a definitive medical diagnosis.\n" +
+                "%s" +
+                "Answer the user's questions in a clear, empathetic, and helpful manner.\n" +
+                "Always remind the user to consult a doctor for serious medical concerns. Never provide a definitive medical diagnosis.\n" +
                 "Keep responses concise and easy to understand.",
-                name, age, bloodGroup, medsBuilder.toString().trim(), sympBuilder.toString().trim(), biomarkersBuilder.toString().trim()
+                name, age, bloodGroup, medsBuilder.toString().trim(), sympBuilder.toString().trim(), biomarkersBuilder.toString().trim(),
+                strictInstructionBlock
         );
     }
 
