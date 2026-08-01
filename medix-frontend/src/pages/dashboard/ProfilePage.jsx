@@ -4,6 +4,7 @@ import { dashboardApi } from "@/api/dashboardApi";
 import { motion, AnimatePresence } from "motion/react";
 import Loader from "@/components/common/Loader";
 import toast from "react-hot-toast";
+import { sortBiomarkersByPriority } from "@/utils/biomarkerUtils";
 import {
   User,
   Mail,
@@ -28,7 +29,7 @@ export default function ProfilePage() {
   const loadProfileData = async () => {
     try {
       const summary = await dashboardApi.getSummary();
-      setBiomarkers(summary?.biomarkers || []);
+      setBiomarkers(sortBiomarkersByPriority(summary?.biomarkers || []));
     } catch (err) {
       // Gracefully handle 404 if no report exists
       if (err.status === 404) {
@@ -190,7 +191,7 @@ export default function ProfilePage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {biomarkers.map((bio) => {
+                {sortBiomarkersByPriority(biomarkers).map((bio) => {
                   const isSelected = selectedBios.includes(bio.parameter);
                   return (
                     <div

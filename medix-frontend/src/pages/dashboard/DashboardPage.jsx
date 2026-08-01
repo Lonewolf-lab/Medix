@@ -8,6 +8,7 @@ import { symptomApi } from "@/api/symptomApi";
 import { motion, AnimatePresence } from "motion/react";
 import Loader from "@/components/common/Loader";
 import toast from "react-hot-toast";
+import { sortBiomarkersByPriority } from "@/utils/biomarkerUtils";
 import {
   Activity,
   FileText,
@@ -301,7 +302,7 @@ export default function DashboardPage() {
 
                   {/* Biomarkers parameters grid */}
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    {summary?.biomarkers?.map((bio) => {
+                    {sortBiomarkersByPriority(summary?.biomarkers).map((bio) => {
                       const isSelected = selectedBios.includes(bio.parameter);
                       return (
                         <div

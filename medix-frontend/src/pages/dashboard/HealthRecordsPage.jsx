@@ -4,6 +4,7 @@ import { API_ORIGIN } from "@/api/axiosInstance";
 import { motion, AnimatePresence } from "motion/react";
 import Loader from "@/components/common/Loader";
 import toast from "react-hot-toast";
+import { sortBiomarkersByPriority } from "@/utils/biomarkerUtils";
 import {
   FileText,
   Plus,
@@ -760,7 +761,7 @@ export default function HealthRecordsPage() {
                             </tr>
                           </thead>
                           <tbody>
-                            {editedFindings.map((f, idx) => (
+                            {sortBiomarkersByPriority(editedFindings).map((f, idx) => (
                               <tr key={idx} className="border-b border-stone-line/20 last:border-none">
                                 <td className="px-3 py-2 font-medium text-ink">{f.parameter}</td>
                                 <td className="px-3 py-2 text-right font-sans text-ink-soft">{f.value}</td>

@@ -249,13 +249,24 @@ public class DashboardServiceImpl implements DashboardService {
         int normalCount = 0;
 
         for (BiomarkerValue bio : mergedBiomarkers) {
-            String status = bio.getStatus() != null ? bio.getStatus().toUpperCase() : "NORMAL";
-            if (status.equals("HIGH") || status.equals("LOW") || status.equals("ABNORMAL")) {
+            if (isAbnormalStatus(bio.getStatus())) {
                 abnormalCount++;
             } else {
                 normalCount++;
             }
         }
+
+        // Sort biomarkers: Abnormal readings first (A-Z), followed by Normal readings (A-Z)
+        mergedBiomarkers.sort((b1, b2) -> {
+            boolean ab1 = isAbnormalStatus(b1.getStatus());
+            boolean ab2 = isAbnormalStatus(b2.getStatus());
+            if (ab1 != ab2) {
+                return ab1 ? -1 : 1; // Abnormal comes first
+            }
+            String p1 = b1.getParameter() != null ? b1.getParameter() : "";
+            String p2 = b2.getParameter() != null ? b2.getParameter() : "";
+            return p1.compareToIgnoreCase(p2);
+        });
 
         return DashboardSummaryResponse.builder()
                 .reportId(latestReport.getId())
@@ -268,6 +279,12 @@ public class DashboardServiceImpl implements DashboardService {
                 .overallAssessment(overallAssessment)
                 .disclaimer(disclaimer)
                 .build();
+    }
+
+    private boolean isAbnormalStatus(String status) {
+        if (status == null) return false;
+        String s = status.toUpperCase().trim();
+        return s.equals("HIGH") || s.equals("LOW") || s.equals("ABNORMAL") || s.equals("ELEVATED") || s.equals("CRITICAL");
     }
 
     @Override
