@@ -33,6 +33,12 @@ public class User {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "failed_login_attempts")
+    private Integer failedLoginAttempts = 0;
+
+    @Column(name = "lockout_until")
+    private LocalDateTime lockoutUntil;
+
     public User() {}
 
     @PrePersist
@@ -56,6 +62,10 @@ public class User {
     public void setBloodGroup(String bloodGroup) { this.bloodGroup = bloodGroup; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public int getFailedLoginAttempts() { return failedLoginAttempts != null ? failedLoginAttempts : 0; }
+    public void setFailedLoginAttempts(Integer failedLoginAttempts) { this.failedLoginAttempts = failedLoginAttempts != null ? failedLoginAttempts : 0; }
+    public LocalDateTime getLockoutUntil() { return lockoutUntil; }
+    public void setLockoutUntil(LocalDateTime lockoutUntil) { this.lockoutUntil = lockoutUntil; }
 
     public static Builder builder() { return new Builder(); }
 

@@ -33,6 +33,8 @@ public class GlobalExceptionHandler {
             errors.put(fieldName, errorMessage);
         });
         
+        System.out.println("[SECURITY AUDIT] Validation Failure: " + errors);
+
         Map<String, Object> body = new HashMap<>();
         body.put("status", HttpStatus.BAD_REQUEST.value());
         body.put("error", "Bad Request");
@@ -41,6 +43,11 @@ public class GlobalExceptionHandler {
         body.put("timestamp", LocalDateTime.now());
 
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(org.springframework.security.authentication.BadCredentialsException.class)
+    public ResponseEntity<Map<String, Object>> handleBadCredentialsException(org.springframework.security.authentication.BadCredentialsException ex) {
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, "Bad Request", "Incorrect email or password");
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

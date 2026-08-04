@@ -36,22 +36,26 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponse register(RegisterRequest registerRequest) {
-        if (userRepository.existsByEmail(registerRequest.getEmail())) {
+        String cleanEmail = registerRequest.getEmail() != null ? registerRequest.getEmail().trim().toLowerCase() : "";
+        String cleanName = registerRequest.getName() != null ? org.springframework.web.util.HtmlUtils.htmlEscape(registerRequest.getName().trim()) : "";
+        String cleanBloodGroup = registerRequest.getBloodGroup() != null ? org.springframework.web.util.HtmlUtils.htmlEscape(registerRequest.getBloodGroup().trim()) : null;
+
+        if (userRepository.existsByEmail(cleanEmail)) {
             throw new IllegalArgumentException("Email is already in use.");
         }
 
         User user = User.builder()
-                .name(registerRequest.getName())
-                .email(registerRequest.getEmail())
+                .name(cleanName)
+                .email(cleanEmail)
                 .passwordHash(passwordEncoder.encode(registerRequest.getPassword()))
                 .dob(registerRequest.getDob())
-                .bloodGroup(registerRequest.getBloodGroup())
+                .bloodGroup(cleanBloodGroup)
                 .build();
 
         User savedUser = userRepository.save(user);
 
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(registerRequest.getEmail(), registerRequest.getPassword())
+                new UsernamePasswordAuthenticationToken(cleanEmail, registerRequest.getPassword())
         );
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -67,15 +71,51 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponse login(LoginRequest loginRequest) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword())
-        );
+        String cleanEmail = loginRequest.getEmail() != null ? loginRequest.getEmail().trim().toLowerCase() : "";
+
+        User user = userRepository.findByEmail(cleanEmail)
+                .orElseThrow(() -> new IllegalArgumentException("Incorrect email or password"));
+
+        // 1. Check account lockout status
+        if (user.getLockoutUntil() != null) {
+            if (user.getLockoutUntil().isAfter(java.time.LocalDateTime.now())) {
+                long minutesLeft = java.time.Duration.between(java.time.LocalDateTime.now(), user.getLockoutUntil()).toMinutes() + 1;
+                throw new IllegalArgumentException("Account is temporarily locked due to multiple failed login attempts. Please try again in " + minutesLeft + " minute(s).");
+            } else {
+                // Lockout period expired; reset lockout status
+                user.setLockoutUntil(null);
+                user.setFailedLoginAttempts(0);
+                userRepository.save(user);
+            }
+        }
+
+        // 2. Attempt authentication
+        Authentication authentication;
+        try {
+            authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(cleanEmail, loginRequest.getPassword())
+            );
+        } catch (Exception e) {
+            // Increment failed attempts
+            int attempts = user.getFailedLoginAttempts() + 1;
+            user.setFailedLoginAttempts(attempts);
+            if (attempts >= 5) {
+                user.setLockoutUntil(java.time.LocalDateTime.now().plusMinutes(15));
+            }
+            userRepository.save(user);
+
+            if (attempts >= 5) {
+                throw new IllegalArgumentException("Account has been locked for 15 minutes due to 5 consecutive failed login attempts.");
+            }
+            throw new IllegalArgumentException("Incorrect email or password");
+        }
+
+        // 3. Successful authentication -> Reset lockout counters
+        user.setFailedLoginAttempts(0);
+        user.setLockoutUntil(null);
+        userRepository.save(user);
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
-
-        User user = userRepository.findByEmail(loginRequest.getEmail())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid email or password."));
-
         String jwt = tokenProvider.generateToken(authentication, user.getId().toString());
 
         return AuthResponse.builder()
