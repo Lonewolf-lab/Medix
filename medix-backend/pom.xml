@@ -24,6 +24,13 @@
       <artifactId>spring-boot-starter-web</artifactId>
     </dependency>
     
+    <!-- Bucket4j Core Rate Limiting -->
+    <dependency>
+      <groupId>com.bucket4j</groupId>
+      <artifactId>bucket4j-core</artifactId>
+      <version>8.10.1</version>
+    </dependency>
+    
     <!-- Spring Data JPA -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
