@@ -19,6 +19,8 @@ public interface DashboardReportRepository extends JpaRepository<DashboardReport
 
     List<DashboardReport> findByUserIdAndIsLatestFalse(UUID userId);
 
+    Optional<DashboardReport> findByFileUrl(String fileUrl);
+
     @Modifying
     @Query("UPDATE DashboardReport d SET d.isLatest = false WHERE d.user.id = :userId")
     void updateIsLatestFalseForUser(@Param("userId") UUID userId);

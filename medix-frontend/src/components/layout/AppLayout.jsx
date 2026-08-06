@@ -22,7 +22,7 @@ const NAV_ITEMS = [
   { label: "Symptom Checker", to: "/symptoms", icon: Activity },
   { label: "Health Records", to: "/records", icon: FileText },
   { label: "Medication Tracker", to: "/medications", icon: Pill },
-  { label: "Calendar & Scheduler", to: "/calendar", icon: Calendar },
+  { label: "Health Calendar", to: "/calendar", icon: Calendar },
   { label: "AI Health Chat", to: "/chat", icon: MessageSquare },
   { label: "Profile", to: "/profile", icon: User },
 ];

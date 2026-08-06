@@ -33,12 +33,15 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         Bucket bucket;
 
         if (path.startsWith("/api/auth/login") || path.startsWith("/api/auth/register")) {
+            // Rule 1: Auth routes - 5 requests per minute per IP
             String cacheKey = "auth_" + ip;
             bucket = bucketCache.computeIfAbsent(cacheKey, k -> createNewBucket(5, Duration.ofMinutes(1)));
-        } else if (path.startsWith("/api/chat/message") || 
-                   path.startsWith("/api/scheduler/agent") || 
-                   path.startsWith("/api/symptoms/analyze") || 
-                   path.contains("/analyze")) {
+        } else if (path.contains("/chat") || 
+                   path.contains("/analyze") || 
+                   path.contains("/agent") || 
+                   path.contains("/extract-prescription") || 
+                   path.contains("/upload-report")) {
+            // Rule 2: AI & Expensive routes (General/Doc/Biomarker Chats, Symptom/Doc Analyzers, Agent, Prescription Extractor, Report Uploader) - 15 requests per minute
             String cacheKey = "ai_" + clientKey;
             bucket = bucketCache.computeIfAbsent(cacheKey, k -> createNewBucket(15, Duration.ofMinutes(1)));
         } else {
