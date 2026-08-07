@@ -33,11 +33,11 @@ export default function ServerSpinUpOverlay() {
 
             {/* Informational Text */}
             <div className="space-y-3">
-              <h2 className="font-display text-xl uppercase tracking-wider text-ink font-semibold">
-                Starting Servers
+              <h2 className="font-display text-base uppercase tracking-wider text-ink font-semibold">
+                Connecting to Secure Server
               </h2>
               <p className="font-sans text-xs text-stone leading-relaxed">
-                Render's free tier spins down databases and servers after inactivity. We are waking up your secure Medix health environment. This can take up to a minute.
+                Establishing a secure connection to your Medix health environment. This may take up to a minute during initial startup. We appreciate your patience.
               </p>
             </div>
 
