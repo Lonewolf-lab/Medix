@@ -1,5 +1,4 @@
 import axios from "axios";
-import { useServerStatusStore } from "@/store/serverStatusStore";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080";
 
@@ -25,31 +24,10 @@ export function setUnauthorizedHandler(fn) {
   onUnauthorized = fn;
 }
 
-// Track active requests and their spin-up loading timeouts
-const activeRequests = new Map();
 
-const handleRequestCleanup = (config) => {
-  const requestId = config?.headers?.["X-Request-ID"];
-  if (requestId && activeRequests.has(requestId)) {
-    clearTimeout(activeRequests.get(requestId));
-    activeRequests.delete(requestId);
-  }
-  if (activeRequests.size === 0) {
-    useServerStatusStore.getState().setServerSpinningUp(false);
-  }
-};
 
 api.interceptors.request.use(
   (config) => {
-    const requestId = Math.random().toString(36).substring(2, 9);
-    config.headers["X-Request-ID"] = requestId;
-
-    // If request takes longer than 1.5 seconds, it means the server is cold-starting / spinning up on Render.
-    const timeoutId = setTimeout(() => {
-      useServerStatusStore.getState().setServerSpinningUp(true);
-    }, 1500);
-
-    activeRequests.set(requestId, timeoutId);
     return config;
   },
   (error) => Promise.reject(error)
@@ -57,7 +35,6 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
   (response) => {
-    handleRequestCleanup(response.config);
     return response;
   },
   (error) => {

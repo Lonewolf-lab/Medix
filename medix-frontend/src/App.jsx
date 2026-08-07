@@ -4,7 +4,9 @@ import { Toaster } from "react-hot-toast";
 import { useAuthStore } from "@/store/authStore";
 import { AnimatePresence, motion } from "motion/react";
 import EditorialEntranceLoader from "./components/common/EditorialEntranceLoader";
+import { useServerStatusStore } from "@/store/serverStatusStore";
 import ServerSpinUpOverlay from "./components/common/ServerSpinUpOverlay";
+import api from "@/api/axiosInstance";
 
 // Public imports
 import PublicLayout from "./components/layout/PublicLayout.jsx";
@@ -32,11 +34,57 @@ import NotFoundPage from "./pages/NotFoundPage.jsx";
 function App() {
   const bootstrap = useAuthStore((s) => s.bootstrap);
   const [showEntrance, setShowEntrance] = useState(true);
+  const setServerSpinningUp = useServerStatusStore((s) => s.setServerSpinningUp);
+  const setAwake = useServerStatusStore((s) => s.setAwake);
+  const isAwake = useServerStatusStore((s) => s.isAwake);
 
-  // Bootstrap auth state (query user session via cookie)
+  // Ping health endpoint on mount to wake up Render if idle
   useEffect(() => {
-    bootstrap();
-  }, [bootstrap]);
+    // Localhost starts awake already
+    if (isAwake) {
+      bootstrap();
+      return;
+    }
+
+    let isMounted = true;
+    let timeoutId = null;
+    let pollIntervalId = null;
+
+    // Trigger starting preloader if the health check takes longer than 1.5s
+    timeoutId = setTimeout(() => {
+      if (isMounted) setServerSpinningUp(true);
+    }, 1500);
+
+    const checkHealth = async () => {
+      try {
+        await api.get("/health");
+        
+        // Server responded successfully!
+        if (!isMounted) return;
+        clearTimeout(timeoutId);
+        if (pollIntervalId) clearInterval(pollIntervalId);
+        
+        setAwake(true);
+        bootstrap(); // Bootstrap auth now that backend is awake
+      } catch (err) {
+        // Keep polling if it failed or timed out
+        console.log("Waiting for backend to spin up...");
+      }
+    };
+
+    // Run first check
+    checkHealth();
+
+    // Setup polling every 2.5s
+    pollIntervalId = setInterval(checkHealth, 2500);
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timeoutId);
+      if (pollIntervalId) clearInterval(pollIntervalId);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <>
