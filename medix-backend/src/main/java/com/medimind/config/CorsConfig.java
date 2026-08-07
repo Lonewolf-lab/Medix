@@ -17,7 +17,7 @@ public class CorsConfig {
                         .allowedOrigins(
                                 "http://localhost:4000",
                                 "http://localhost:5173",
-                                "https://medix.vercel.app",
+                                "https://medix-care.vercel.app",
                                 "https://medix-gules.vercel.app"
                         )
                         .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
