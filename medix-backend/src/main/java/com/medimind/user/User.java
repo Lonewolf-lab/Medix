@@ -39,6 +39,18 @@ public class User {
     @Column(name = "lockout_until")
     private LocalDateTime lockoutUntil;
 
+    @Column(name = "daily_upload_count")
+    private Integer dailyUploadCount = 0;
+
+    @Column(name = "daily_scan_count")
+    private Integer dailyScanCount = 0;
+
+    @Column(name = "daily_ai_chat_count")
+    private Integer dailyAiChatCount = 0;
+
+    @Column(name = "last_usage_reset_date")
+    private LocalDate lastUsageResetDate;
+
     public User() {}
 
     @PrePersist
@@ -66,6 +78,24 @@ public class User {
     public void setFailedLoginAttempts(Integer failedLoginAttempts) { this.failedLoginAttempts = failedLoginAttempts != null ? failedLoginAttempts : 0; }
     public LocalDateTime getLockoutUntil() { return lockoutUntil; }
     public void setLockoutUntil(LocalDateTime lockoutUntil) { this.lockoutUntil = lockoutUntil; }
+    public int getDailyUploadCount() { return dailyUploadCount != null ? dailyUploadCount : 0; }
+    public void setDailyUploadCount(Integer dailyUploadCount) { this.dailyUploadCount = dailyUploadCount != null ? dailyUploadCount : 0; }
+    public int getDailyScanCount() { return dailyScanCount != null ? dailyScanCount : 0; }
+    public void setDailyScanCount(Integer dailyScanCount) { this.dailyScanCount = dailyScanCount != null ? dailyScanCount : 0; }
+    public int getDailyAiChatCount() { return dailyAiChatCount != null ? dailyAiChatCount : 0; }
+    public void setDailyAiChatCount(Integer dailyAiChatCount) { this.dailyAiChatCount = dailyAiChatCount != null ? dailyAiChatCount : 0; }
+    public LocalDate getLastUsageResetDate() { return lastUsageResetDate; }
+    public void setLastUsageResetDate(LocalDate lastUsageResetDate) { this.lastUsageResetDate = lastUsageResetDate; }
+
+    public void resetDailyCountersIfNewDay() {
+        LocalDate today = LocalDate.now();
+        if (this.lastUsageResetDate == null || !this.lastUsageResetDate.equals(today)) {
+            this.dailyUploadCount = 0;
+            this.dailyScanCount = 0;
+            this.dailyAiChatCount = 0;
+            this.lastUsageResetDate = today;
+        }
+    }
 
     public static Builder builder() { return new Builder(); }
 

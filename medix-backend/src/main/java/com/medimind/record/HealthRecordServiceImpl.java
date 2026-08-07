@@ -90,6 +90,13 @@ public class HealthRecordServiceImpl implements HealthRecordService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
 
+        user.resetDailyCountersIfNewDay();
+        if (user.getDailyUploadCount() >= 3) {
+            throw new IllegalArgumentException("Daily document upload limit (3 files) reached. Please try again tomorrow.");
+        }
+        user.setDailyUploadCount(user.getDailyUploadCount() + 1);
+        userRepository.save(user);
+
         HealthRecord record = HealthRecord.builder()
                 .user(user)
                 .title(request.getTitle())
@@ -155,6 +162,15 @@ public class HealthRecordServiceImpl implements HealthRecordService {
     @Transactional
     public DocumentAnalysisResponse analyzeRecord(UUID recordId, UUID userId) {
         HealthRecord record = getHealthRecordAndVerifyOwnership(userId, recordId);
+        User user = record.getUser();
+
+        user.resetDailyCountersIfNewDay();
+        if (user.getDailyScanCount() >= 3) {
+            throw new IllegalArgumentException("Daily AI document scanning limit (3 scans) reached. Please try again tomorrow.");
+        }
+        user.setDailyScanCount(user.getDailyScanCount() + 1);
+        userRepository.save(user);
+
         boolean isLabReport = record.getRecordType() == RecordType.LAB_REPORT;
 
         String systemPrompt;

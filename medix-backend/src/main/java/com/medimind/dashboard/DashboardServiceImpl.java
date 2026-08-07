@@ -70,6 +70,17 @@ public class DashboardServiceImpl implements DashboardService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
+        user.resetDailyCountersIfNewDay();
+        if (user.getDailyUploadCount() >= 3) {
+            throw new IllegalArgumentException("Daily document upload limit (3 files) reached. Please try again tomorrow.");
+        }
+        if (user.getDailyScanCount() >= 3) {
+            throw new IllegalArgumentException("Daily AI document scanning limit (3 scans) reached. Please try again tomorrow.");
+        }
+        user.setDailyUploadCount(user.getDailyUploadCount() + 1);
+        user.setDailyScanCount(user.getDailyScanCount() + 1);
+        userRepository.save(user);
+
         String fileUrl = dashboardStorageService.store(file);
         String contentType = file.getContentType();
         String extractedText = null;
