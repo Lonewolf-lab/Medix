@@ -72,10 +72,10 @@ public class AuthController {
         ResponseCookie cookie = ResponseCookie
                 .from("medix_token", token)
                 .httpOnly(true)
-                .secure(false)
+                .secure(true)
                 .path("/")
                 .maxAge(maxAge)
-                .sameSite("Lax")
+                .sameSite("None")
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     }
