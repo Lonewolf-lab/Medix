@@ -4,6 +4,7 @@ import { Toaster } from "react-hot-toast";
 import { useAuthStore } from "@/store/authStore";
 import { AnimatePresence, motion } from "motion/react";
 import EditorialEntranceLoader from "./components/common/EditorialEntranceLoader";
+import ServerSpinUpOverlay from "./components/common/ServerSpinUpOverlay";
 
 // Public imports
 import PublicLayout from "./components/layout/PublicLayout.jsx";
@@ -59,6 +60,7 @@ function App() {
               duration: 4000,
             }}
           />
+          <ServerSpinUpOverlay />
           <Routes>
             {/* Public Marketing Routes */}
             <Route element={<PublicLayout />}>
