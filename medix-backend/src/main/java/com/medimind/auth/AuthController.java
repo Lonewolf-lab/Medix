@@ -4,6 +4,7 @@ import com.medimind.auth.dto.AuthResponse;
 import com.medimind.auth.dto.LoginRequest;
 import com.medimind.auth.dto.RegisterRequest;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,6 +23,9 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService authService;
+
+    @Value("${app.cookie.secure:false}")
+    private boolean cookieSecure;
 
     public AuthController(AuthService authService) {
         this.authService = authService;
@@ -72,10 +76,10 @@ public class AuthController {
         ResponseCookie cookie = ResponseCookie
                 .from("medix_token", token)
                 .httpOnly(true)
-                .secure(true)
+                .secure(cookieSecure)
                 .path("/")
                 .maxAge(maxAge)
-                .sameSite("None")
+                .sameSite(cookieSecure ? "None" : "Lax")
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     }
