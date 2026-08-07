@@ -126,6 +126,8 @@ public class ChatServiceImpl implements ChatService {
             Map<String, Object> messageObj = (Map<String, Object>) choices.get(0).get("message");
             aiResponseText = (String) messageObj.get("content");
         } catch (Exception e) {
+            System.err.println("Groq API call failed: " + e.getMessage());
+            e.printStackTrace();
             aiResponseText = "I'm sorry, I'm having trouble connecting to my knowledge base right now. Please try again later.";
         }
 
