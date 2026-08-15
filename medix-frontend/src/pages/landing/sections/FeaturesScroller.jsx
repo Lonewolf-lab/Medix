@@ -26,7 +26,7 @@ export default function FeaturesScroller() {
   return (
     <section id="features" ref={ref} className="relative" style={{ height: `${FEATURES.length * 100}vh` }}>
       {/* MOBILE-ONLY VERTICAL-SCROLL-DRIVEN HORIZONTAL PARALLAX */}
-      <div className="block md:hidden sticky top-0 h-screen flex flex-col justify-between py-16 overflow-hidden bg-cream">
+      <div className="block md:hidden sticky top-0 h-screen flex flex-col justify-between pt-16 pb-6 overflow-hidden bg-cream">
         <div>
           <SectionLabel className="mb-4 px-6">WHAT MEDIX DOES</SectionLabel>
 
