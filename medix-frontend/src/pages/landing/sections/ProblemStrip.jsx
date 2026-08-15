@@ -3,9 +3,9 @@ import Reveal, { WordReveal } from "../../../components/common/Reveal.jsx";
 
 export default function ProblemStrip() {
   return (
-    <section className="px-6 md:px-16 py-32 md:py-44">
+    <section className="px-6 md:px-16 pt-6 sm:pt-10 md:pt-16 pb-16 sm:pb-24 md:pb-36">
       <SectionLabel>THE PROBLEM</SectionLabel>
-      <h2 className="mt-8 font-display uppercase tracking-tight leading-[1.02] text-[8.5vw] md:text-[4.2vw] text-ink max-w-5xl">
+      <h2 className="mt-6 sm:mt-8 font-display uppercase tracking-tight leading-[1.02] text-[7.5vw] sm:text-[8.5vw] md:text-[4.2vw] text-ink max-w-5xl">
         <WordReveal text="You search one symptom. Ten minutes later, the internet has you convinced it's a catastrophe." />
       </h2>
       <div className="mt-12 grid gap-8 md:grid-cols-3 max-w-5xl">

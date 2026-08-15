@@ -5,7 +5,7 @@ import { EASE } from "../../../components/common/Reveal.jsx";
 
 export default function FinalCta() {
   return (
-    <section className="relative bg-ink text-cream-light px-6 md:px-16 py-32 flex flex-col justify-between min-h-screen">
+    <section className="relative bg-ink text-cream-light px-6 md:px-16 py-16 sm:py-24 md:py-32 flex flex-col justify-between min-h-screen">
       <SectionLabel>START NOW</SectionLabel>
 
       <motion.h2
@@ -13,7 +13,7 @@ export default function FinalCta() {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.4 }}
         transition={{ duration: 0.8, ease: EASE }}
-        className="font-display uppercase text-[11vw] md:text-[6vw] leading-[0.95] my-16"
+        className="font-display uppercase text-[9vw] sm:text-[11vw] md:text-[6vw] leading-[0.95] my-10 sm:my-16"
       >
         Health clarity,
         <br />

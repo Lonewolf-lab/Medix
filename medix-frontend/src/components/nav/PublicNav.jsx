@@ -35,12 +35,12 @@ export default function PublicNav() {
         initial={{ y: -80, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.8, ease: EASE }}
-        className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 md:px-16 py-5 transition-colors duration-500 ${
+        className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-3 sm:px-6 md:px-16 py-3.5 sm:py-5 transition-colors duration-500 ${
           scrolled && !open ? "bg-cream/80 backdrop-blur-md border-b border-stone-line/60" : ""
         }`}
       >
         {/* LEFT — logo + animated MEDIX wordmark */}
-        <Link to="/" className="group flex items-center gap-3" aria-label="Medix home">
+        <Link to="/" className="group flex items-center gap-1.5 sm:gap-2 md:gap-3" aria-label="Medix home">
           <motion.div
             initial={{ scale: 0, rotate: -90 }}
             animate={{ scale: 1, rotate: 0 }}
@@ -50,7 +50,7 @@ export default function PublicNav() {
             <img
               src="/medix_logo.png"
               alt=""
-              className="w-10 h-10 object-contain"
+              className="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 object-contain"
               draggable="false"
             />
           </motion.div>
@@ -61,7 +61,7 @@ export default function PublicNav() {
                 initial={{ y: "110%" }}
                 animate={{ y: 0 }}
                 transition={{ duration: 0.6, delay: 0.3 + i * 0.06, ease: EASE }}
-                className={`font-display text-2xl tracking-tight transition-colors duration-300 ${
+                className={`font-display text-lg sm:text-xl md:text-2xl tracking-tight transition-colors duration-300 ${
                   open ? "text-cream-light" : "text-ink"
                 } group-hover:text-forest`}
               >
@@ -83,15 +83,15 @@ export default function PublicNav() {
                 {status === "authed" && user ? (
                   <Link
                     to="/dashboard"
-                    className="w-12 h-12 rounded-full bg-forest hover:bg-ink text-cream-light flex items-center justify-center transition-all duration-300 shadow-sm border border-stone-line/10"
+                    className="w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-forest hover:bg-ink text-cream-light flex items-center justify-center transition-all duration-300 shadow-sm border border-stone-line/10"
                     title="Go to Dashboard"
                   >
-                    <User className="w-5 h-5" />
+                    <User className="w-4 h-4 md:w-5 md:h-5" />
                   </Link>
                 ) : (
                   <Link
                     to="/login"
-                    className="font-mono-accent text-xs tracking-wider border border-stone-line/60 rounded-full px-5 py-2.5 bg-cream/30 backdrop-blur-sm text-ink hover:bg-forest hover:text-cream-light hover:border-forest transition-all duration-300"
+                    className="font-mono-accent text-[10px] sm:text-xs tracking-wider border border-stone-line/60 rounded-full px-3 py-1.5 sm:px-5 sm:py-2.5 bg-cream/30 backdrop-blur-sm text-ink hover:bg-forest hover:text-cream-light hover:border-forest transition-all duration-300"
                   >
                     SIGN IN
                   </Link>
@@ -105,11 +105,11 @@ export default function PublicNav() {
             onClick={() => setOpen((v) => !v)}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
-            className="relative w-12 h-12 rounded-full bg-forest flex items-center justify-center text-cream-light"
+            className="relative w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-forest flex items-center justify-center text-cream-light"
             aria-label={open ? "Close menu" : "Open menu"}
             aria-expanded={open}
           >
-            <div className="relative w-4 h-4 flex items-center justify-center">
+            <div className="relative w-3.5 h-3.5 md:w-4 md:h-4 flex items-center justify-center">
               <AnimatePresence mode="wait" initial={false}>
                 {open ? (
                   <motion.div
@@ -120,8 +120,8 @@ export default function PublicNav() {
                     transition={{ duration: 0.25 }}
                     className="absolute inset-0 flex items-center justify-center"
                   >
-                    <span className="absolute w-4 h-[1.5px] bg-current rotate-45" />
-                    <span className="absolute w-4 h-[1.5px] bg-current -rotate-45" />
+                    <span className="absolute w-3 md:w-4 h-[1.5px] bg-current rotate-45" />
+                    <span className="absolute w-3 md:w-4 h-[1.5px] bg-current -rotate-45" />
                   </motion.div>
                 ) : (
                   <motion.div
@@ -130,11 +130,11 @@ export default function PublicNav() {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.2 }}
-                    className="flex flex-col gap-1"
+                    className="flex flex-col gap-0.5 md:gap-1"
                   >
-                    <span className="w-1 h-1 rounded-full bg-current" />
-                    <span className="w-1 h-1 rounded-full bg-current" />
-                    <span className="w-1 h-1 rounded-full bg-current" />
+                    <span className="w-[3px] h-[3px] md:w-1 md:h-1 rounded-full bg-current" />
+                    <span className="w-[3px] h-[3px] md:w-1 md:h-1 rounded-full bg-current" />
+                    <span className="w-[3px] h-[3px] md:w-1 md:h-1 rounded-full bg-current" />
                   </motion.div>
                 )}
               </AnimatePresence>

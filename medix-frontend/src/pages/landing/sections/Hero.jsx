@@ -12,14 +12,14 @@ export default function Hero() {
   return (
     <section
       id="top"
-      className="relative min-h-screen flex flex-col justify-end px-6 md:px-16 pb-20 pt-32 overflow-hidden"
+      className="relative min-h-screen flex flex-col justify-center md:justify-end items-center md:items-start px-5 sm:px-6 md:px-16 pb-6 sm:pb-8 md:pb-10 pt-24 sm:pt-28 md:pt-32 overflow-hidden text-center md:text-left"
     >
-      <motion.div style={{ y, opacity }} className="max-w-6xl">
+      <motion.div style={{ y, opacity }} className="max-w-6xl relative z-10 my-auto md:my-0 mx-auto md:mx-0 flex flex-col items-center md:items-start">
         <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.1, ease: EASE }}
-          className="font-mono-accent text-xs tracking-[0.3em] text-forest mb-6"
+          className="font-mono-accent text-[10px] sm:text-xs tracking-[0.25em] sm:tracking-[0.3em] text-forest mb-3 md:mb-6"
         >
           MEDIX® — AI-POWERED PERSONAL HEALTH
         </motion.p>
@@ -30,7 +30,7 @@ export default function Hero() {
               initial={{ y: "110%" }}
               animate={{ y: 0 }}
               transition={{ duration: 0.9, delay: 0.2, ease: EASE }}
-              className="block text-[16vw] md:text-[9vw]"
+              className="block text-[21vw] sm:text-[23vw] md:text-[9vw]"
             >
               Medix<span className="text-forest">.</span>
             </motion.span>
@@ -40,7 +40,7 @@ export default function Hero() {
               initial={{ y: "110%" }}
               animate={{ y: 0 }}
               transition={{ duration: 0.9, delay: 0.32, ease: EASE }}
-              className="block text-[9.5vw] md:text-[5.4vw]"
+              className="block text-[8.2vw] sm:text-[9vw] md:text-[5.4vw]"
             >
               Your health, finally
             </motion.span>
@@ -50,7 +50,7 @@ export default function Hero() {
               initial={{ y: "110%" }}
               animate={{ y: 0 }}
               transition={{ duration: 0.9, delay: 0.44, ease: EASE }}
-              className="block text-[9.5vw] md:text-[5.4vw]"
+              className="block text-[8.2vw] sm:text-[9vw] md:text-[5.4vw]"
             >
               in one place<span className="text-forest">.</span>
             </motion.span>
@@ -61,7 +61,7 @@ export default function Hero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.6, ease: EASE }}
-          className="max-w-md mt-8 text-ink-soft text-base leading-relaxed"
+          className="max-w-md mt-4 sm:mt-8 text-ink-soft text-xs sm:text-sm md:text-base leading-relaxed text-justify md:text-left"
         >
           Stop panic searching symptoms at 2 AM. Medix gives you AI symptom
           triage, organized health records, smart medication tracking and
@@ -72,7 +72,7 @@ export default function Hero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.75, ease: EASE }}
-          className="flex flex-wrap items-center gap-5 mt-10"
+          className="flex flex-wrap items-center justify-center md:justify-start gap-4 sm:gap-5 mt-6 sm:mt-10"
         >
           <PillLink to="/register">Get Started</PillLink>
           <motion.span whileHover={{ x: 4 }}>
@@ -87,10 +87,8 @@ export default function Hero() {
       </motion.div>
 
       {/* Interactive 3D brand mark — vertically centered in the hero's empty
-          right half on desktop; centered up top on mobile. (Positioning lives
-          on this wrapper; the inner motion.div only animates opacity/scale so
-          Framer's transform never fights the centering translates.) */}
-      <div className="absolute left-1/2 -translate-x-1/2 top-[8vh] w-60 h-60 sm:w-72 sm:h-72 md:left-auto md:translate-x-0 md:right-[15vw] md:top-[46%] md:-translate-y-1/2 md:w-[30vw] md:h-[30vw] md:max-w-[500px] md:max-h-[500px]">
+          right half on desktop; prominent 3D backdrop on mobile. */}
+      <div className="absolute left-1/2 -translate-x-1/2 top-[16%] sm:top-[18%] w-60 h-60 sm:w-80 sm:h-80 opacity-25 md:opacity-100 pointer-events-none md:pointer-events-auto md:left-auto md:translate-x-0 md:right-[15vw] md:top-[46%] md:-translate-y-1/2 md:w-[30vw] md:h-[30vw] md:max-w-[500px] md:max-h-[500px] z-0">
         <motion.div
           initial={{ opacity: 0, scale: 0.7 }}
           animate={{ opacity: 1, scale: 1 }}
