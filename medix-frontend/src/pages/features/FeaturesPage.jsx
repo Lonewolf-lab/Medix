@@ -98,7 +98,7 @@ function FeaturePanel({ feature, index }) {
 export default function FeaturesPage() {
   return (
     <>
-      {/* Page hero */}
+      {/* Mobile optimized text justification & hero alignment */}
       <section className="min-h-[60vh] md:min-h-[80vh] flex flex-col justify-end items-center md:items-start text-center md:text-left px-5 sm:px-6 md:px-16 pb-12 md:pb-16 pt-24 md:pt-32">
         <SectionLabel>FEATURES</SectionLabel>
         <h1 className="mt-4 sm:mt-6 font-display uppercase tracking-tight leading-[0.95] text-[10vw] sm:text-[9vw] md:text-[7.5vw] text-ink">
