@@ -55,7 +55,7 @@ export default function RegisterPage() {
         </>
       }
     >
-      <form onSubmit={handleSubmit} className="flex flex-col gap-8">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5 sm:gap-6 md:gap-8">
         <AuthField
           number="01"
           label="FULL NAME"
@@ -89,7 +89,7 @@ export default function RegisterPage() {
           required
           disabled={loading}
         />
-        <div className="grid grid-cols-2 gap-8">
+        <div className="grid grid-cols-2 gap-4 sm:gap-8 items-start">
           <AuthField
             number="04"
             label="DATE OF BIRTH"
@@ -99,14 +99,14 @@ export default function RegisterPage() {
             disabled={loading}
           />
           <div>
-            <label className="font-mono-accent text-xs tracking-widest text-stone block mb-2">
+            <label className="font-mono-accent text-[10px] sm:text-xs tracking-wider text-forest/80 font-medium block mb-1.5 sm:mb-2">
               05 — BLOOD GROUP
             </label>
             <select
               value={form.bloodGroup}
               onChange={update("bloodGroup")}
               disabled={loading}
-              className="w-full bg-transparent border-b border-stone-line py-3.5 text-ink focus:outline-none focus:border-forest transition-colors"
+              className="w-full bg-transparent border-b border-stone-line py-2.5 sm:py-3.5 text-xs sm:text-base text-ink focus:outline-none focus:border-forest transition-colors"
             >
               <option value="" className="bg-cream text-ink">Select</option>
               {BLOOD_GROUPS.map((g) => (
