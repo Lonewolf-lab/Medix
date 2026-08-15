@@ -79,10 +79,10 @@ export default function Faq() {
   const [openIdx, setOpenIdx] = useState(0);
 
   return (
-    <section className="px-6 md:px-16 py-32">
+    <section className="px-6 md:px-16 pt-8 sm:pt-12 md:pt-16 pb-20 sm:pb-28 md:pb-32">
       <SectionLabel>QUESTIONS</SectionLabel>
       <Reveal>
-        <h2 className="mt-8 mb-10 font-display uppercase tracking-tight leading-[1.0] text-[9vw] md:text-[4.5vw] text-ink">
+        <h2 className="mt-4 sm:mt-6 md:mt-8 mb-8 sm:mb-10 font-display uppercase tracking-tight leading-[1.0] text-[9vw] md:text-[4.5vw] text-ink">
           Asked, answered.
         </h2>
       </Reveal>
