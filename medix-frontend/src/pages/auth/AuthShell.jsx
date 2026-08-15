@@ -47,25 +47,37 @@ export default function AuthShell({ title, subtitle, children, footer }) {
       </div>
 
       {/* Form panel */}
-      <div className="lg:col-span-3 flex flex-col justify-center px-6 py-16 sm:px-14">
+      <div className="lg:col-span-3 flex flex-col justify-center px-4 py-6 sm:px-14 sm:py-16">
         <div className="w-full max-w-md mx-auto">
-          <Link to="/" className="mb-12 flex items-center gap-3 lg:hidden w-fit">
-            <img src="/medix_logo.png" alt="Medix logo" className="w-10 h-10 object-contain" />
-            <span className="font-display text-2xl tracking-tight text-ink">MEDIX</span>
-          </Link>
+          {/* Mobile-only sleek brand banner */}
+          <div className="lg:hidden bg-ink text-cream-light rounded-2xl p-4 mb-6 shadow-md border border-stone-line/20 flex items-center justify-between">
+            <Link to="/" className="flex items-center gap-3">
+              <img src="/medix_logo.png" alt="Medix logo" className="w-8 h-8 object-contain" />
+              <div>
+                <span className="font-display text-lg tracking-tight text-cream-light block leading-none">MEDIX</span>
+                <span className="font-mono-accent text-[9px] tracking-widest text-forest-bright">AI HEALTH SYSTEM</span>
+              </div>
+            </Link>
+            <span className="font-mono-accent text-[9px] tracking-widest text-stone bg-cream-light/10 px-2.5 py-1 rounded-full border border-stone-line/30">
+              SECURE
+            </span>
+          </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: EASE }}
-          >
-            <h1 className="font-display uppercase tracking-tight text-4xl md:text-5xl text-ink">
-              {title}
-            </h1>
-            {subtitle && <p className="mt-3 text-ink-soft text-sm leading-relaxed">{subtitle}</p>}
-            <div className="mt-10">{children}</div>
-            {footer && <div className="mt-8 text-sm text-ink-soft">{footer}</div>}
-          </motion.div>
+          {/* Form Card Container */}
+          <div className="bg-cream-light/80 border border-stone-line/60 rounded-3xl p-6 sm:p-10 shadow-sm lg:bg-transparent lg:border-0 lg:p-0 lg:shadow-none relative">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, ease: EASE }}
+            >
+              <h1 className="font-display uppercase tracking-tight text-2xl sm:text-4xl md:text-5xl text-ink">
+                {title}
+              </h1>
+              {subtitle && <p className="mt-2.5 sm:mt-3 text-ink-soft text-xs sm:text-sm leading-relaxed">{subtitle}</p>}
+              <div className="mt-6 sm:mt-8">{children}</div>
+              {footer && <div className="mt-6 sm:mt-8 text-xs sm:text-sm text-ink-soft pt-4 border-t border-stone-line/40 lg:border-0 lg:pt-0">{footer}</div>}
+            </motion.div>
+          </div>
         </div>
       </div>
     </div>
@@ -75,11 +87,11 @@ export default function AuthShell({ title, subtitle, children, footer }) {
 export function AuthField({ label, number, ...props }) {
   return (
     <div>
-      <label className="font-mono-accent text-xs tracking-widest text-stone block mb-2">
+      <label className="font-mono-accent text-[10px] sm:text-xs tracking-wider text-forest/80 font-medium block mb-1.5 sm:mb-2">
         {number} — {label}
       </label>
       <input
-        className="w-full bg-transparent border-b border-stone-line py-3.5 text-ink placeholder:text-stone-faded focus:outline-none focus:border-forest transition-colors"
+        className="w-full bg-transparent border-b border-stone-line py-2.5 sm:py-3.5 text-xs sm:text-base text-ink placeholder:text-stone-faded focus:outline-none focus:border-forest transition-colors"
         {...props}
       />
     </div>
@@ -90,11 +102,11 @@ export function AuthSubmit({ children }) {
   return (
     <motion.button
       type="submit"
-      whileHover={{ scale: 1.03 }}
-      whileTap={{ scale: 0.97 }}
-      className="w-fit inline-flex items-center gap-3 rounded-full pl-2 pr-8 py-2.5 bg-ink text-cream-light font-mono-accent text-xs tracking-widest uppercase"
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      className="w-full sm:w-auto inline-flex items-center justify-center gap-3 rounded-full pl-2 pr-6 py-3 bg-forest hover:bg-forest-bright text-cream-light font-mono-accent text-xs tracking-widest uppercase transition-all shadow-md font-semibold"
     >
-      <span className="w-9 h-9 rounded-full bg-forest flex items-center justify-center text-[10px]">●</span>
+      <span className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-ink flex items-center justify-center text-[9px] shrink-0">●</span>
       {children}
     </motion.button>
   );

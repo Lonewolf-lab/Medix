@@ -43,7 +43,7 @@ export default function LoginPage() {
         </>
       }
     >
-      <form onSubmit={handleSubmit} className="flex flex-col gap-8">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5 sm:gap-6 md:gap-8">
         <AuthField
           number="01"
           label="EMAIL"
