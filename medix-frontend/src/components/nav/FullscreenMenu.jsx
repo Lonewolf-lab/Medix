@@ -5,6 +5,8 @@ import Logo3D from "./Logo3D.jsx";
 import RollHollowText from "../common/RollHollowText.jsx";
 import { EASE } from "../common/Reveal.jsx";
 
+import { useAuthStore } from "@/store/authStore";
+
 const LINKS = [
   { n: "01", label: "HOME", to: "/" },
   { n: "02", label: "FEATURES", to: "/features" },
@@ -42,6 +44,7 @@ const item = {
  */
 export default function FullscreenMenu({ open, onClose }) {
   const [hovered, setHovered] = useState(-1);
+  const { user, status } = useAuthStore();
 
   return (
     <AnimatePresence>
@@ -51,9 +54,9 @@ export default function FullscreenMenu({ open, onClose }) {
           initial="hidden"
           animate="visible"
           exit="exit"
-          className="fixed inset-0 z-40 bg-ink text-cream-light flex flex-col px-6 md:px-16 pt-24 pb-10"
+          className="fixed inset-0 z-40 bg-ink text-cream-light flex flex-col px-5 sm:px-6 md:px-16 pt-20 sm:pt-24 pb-8 sm:pb-10 overflow-y-auto md:overflow-hidden"
         >
-          <div className="flex-1 grid md:grid-cols-[1fr_1.5fr] items-center gap-10 min-h-0">
+          <div className="flex-1 grid md:grid-cols-[1fr_1.5fr] items-center gap-6 md:gap-10 min-h-0">
             {/* LEFT — 3D logo stage (reserved until the .glb arrives) */}
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
@@ -67,48 +70,80 @@ export default function FullscreenMenu({ open, onClose }) {
                 MEDIX — AI HEALTH, IN ONE PLACE
               </span>
             </motion.div>
- 
+
             {/* RIGHT — links */}
-            <motion.ul
-              variants={list}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              className="w-full"
-              onMouseLeave={() => setHovered(-1)}
-            >
-              {LINKS.map((link, i) => (
-                <li key={link.n} className="overflow-hidden border-b border-ink-line">
-                  <motion.div variants={item}>
+            <div className="w-full flex flex-col justify-center">
+              <motion.ul
+                variants={list}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                className="w-full"
+                onMouseLeave={() => setHovered(-1)}
+              >
+                {LINKS.map((link, i) => (
+                  <li key={link.n} className="overflow-hidden border-b border-ink-line">
+                    <motion.div variants={item}>
+                      <Link
+                        to={link.to}
+                        onClick={onClose}
+                        onMouseEnter={() => setHovered(i)}
+                        className="group flex items-baseline gap-4 sm:gap-5 py-2.5 sm:py-3 md:py-3"
+                      >
+                        <span className="font-mono-accent text-xs text-forest transition-colors group-hover:text-forest-bright">
+                          {link.n}
+                        </span>
+                        <span className="font-display uppercase tracking-tight leading-none text-4xl sm:text-5xl md:text-[3.9vw] text-cream-light transition-transform duration-[380ms] group-hover:translate-x-3">
+                          <RollHollowText text={link.label} active={hovered === i} />
+                        </span>
+                      </Link>
+                    </motion.div>
+                  </li>
+                ))}
+              </motion.ul>
+
+              {/* Mobile quick action buttons */}
+              <div className="mt-8 md:hidden flex flex-col gap-3">
+                {status === "authed" && user ? (
+                  <Link
+                    to="/dashboard"
+                    onClick={onClose}
+                    className="w-full text-center py-3 bg-forest hover:bg-forest-bright text-cream-light font-mono-accent text-xs tracking-widest uppercase rounded-full font-semibold shadow-md transition-colors"
+                  >
+                    Go to Dashboard →
+                  </Link>
+                ) : (
+                  <div className="grid grid-cols-2 gap-3">
                     <Link
-                      to={link.to}
+                      to="/login"
                       onClick={onClose}
-                      onMouseEnter={() => setHovered(i)}
-                      className="group flex items-baseline gap-5 py-2 md:py-3"
+                      className="text-center py-2.5 bg-cream-light/10 border border-stone-line/40 text-cream-light font-mono-accent text-xs tracking-widest uppercase rounded-full hover:bg-cream-light/20 transition-colors"
                     >
-                      <span className="font-mono-accent text-xs text-forest transition-colors group-hover:text-forest-bright">
-                        {link.n}
-                      </span>
-                      <span className="font-display uppercase tracking-tight leading-none text-[10vw] md:text-[3.9vw] text-cream-light transition-transform duration-[380ms] group-hover:translate-x-3">
-                        <RollHollowText text={link.label} active={hovered === i} />
-                      </span>
+                      Sign in
                     </Link>
-                  </motion.div>
-                </li>
-              ))}
-            </motion.ul>
+                    <Link
+                      to="/register"
+                      onClick={onClose}
+                      className="text-center py-2.5 bg-forest text-cream-light font-mono-accent text-xs tracking-widest uppercase rounded-full font-semibold hover:bg-forest-bright transition-colors"
+                    >
+                      Register
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1, transition: { delay: 0.7 } }}
             exit={{ opacity: 0, transition: { duration: 0.2 } }}
-            className="flex flex-col md:flex-row justify-between gap-4 pt-6 border-t border-ink-line"
+            className="flex flex-col md:flex-row justify-between gap-2 sm:gap-4 pt-6 border-t border-ink-line mt-6 md:mt-0"
           >
-            <span className="font-mono-accent text-[10px] tracking-[0.3em] text-stone">
+            <span className="font-mono-accent text-[9px] sm:text-[10px] tracking-[0.2em] sm:tracking-[0.3em] text-stone">
               MEDIX — AI HEALTH MANAGEMENT
             </span>
-            <span className="font-mono-accent text-[10px] tracking-[0.3em] text-stone">
+            <span className="font-mono-accent text-[9px] sm:text-[10px] tracking-[0.2em] sm:tracking-[0.3em] text-stone">
               NOT A SUBSTITUTE FOR PROFESSIONAL MEDICAL ADVICE
             </span>
           </motion.div>

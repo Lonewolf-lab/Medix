@@ -100,16 +100,16 @@ export default function PublicNav() {
             )}
           </AnimatePresence>
 
-          {/* RIGHT — hamburger (dots morph to X) */}
+          {/* RIGHT — hamburger button */}
           <motion.button
             onClick={() => setOpen((v) => !v)}
-            whileHover={{ scale: 1.1 }}
+            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="relative w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-forest flex items-center justify-center text-cream-light"
+            className="relative w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-forest text-cream-light flex items-center justify-center shadow-sm"
             aria-label={open ? "Close menu" : "Open menu"}
             aria-expanded={open}
           >
-            <div className="relative w-3.5 h-3.5 md:w-4 md:h-4 flex items-center justify-center">
+            <div className="relative w-4 h-4 flex items-center justify-center">
               <AnimatePresence mode="wait" initial={false}>
                 {open ? (
                   <motion.div
@@ -120,21 +120,20 @@ export default function PublicNav() {
                     transition={{ duration: 0.25 }}
                     className="absolute inset-0 flex items-center justify-center"
                   >
-                    <span className="absolute w-3 md:w-4 h-[1.5px] bg-current rotate-45" />
-                    <span className="absolute w-3 md:w-4 h-[1.5px] bg-current -rotate-45" />
+                    <span className="absolute w-3.5 md:w-4 h-[1.5px] bg-current rotate-45 rounded-full" />
+                    <span className="absolute w-3.5 md:w-4 h-[1.5px] bg-current -rotate-45 rounded-full" />
                   </motion.div>
                 ) : (
                   <motion.div
-                    key="dots"
+                    key="lines"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.2 }}
-                    className="flex flex-col gap-0.5 md:gap-1"
+                    className="flex flex-col gap-1 items-center justify-center"
                   >
-                    <span className="w-[3px] h-[3px] md:w-1 md:h-1 rounded-full bg-current" />
-                    <span className="w-[3px] h-[3px] md:w-1 md:h-1 rounded-full bg-current" />
-                    <span className="w-[3px] h-[3px] md:w-1 md:h-1 rounded-full bg-current" />
+                    <span className="w-3.5 md:w-4 h-[1.5px] bg-current rounded-full" />
+                    <span className="w-3.5 md:w-4 h-[1.5px] bg-current rounded-full" />
                   </motion.div>
                 )}
               </AnimatePresence>
