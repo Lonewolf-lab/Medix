@@ -105,19 +105,32 @@ export default function AppLayout() {
 
       {/* Main Container */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Mobile-only menu bar */}
-        <div className="md:hidden flex items-center justify-between px-6 py-4 bg-cream border-b border-stone-line/60">
+        {/* Mobile-only sticky top navigation bar */}
+        <div className="md:hidden sticky top-0 z-30 flex items-center justify-between px-4 py-3 bg-cream/95 backdrop-blur-md border-b border-stone-line/60">
           <button
             onClick={() => setMobileOpen(true)}
-            className="p-2 -ml-2 rounded-lg text-ink hover:bg-stone-line/20 cursor-pointer"
+            className="p-2 -ml-1.5 rounded-lg text-ink hover:bg-stone-line/20 cursor-pointer active:scale-95 transition-transform"
             aria-label="Toggle menu"
           >
             <Menu className="w-5 h-5" />
           </button>
-          <Link to="/" className="font-display text-sm tracking-wider uppercase text-ink hover:text-forest transition-colors">
-            MEDIX
+
+          <Link to="/" className="flex items-center gap-2 font-display text-sm tracking-wider uppercase text-ink hover:text-forest transition-colors">
+            <img src="/medix_logo.png" alt="Medix logo" className="w-6 h-6 object-contain" />
+            <span>MEDIX</span>
           </Link>
-          <div className="w-8 h-8" />
+
+          {user ? (
+            <Link
+              to="/profile"
+              className="w-7 h-7 rounded-full bg-forest text-cream-light flex items-center justify-center font-mono-accent text-[10px] font-bold uppercase shadow-xs"
+              title="Profile"
+            >
+              {user.name?.slice(0, 2)}
+            </Link>
+          ) : (
+            <div className="w-7 h-7" />
+          )}
         </div>
 
         {/* Content Area */}
