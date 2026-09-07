@@ -21,10 +21,17 @@ export default function PublicNav() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Lock body scroll while the menu is open.
+  // Lock body scroll and pause smooth scroll while the menu is open.
   useEffect(() => {
-    document.body.style.overflow = open ? "hidden" : "";
+    if (open) {
+      window.__lenis?.stop();
+      document.body.style.overflow = "hidden";
+    } else {
+      window.__lenis?.start();
+      document.body.style.overflow = "";
+    }
     return () => {
+      window.__lenis?.start();
       document.body.style.overflow = "";
     };
   }, [open]);
@@ -75,10 +82,10 @@ export default function PublicNav() {
           <AnimatePresence>
             {!open && (
               <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                transition={{ duration: 0.3 }}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.2 }}
               >
                 {status === "authed" && user ? (
                   <Link
