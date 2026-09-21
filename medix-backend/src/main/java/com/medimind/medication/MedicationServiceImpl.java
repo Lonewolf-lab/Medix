@@ -29,6 +29,7 @@ public class MedicationServiceImpl implements MedicationService {
     private final ObjectMapper objectMapper;
     private final String groqApiUrl;
     private final String groqApiKey;
+    private final String groqModel;
 
     public MedicationServiceImpl(
             MedicationRepository medicationRepository,
@@ -37,7 +38,8 @@ public class MedicationServiceImpl implements MedicationService {
             WebClient anthropicWebClient,
             ObjectMapper objectMapper,
             @Value("${ai.api.url}") String groqApiUrl,
-            @Value("${ai.api.key}") String groqApiKey) {
+            @Value("${ai.api.key}") String groqApiKey,
+            @Value("${ai.api.model:llama-3.1-8b-instant}") String groqModel) {
         this.medicationRepository = medicationRepository;
         this.reminderRepository = reminderRepository;
         this.userRepository = userRepository;
@@ -45,6 +47,7 @@ public class MedicationServiceImpl implements MedicationService {
         this.objectMapper = objectMapper;
         this.groqApiUrl = groqApiUrl;
         this.groqApiKey = groqApiKey;
+        this.groqModel = groqModel;
     }
 
     // ─── CRUD ──────────────────────────────────────────────────────────────────
@@ -229,7 +232,7 @@ public class MedicationServiceImpl implements MedicationService {
             }
 
             Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("model", contentType.contains("pdf") ? "llama-3.3-70b-versatile" : "meta-llama/llama-4-scout-17b-16e-instruct");
+            requestBody.put("model", contentType.contains("pdf") ? groqModel : "meta-llama/llama-4-scout-17b-16e-instruct");
             requestBody.put("messages", messages);
             requestBody.put("temperature", 0.1);
 

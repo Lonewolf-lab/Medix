@@ -18,15 +18,18 @@ public class AIServiceImpl implements AIService {
     private final ObjectMapper objectMapper;
     private final String groqApiUrl;
     private final String groqApiKey;
+    private final String groqModel;
 
     public AIServiceImpl(WebClient.Builder webClientBuilder,
                          ObjectMapper objectMapper,
                          @org.springframework.beans.factory.annotation.Value("${ai.api.url}") String geminiApiUrl,
-                         @org.springframework.beans.factory.annotation.Value("${ai.api.key}") String geminiApiKey) {
+                         @org.springframework.beans.factory.annotation.Value("${ai.api.key}") String geminiApiKey,
+                         @org.springframework.beans.factory.annotation.Value("${ai.api.model:llama-3.1-8b-instant}") String geminiModel) {
         this.webClient = webClientBuilder.build();
         this.objectMapper = objectMapper;
         this.groqApiUrl = geminiApiUrl;
         this.groqApiKey = geminiApiKey;
+        this.groqModel = geminiModel;
     }
 
     @SuppressWarnings("unchecked")
@@ -53,7 +56,7 @@ public class AIServiceImpl implements AIService {
                     "}";
 
             Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("model", "llama-3.3-70b-versatile");
+            requestBody.put("model", groqModel);
             requestBody.put("messages", List.of(
                     Map.of("role", "user", "content", prompt)
             ));
@@ -137,7 +140,7 @@ public class AIServiceImpl implements AIService {
                     "User Input: \"" + userPrompt + "\"";
 
             Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("model", "llama-3.3-70b-versatile");
+            requestBody.put("model", groqModel);
             requestBody.put("messages", List.of(
                     Map.of("role", "user", "content", systemPrompt)
             ));

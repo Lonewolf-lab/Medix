@@ -47,6 +47,9 @@ public class DashboardServiceImpl implements DashboardService {
     @Value("${ai.api.url}")
     private String groqApiUrl;
 
+    @Value("${ai.api.model:llama-3.1-8b-instant}")
+    private String groqModel;
+
     public DashboardServiceImpl(
             DashboardReportRepository dashboardReportRepository,
             UserRepository userRepository,
@@ -120,7 +123,7 @@ public class DashboardServiceImpl implements DashboardService {
         String modelName;
 
         if (extractedText != null && !extractedText.trim().isEmpty()) {
-            modelName = "llama-3.3-70b-versatile";
+            modelName = groqModel;
             messages = List.of(
                     Map.of("role", "system", "content", systemPrompt),
                     Map.of("role", "user", "content", "Extract all biomarker values from this lab report:\n" + extractedText)
@@ -417,7 +420,7 @@ public class DashboardServiceImpl implements DashboardService {
         }
 
         Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("model", "llama-3.3-70b-versatile");
+        requestBody.put("model", groqModel);
         requestBody.put("messages", messages);
         requestBody.put("temperature", 0.7);
         requestBody.put("max_tokens", 1024);

@@ -52,6 +52,9 @@ public class HealthRecordServiceImpl implements HealthRecordService {
     @Value("${ai.api.url}")
     private String groqApiUrl;
 
+    @Value("${ai.api.model:llama-3.1-8b-instant}")
+    private String groqModel;
+
     public HealthRecordServiceImpl(HealthRecordRepository healthRecordRepository, 
                                    UserRepository userRepository, 
                                    StorageService storageService,
@@ -221,7 +224,7 @@ public class HealthRecordServiceImpl implements HealthRecordService {
         String modelName;
 
         if (record.getExtractedText() != null && !record.getExtractedText().trim().isEmpty()) {
-            modelName = "llama-3.3-70b-versatile";
+            modelName = groqModel;
             messages = List.of(
                     Map.of("role", "system", "content", systemPrompt),
                     Map.of("role", "user", "content", (isLabReport ? "Extract all biomarker values from this lab report:\n" : "Analyze this medical document:\n") + record.getExtractedText())
@@ -361,7 +364,7 @@ public class HealthRecordServiceImpl implements HealthRecordService {
         }
 
         Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("model", "llama-3.3-70b-versatile");
+        requestBody.put("model", groqModel);
         requestBody.put("messages", messages);
         requestBody.put("temperature", 0.7);
         requestBody.put("max_tokens", 1024);
