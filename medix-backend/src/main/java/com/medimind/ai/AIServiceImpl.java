@@ -24,7 +24,7 @@ public class AIServiceImpl implements AIService {
                          ObjectMapper objectMapper,
                          @org.springframework.beans.factory.annotation.Value("${ai.api.url}") String groqApiUrl,
                          @org.springframework.beans.factory.annotation.Value("${ai.api.key}") String groqApiKey,
-                         @org.springframework.beans.factory.annotation.Value("${ai.api.model:llama-3.1-8b-instant}") String groqModel) {
+                         @org.springframework.beans.factory.annotation.Value("${ai.api.model:openai/gpt-oss-120b}") String groqModel) {
         this.webClient = webClientBuilder.build();
         this.objectMapper = objectMapper;
         this.groqApiUrl = groqApiUrl;

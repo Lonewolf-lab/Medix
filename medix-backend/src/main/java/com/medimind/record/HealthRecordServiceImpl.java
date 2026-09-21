@@ -52,7 +52,7 @@ public class HealthRecordServiceImpl implements HealthRecordService {
     @Value("${ai.api.url}")
     private String groqApiUrl;
 
-    @Value("${ai.api.model:llama-3.1-8b-instant}")
+    @Value("${ai.api.model:openai/gpt-oss-120b}")
     private String groqModel;
 
     public HealthRecordServiceImpl(HealthRecordRepository healthRecordRepository, 

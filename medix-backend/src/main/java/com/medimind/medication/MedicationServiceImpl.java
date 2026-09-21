@@ -39,7 +39,7 @@ public class MedicationServiceImpl implements MedicationService {
             ObjectMapper objectMapper,
             @Value("${ai.api.url}") String groqApiUrl,
             @Value("${ai.api.key}") String groqApiKey,
-            @Value("${ai.api.model:llama-3.1-8b-instant}") String groqModel) {
+            @Value("${ai.api.model:openai/gpt-oss-120b}") String groqModel) {
         this.medicationRepository = medicationRepository;
         this.reminderRepository = reminderRepository;
         this.userRepository = userRepository;

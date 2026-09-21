@@ -39,7 +39,7 @@ public class ChatServiceImpl implements ChatService {
     @Value("${ai.api.url}")
     private String groqApiUrl;
 
-    @Value("${ai.api.model:llama-3.1-8b-instant}")
+    @Value("${ai.api.model:openai/gpt-oss-120b}")
     private String groqModel;
 
     public ChatServiceImpl(ChatRepository chatRepository,
