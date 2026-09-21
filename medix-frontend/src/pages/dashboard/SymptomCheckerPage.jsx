@@ -427,7 +427,7 @@ export default function SymptomCheckerPage() {
           </div>
         )}
       </AnimatePresence>
-      <AIResponseStatusToast active={analyzing} message="Evaluating symptom pattern & generating triage analysis..." />
+      <AIResponseStatusToast active={loading} message="Evaluating symptom pattern & generating triage analysis..." />
     </div>
   );
 }
