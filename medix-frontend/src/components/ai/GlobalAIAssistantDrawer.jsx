@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { schedulerApi } from "@/api/schedulerApi";
 import { chatApi } from "@/api/chatApi";
 import toast from "react-hot-toast";
+import AIResponseStatusToast from "@/components/common/AIResponseStatusToast";
 import {
   Bot,
   X,
@@ -388,6 +389,7 @@ export default function GlobalAIAssistantDrawer() {
           </>
         )}
       </AnimatePresence>
+      <AIResponseStatusToast active={loading} message="Analyzing clinical context & generating response..." />
     </>
   );
 }

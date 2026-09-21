@@ -5,6 +5,7 @@ import { symptomApi } from "@/api/symptomApi";
 import { useAuthStore } from "@/store/authStore";
 import { motion, AnimatePresence } from "motion/react";
 import Loader from "@/components/common/Loader";
+import AIResponseStatusToast from "@/components/common/AIResponseStatusToast";
 import toast from "react-hot-toast";
 import {
   MessageSquare,
@@ -449,6 +450,7 @@ export default function ChatPage() {
 
         </div>
       )}
+      <AIResponseStatusToast active={chatLoading} message="Processing clinical query & generating response..." />
     </div>
   );
 }

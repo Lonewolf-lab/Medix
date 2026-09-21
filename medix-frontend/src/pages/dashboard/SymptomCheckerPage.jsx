@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { symptomApi } from "@/api/symptomApi";
 import { motion, AnimatePresence } from "motion/react";
 import Loader from "@/components/common/Loader";
+import AIResponseStatusToast from "@/components/common/AIResponseStatusToast";
 import toast from "react-hot-toast";
 import {
   Activity,
@@ -426,6 +427,7 @@ export default function SymptomCheckerPage() {
           </div>
         )}
       </AnimatePresence>
+      <AIResponseStatusToast active={analyzing} message="Evaluating symptom pattern & generating triage analysis..." />
     </div>
   );
 }

@@ -131,7 +131,7 @@ export default function ContactPage() {
             </a>
             <div className="flex gap-6 mt-8">
               <a
-                href="https://github.com/Lonewolf-lab/Medix"
+                href="https://github.com/Lonewolf-lab/"
                 target="_blank"
                 rel="noreferrer"
                 className="text-sm text-cream-light/80 hover:text-forest-bright transition-colors"
@@ -139,7 +139,7 @@ export default function ContactPage() {
                 GitHub ↗
               </a>
               <a
-                href="https://www.linkedin.com"
+                href="https://www.linkedin.com/in/siddhant-sinha-46a998289/"
                 target="_blank"
                 rel="noreferrer"
                 className="text-sm text-cream-light/80 hover:text-forest-bright transition-colors"
