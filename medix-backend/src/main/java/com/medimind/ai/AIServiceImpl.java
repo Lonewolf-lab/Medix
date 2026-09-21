@@ -22,14 +22,14 @@ public class AIServiceImpl implements AIService {
 
     public AIServiceImpl(WebClient.Builder webClientBuilder,
                          ObjectMapper objectMapper,
-                         @org.springframework.beans.factory.annotation.Value("${ai.api.url}") String geminiApiUrl,
-                         @org.springframework.beans.factory.annotation.Value("${ai.api.key}") String geminiApiKey,
-                         @org.springframework.beans.factory.annotation.Value("${ai.api.model:llama-3.1-8b-instant}") String geminiModel) {
+                         @org.springframework.beans.factory.annotation.Value("${ai.api.url}") String groqApiUrl,
+                         @org.springframework.beans.factory.annotation.Value("${ai.api.key}") String groqApiKey,
+                         @org.springframework.beans.factory.annotation.Value("${ai.api.model:llama-3.1-8b-instant}") String groqModel) {
         this.webClient = webClientBuilder.build();
         this.objectMapper = objectMapper;
-        this.groqApiUrl = geminiApiUrl;
-        this.groqApiKey = geminiApiKey;
-        this.groqModel = geminiModel;
+        this.groqApiUrl = groqApiUrl;
+        this.groqApiKey = groqApiKey;
+        this.groqModel = groqModel;
     }
 
     @SuppressWarnings("unchecked")
