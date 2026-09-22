@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import { medicationApi } from "@/api/medicationApi";
 import { motion, AnimatePresence } from "motion/react";
 import Loader from "@/components/common/Loader";
+import AIResponseStatusToast from "@/components/common/AIResponseStatusToast";
+import PrescriptionReviewModal from "@/components/medications/PrescriptionReviewModal";
 import toast from "react-hot-toast";
 import {
   Pill,
@@ -13,6 +15,7 @@ import {
   X,
   FileText,
   Upload,
+  Camera,
   Cpu,
   Play,
   Square,
@@ -221,6 +224,12 @@ export default function MedicationsPage() {
   const [scanLoading, setScanLoading] = useState(false);
   const [extractedMeds, setExtractedMeds] = useState([]);
   const fileInputRef = useRef(null);
+  const cameraInputRef = useRef(null);
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [reviewFileUrl, setReviewFileUrl] = useState("");
+  const [reviewFileName, setReviewFileName] = useState("");
+  const [reviewFileType, setReviewFileType] = useState("");
+  const [reviewSaving, setReviewSaving] = useState(false);
 
   // Reminders Management
   const [newReminderTime, setNewReminderTime] = useState("");
@@ -267,25 +276,24 @@ export default function MedicationsPage() {
         frequency,
         startDate,
         endDate: endDate || null,
-        notes: instructions || null, // backend field is `notes`
-        reminderTimes: reminderTimes, // replaces reminders list cleanly!
+        notes: instructions,
+        reminderTimes: reminderTimes.filter((t) => t.trim().length > 0),
       };
 
       if (editingMedId) {
-        const response = await medicationApi.update(editingMedId, payload);
-        toast.success("Medication updated successfully!");
+        const updated = await medicationApi.update(editingMedId, payload);
+        toast.success("Medication schedule updated.");
         setMedications((prev) =>
-          prev.map((m) => (m.id === editingMedId ? response : m))
+          prev.map((m) => (m.id === editingMedId ? updated : m))
         );
-        // Reset Edit Mode
         setEditingMedId(null);
       } else {
-        const response = await medicationApi.create(payload);
-        toast.success("Medication added to tracker!");
-        setMedications((prev) => [response, ...prev]);
+        const created = await medicationApi.create(payload);
+        toast.success("Medication added to schedule.");
+        setMedications((prev) => [created, ...prev]);
       }
-      
-      // Reset Form
+
+      // Reset form
       setName("");
       setDosage("");
       setFrequency("ONCE_DAILY");
@@ -294,29 +302,30 @@ export default function MedicationsPage() {
       setInstructions("");
       setReminderTimes([]);
       setNewFormReminderTime("");
-    } catch (err) {
-      toast.error(err.message || "Failed to save medication.");
+    } catch {
+      toast.error(
+        editingMedId ? "Failed to update medication." : "Failed to add medication."
+      );
     } finally {
       setFormLoading(false);
     }
   };
 
-  const handleStartEdit = (med) => {
-    setActiveTab("add-manual");
+  const handleEditClick = (med) => {
     setEditingMedId(med.id);
-    setName(med.name);
+    setName(med.name || "");
     setDosage(med.dosage || "");
     setFrequency(med.frequency || "ONCE_DAILY");
     setStartDate(med.startDate || "");
     setEndDate(med.endDate || "");
     setInstructions(med.notes || "");
-    setReminderTimes(med.reminders ? med.reminders.map((r) => r.reminderTime) : []);
-    setNewFormReminderTime("");
+    setReminderTimes((med.reminders || []).map((r) => r.reminderTime));
+    setActiveTab("add-manual");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleScan = async (e) => {
-    const selectedFile = e.target.files[0];
+    const selectedFile = e.target.files?.[0];
     if (!selectedFile) return;
 
     if (selectedFile.size > 10 * 1024 * 1024) {
@@ -324,63 +333,67 @@ export default function MedicationsPage() {
       return;
     }
 
+    const previewUrl = URL.createObjectURL(selectedFile);
+    setReviewFileUrl(previewUrl);
+    setReviewFileName(selectedFile.name);
+    setReviewFileType(selectedFile.type);
+
     setScanLoading(true);
     setExtractedMeds([]);
     try {
       const response = await medicationApi.extractPrescription(selectedFile);
-      toast.success("Prescription scanned successfully!");
-      // Extraction returns `notes`; the editable table works with `instructions`
+      const medsFound = response.extractedMedications || [];
+      if (medsFound.length === 0) {
+        toast.error("No medications could be detected in this document.");
+      } else {
+        toast.success(`Deciphered ${medsFound.length} medication${medsFound.length === 1 ? "" : "s"}!`);
+      }
       setExtractedMeds(
-        (response.extractedMedications || []).map((m) => ({
+        medsFound.map((m) => ({
           ...m,
           instructions: m.notes || m.instructions || "",
-        })),
+        }))
       );
+      setReviewModalOpen(true);
     } catch (err) {
       toast.error(err.message || "Failed to parse prescription.");
     } finally {
       setScanLoading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
+      if (cameraInputRef.current) cameraInputRef.current.value = "";
     }
   };
 
-  const normalizeFrequency = (freq) => {
-    if (!freq) return "ONCE_DAILY";
-    const f = freq.toLowerCase();
-    if (f.includes("three")) return "THREE_TIMES_DAILY";
-    if (f.includes("twice") || f.includes("two") || f.includes("2x") || f.includes("bid")) return "TWICE_DAILY";
-    if (f.includes("once") || f.includes("one") || f.includes("1x") || f.includes("qd") || f.includes("daily") || f.includes("morning")) return "ONCE_DAILY";
-    if (f.includes("week")) return "WEEKLY";
-    if (f.includes("need") || f.includes("prn")) return "AS_NEEDED";
-    return "ONCE_DAILY";
-  };
-
-  const handleConfirmExtraction = async () => {
-    if (extractedMeds.length === 0) return;
-    setScanLoading(true);
+  const handleConfirmFromModal = async (validatedMeds) => {
+    if (!validatedMeds || validatedMeds.length === 0) return;
+    setReviewSaving(true);
     try {
-      // Map extracted medications default dates (starts today for 30 days)
-      const today = new Date().toISOString().split("T")[0];
-      const monthLater = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
-
-      const payload = extractedMeds.map((m) => ({
+      const payload = validatedMeds.map((m) => ({
         name: m.name,
         dosage: m.dosage,
-        frequency: normalizeFrequency(m.frequency),
-        notes: m.instructions || m.notes || "", // backend field is `notes`; table edits live in `instructions`
-        startDate: today,
-        endDate: monthLater,
+        frequency: m.frequency,
+        notes: m.notes || "",
+        startDate: m.startDate,
+        endDate: m.endDate,
+        reminderTimes: m.reminderTimes || [],
       }));
 
       const saved = await medicationApi.confirmPrescription(payload);
-      toast.success(`${saved.length} medications added to tracker!`);
+      toast.success(
+        `Successfully added ${saved.length} medication${saved.length === 1 ? "" : "s"} to tracker!`
+      );
       setMedications((prev) => [...saved, ...prev]);
+      setReviewModalOpen(false);
       setExtractedMeds([]);
+      if (reviewFileUrl) {
+        URL.revokeObjectURL(reviewFileUrl);
+        setReviewFileUrl("");
+      }
       setActiveTab("add-manual");
     } catch (err) {
-      toast.error("Failed to batch save medications.");
+      toast.error("Failed to batch save medications: " + (err.message || "Unknown error"));
     } finally {
-      setScanLoading(false);
+      setReviewSaving(false);
     }
   };
 
@@ -788,28 +801,50 @@ export default function MedicationsPage() {
                 /* Scanner File Upload box */
                 <div className="space-y-4">
                   <span className="font-mono-accent text-[9px] tracking-widest text-stone uppercase block">
-                    UPLOAD PRESCRIPTION SHEET
+                    UPLOAD PRESCRIPTION SHEET / DOCTOR NOTE
                   </span>
                   <div className="border border-dashed border-stone-line rounded-2xl p-8 text-center bg-cream-light/30 flex flex-col items-center justify-center space-y-4">
-                    <FileText className="w-10 h-10 text-stone" />
-                    <div className="space-y-1">
-                      <p className="font-sans text-xs text-ink font-semibold">Upload paper prescription photo or PDF</p>
-                      <p className="font-sans text-[10px] text-stone">AI will extract name, dosage, schedule and auto-log them</p>
+                    <div className="w-12 h-12 rounded-xl bg-forest/10 flex items-center justify-center text-forest">
+                      <FileText className="w-6 h-6" />
                     </div>
+                    <div className="space-y-1">
+                      <p className="font-sans text-xs text-ink font-semibold">Upload handwritten note, prescription photo, or PDF</p>
+                      <p className="font-sans text-[10px] text-stone">AI will decipher handwriting, dosages, and dosing schedules</p>
+                    </div>
+
                     <input
                       type="file"
                       ref={fileInputRef}
                       onChange={handleScan}
-                      accept=".pdf,image/jpeg,image/png"
+                      accept=".pdf,image/jpeg,image/png,image/webp,image/jpg"
                       className="hidden"
                       id="prescription-file"
                     />
-                    <label
-                      htmlFor="prescription-file"
-                      className="px-5 py-2 bg-ink text-cream font-mono-accent text-[10px] tracking-widest rounded-full hover:bg-forest transition-colors cursor-pointer flex items-center gap-2"
-                    >
-                      <Upload className="w-3.5 h-3.5" /> SELECT PRESCRIPTION FILE
-                    </label>
+
+                    <input
+                      type="file"
+                      ref={cameraInputRef}
+                      onChange={handleScan}
+                      accept="image/*"
+                      capture="environment"
+                      className="hidden"
+                      id="prescription-camera"
+                    />
+
+                    <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+                      <label
+                        htmlFor="prescription-file"
+                        className="px-5 py-2.5 bg-ink text-cream font-mono-accent text-[10px] tracking-widest rounded-full hover:bg-forest transition-colors cursor-pointer flex items-center gap-2 shadow-sm"
+                      >
+                        <Upload className="w-3.5 h-3.5" /> SELECT FILE (PDF / IMAGE)
+                      </label>
+                      <label
+                        htmlFor="prescription-camera"
+                        className="px-5 py-2.5 bg-cream border border-stone-line text-ink font-mono-accent text-[10px] tracking-widest rounded-full hover:border-forest hover:text-forest transition-colors cursor-pointer flex items-center gap-2 shadow-sm"
+                      >
+                        <Camera className="w-3.5 h-3.5" /> TAKE PHOTO
+                      </label>
+                    </div>
                   </div>
                 </div>
               )}
@@ -977,6 +1012,31 @@ export default function MedicationsPage() {
           )}
         </div>
       </div>
+
+      {/* AI Response Status Floating Toast */}
+      <AIResponseStatusToast
+        isVisible={scanLoading}
+        message="Deciphering handwriting & dosage instructions..."
+      />
+
+      {/* Prescription Review Modal */}
+      <PrescriptionReviewModal
+        isOpen={reviewModalOpen}
+        onClose={() => {
+          setReviewModalOpen(false);
+          setExtractedMeds([]);
+          if (reviewFileUrl) {
+            URL.revokeObjectURL(reviewFileUrl);
+            setReviewFileUrl("");
+          }
+        }}
+        fileUrl={reviewFileUrl}
+        fileName={reviewFileName}
+        fileType={reviewFileType}
+        extractedMedications={extractedMeds}
+        onConfirm={handleConfirmFromModal}
+        loading={reviewSaving}
+      />
     </div>
   );
 }

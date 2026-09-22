@@ -1,6 +1,8 @@
 package com.medimind.medication;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.medimind.ai.DocumentRasterizer;
+import com.medimind.ai.GeminiVisionService;
 import com.medimind.exception.ResourceNotFoundException;
 import com.medimind.exception.UnauthorizedException;
 import com.medimind.medication.dto.*;
@@ -27,6 +29,8 @@ public class MedicationServiceImpl implements MedicationService {
     private final UserRepository userRepository;
     private final WebClient webClient;
     private final ObjectMapper objectMapper;
+    private final GeminiVisionService geminiVisionService;
+    private final DocumentRasterizer documentRasterizer;
     private final String groqApiUrl;
     private final String groqApiKey;
     private final String groqModel;
@@ -37,6 +41,8 @@ public class MedicationServiceImpl implements MedicationService {
             UserRepository userRepository,
             WebClient anthropicWebClient,
             ObjectMapper objectMapper,
+            GeminiVisionService geminiVisionService,
+            DocumentRasterizer documentRasterizer,
             @Value("${ai.api.url}") String groqApiUrl,
             @Value("${ai.api.key}") String groqApiKey,
             @Value("${ai.api.model:openai/gpt-oss-120b}") String groqModel) {
@@ -45,6 +51,8 @@ public class MedicationServiceImpl implements MedicationService {
         this.userRepository = userRepository;
         this.webClient = anthropicWebClient;
         this.objectMapper = objectMapper;
+        this.geminiVisionService = geminiVisionService;
+        this.documentRasterizer = documentRasterizer;
         this.groqApiUrl = groqApiUrl;
         this.groqApiKey = groqApiKey;
         this.groqModel = groqModel;
@@ -186,76 +194,122 @@ public class MedicationServiceImpl implements MedicationService {
         try {
             String contentType = file.getContentType() != null ? file.getContentType().toLowerCase() : "";
             String rawText = "";
-            List<Map<String, Object>> messages;
+            Map<String, Object> extracted = null;
 
-            if (contentType.contains("pdf")) {
-                // PDF: extract text with PDFBox
+            boolean isPdf = contentType.contains("pdf") || (file.getOriginalFilename() != null && file.getOriginalFilename().toLowerCase().endsWith(".pdf"));
+            boolean isImage = contentType.contains("image") || contentType.contains("jpeg") || contentType.contains("jpg") || contentType.contains("png") || contentType.contains("webp");
+
+            if (!isPdf && !isImage) {
+                throw new IllegalArgumentException("Unsupported file type. Please upload a PDF or image (JPG, PNG, WebP).");
+            }
+
+            if (isPdf) {
+                // First check if digital selectable text exists in PDF
                 try (PDDocument doc = Loader.loadPDF(file.getBytes())) {
                     rawText = new PDFTextStripper().getText(doc);
+                } catch (Exception e) {
+                    rawText = "";
                 }
-                final String textContent = rawText;
-                messages = List.of(
-                        Map.of("role", "system", "content",
-                                "You are a medical prescription analyzer. Extract all medications from the " +
-                                "provided prescription text. Respond ONLY with valid JSON, no extra text, " +
-                                "no markdown, no code blocks: " +
-                                "{\"extractedMedications\":[{\"name\":\"medication name or UNCLEAR\"," +
-                                "\"dosage\":\"dosage or UNCLEAR\",\"frequency\":\"how often or UNCLEAR\"," +
-                                "\"duration\":\"how long or UNCLEAR\",\"notes\":\"any special instructions\"," +
-                                "\"confidence\":\"HIGH or MEDIUM or LOW\"}],\"totalFound\":0," +
-                                "\"disclaimer\":\"Please verify all extracted information before saving\"}"),
-                        Map.of("role", "user", "content",
-                                "Extract all medications from this prescription:\n" + textContent)
-                );
-            } else if (contentType.contains("image") || contentType.contains("jpeg") || contentType.contains("png")) {
-                // Image: convert to base64
-                String base64 = Base64.getEncoder().encodeToString(file.getBytes());
-                String mimeType = contentType.contains("png") ? "image/png" : "image/jpeg";
-                messages = List.of(
-                        Map.of("role", "system", "content",
-                                "You are a medical prescription analyzer. Extract all medications from the " +
-                                "prescription image. Respond ONLY with valid JSON, no extra text, no markdown, " +
-                                "no code blocks: " +
-                                "{\"extractedMedications\":[{\"name\":\"medication name or UNCLEAR\"," +
-                                "\"dosage\":\"dosage or UNCLEAR\",\"frequency\":\"how often or UNCLEAR\"," +
-                                "\"duration\":\"how long or UNCLEAR\",\"notes\":\"any special instructions\"," +
-                                "\"confidence\":\"HIGH or MEDIUM or LOW\"}],\"totalFound\":0," +
-                                "\"disclaimer\":\"Please verify all extracted information before saving\"}"),
-                        Map.of("role", "user", "content", List.of(
-                                Map.of("type", "image_url", "image_url",
-                                        Map.of("url", "data:" + mimeType + ";base64," + base64)),
-                                Map.of("type", "text", "text", "Extract all medications from this prescription image.")
-                        ))
-                );
-            } else {
-                throw new IllegalArgumentException("Unsupported file type. Please upload a PDF or image (JPG, PNG).");
+
+                if (rawText != null && rawText.trim().length() > 30) {
+                    // Digital PDF with clean text -> use Groq LLM
+                    List<Map<String, Object>> messages = List.of(
+                            Map.of("role", "system", "content",
+                                    "You are a medical prescription analyzer. Extract all medications from the " +
+                                            "provided prescription text. Respond ONLY with valid JSON, no extra text, " +
+                                            "no markdown, no code blocks: " +
+                                            "{\"extractedMedications\":[{\"name\":\"medication name or UNCLEAR\"," +
+                                            "\"dosage\":\"dosage or UNCLEAR\",\"frequency\":\"how often or UNCLEAR\"," +
+                                            "\"duration\":\"how long or UNCLEAR\",\"notes\":\"any special instructions\"," +
+                                            "\"confidence\":\"HIGH or MEDIUM or LOW\"}],\"totalFound\":0," +
+                                            "\"disclaimer\":\"Please verify all extracted information before saving\"}"),
+                            Map.of("role", "user", "content",
+                                    "Extract all medications from this prescription:\n" + rawText)
+                    );
+
+                    Map<String, Object> requestBody = new HashMap<>();
+                    requestBody.put("model", groqModel);
+                    requestBody.put("messages", messages);
+                    requestBody.put("temperature", 0.1);
+
+                    String responseStr = webClient.post()
+                            .uri(groqApiUrl)
+                            .header("Authorization", "Bearer " + groqApiKey)
+                            .bodyValue(requestBody)
+                            .retrieve()
+                            .bodyToMono(String.class)
+                            .block();
+
+                    Map<String, Object> responseMap = objectMapper.readValue(responseStr, Map.class);
+                    List<Map<String, Object>> choices = (List<Map<String, Object>>) responseMap.get("choices");
+                    Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
+                    String jsonText = ((String) message.get("content")).trim();
+                    if (jsonText.startsWith("```")) {
+                        jsonText = jsonText.replaceAll("```json", "").replaceAll("```", "").trim();
+                    }
+                    extracted = objectMapper.readValue(jsonText, Map.class);
+                } else if (geminiVisionService.isConfigured()) {
+                    // Scanned PDF with handwritten or image content -> rasterize and use Gemini Vision
+                    byte[] rasterizedBytes = documentRasterizer.rasterizePdfFirstPage(file.getBytes());
+                    extracted = geminiVisionService.extractPrescription(rasterizedBytes, "image/jpeg");
+                    rawText = (String) extracted.getOrDefault("rawExtractedText", "Scanned PDF Prescription");
+                }
+            } else if (isImage) {
+                if (geminiVisionService.isConfigured()) {
+                    byte[] processedBytes = documentRasterizer.processImageBytes(file.getBytes());
+                    extracted = geminiVisionService.extractPrescription(processedBytes, contentType);
+                    rawText = (String) extracted.getOrDefault("rawExtractedText", "Prescription Image");
+                } else {
+                    // Fallback to Groq if Gemini is unconfigured
+                    String base64 = Base64.getEncoder().encodeToString(file.getBytes());
+                    String mimeType = contentType.contains("png") ? "image/png" : "image/jpeg";
+                    List<Map<String, Object>> messages = List.of(
+                            Map.of("role", "system", "content",
+                                    "You are a medical prescription analyzer. Extract all medications from the " +
+                                            "prescription image. Respond ONLY with valid JSON, no extra text, no markdown, " +
+                                            "no code blocks: " +
+                                            "{\"extractedMedications\":[{\"name\":\"medication name or UNCLEAR\"," +
+                                            "\"dosage\":\"dosage or UNCLEAR\",\"frequency\":\"how often or UNCLEAR\"," +
+                                            "\"duration\":\"how long or UNCLEAR\",\"notes\":\"any special instructions\"," +
+                                            "\"confidence\":\"HIGH or MEDIUM or LOW\"}],\"totalFound\":0," +
+                                            "\"disclaimer\":\"Please verify all extracted information before saving\"}"),
+                            Map.of("role", "user", "content", List.of(
+                                    Map.of("type", "image_url", "image_url",
+                                            Map.of("url", "data:" + mimeType + ";base64," + base64)),
+                                    Map.of("type", "text", "text", "Extract all medications from this prescription image.")
+                            ))
+                    );
+
+                    Map<String, Object> requestBody = new HashMap<>();
+                    requestBody.put("model", groqModel);
+                    requestBody.put("messages", messages);
+                    requestBody.put("temperature", 0.1);
+
+                    String responseStr = webClient.post()
+                            .uri(groqApiUrl)
+                            .header("Authorization", "Bearer " + groqApiKey)
+                            .bodyValue(requestBody)
+                            .retrieve()
+                            .bodyToMono(String.class)
+                            .block();
+
+                    Map<String, Object> responseMap = objectMapper.readValue(responseStr, Map.class);
+                    List<Map<String, Object>> choices = (List<Map<String, Object>>) responseMap.get("choices");
+                    Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
+                    String jsonText = ((String) message.get("content")).trim();
+                    if (jsonText.startsWith("```")) {
+                        jsonText = jsonText.replaceAll("```json", "").replaceAll("```", "").trim();
+                    }
+                    extracted = objectMapper.readValue(jsonText, Map.class);
+                }
             }
 
-            Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("model", contentType.contains("pdf") ? groqModel : "meta-llama/llama-4-scout-17b-16e-instruct");
-            requestBody.put("messages", messages);
-            requestBody.put("temperature", 0.1);
-
-            String responseStr = webClient.post()
-                    .uri(groqApiUrl)
-                    .header("Authorization", "Bearer " + groqApiKey)
-                    .bodyValue(requestBody)
-                    .retrieve()
-                    .bodyToMono(String.class)
-                    .block();
-
-            Map<String, Object> responseMap = objectMapper.readValue(responseStr, Map.class);
-            List<Map<String, Object>> choices = (List<Map<String, Object>>) responseMap.get("choices");
-            Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
-            String jsonText = ((String) message.get("content")).trim();
-
-            // Strip markdown code blocks if present
-            if (jsonText.startsWith("```")) {
-                jsonText = jsonText.replaceAll("```json", "").replaceAll("```", "").trim();
+            if (extracted == null) {
+                throw new RuntimeException("Could not extract medications from the provided document.");
             }
 
-            Map<String, Object> extracted = objectMapper.readValue(jsonText, Map.class);
             List<Map<String, Object>> rawMeds = (List<Map<String, Object>>) extracted.get("extractedMedications");
+            if (rawMeds == null) rawMeds = Collections.emptyList();
 
             List<ExtractedMedicationItem> items = rawMeds.stream().map(m ->
                     ExtractedMedicationItem.builder()

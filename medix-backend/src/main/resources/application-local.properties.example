@@ -9,3 +9,7 @@ jwt.secret=replace_with_a_long_random_secret_min_32_chars
 
 # Groq API key — get one free at https://console.groq.com
 ai.api.key=gsk_your_groq_api_key_here
+
+# Google Gemini API key (for Vision & Handwritten Prescription Extraction) — get one free at https://aistudio.google.com
+gemini.api.key=your_gemini_api_key_here
+

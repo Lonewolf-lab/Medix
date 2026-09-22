@@ -1,6 +1,8 @@
 package com.medimind.record;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.medimind.ai.DocumentRasterizer;
+import com.medimind.ai.GeminiVisionService;
 import com.medimind.chat.ChatMessage;
 import com.medimind.chat.ChatRepository;
 import com.medimind.exception.ResourceNotFoundException;
@@ -45,6 +47,8 @@ public class HealthRecordServiceImpl implements HealthRecordService {
     private final DashboardReportRepository dashboardReportRepository;
     private final WebClient webClient;
     private final ObjectMapper objectMapper;
+    private final GeminiVisionService geminiVisionService;
+    private final DocumentRasterizer documentRasterizer;
 
     @Value("${ai.api.key}")
     private String groqApiKey;
@@ -63,7 +67,9 @@ public class HealthRecordServiceImpl implements HealthRecordService {
                                    SymptomRepository symptomRepository,
                                    DashboardReportRepository dashboardReportRepository,
                                    WebClient.Builder webClientBuilder,
-                                   ObjectMapper objectMapper) {
+                                   ObjectMapper objectMapper,
+                                   GeminiVisionService geminiVisionService,
+                                   DocumentRasterizer documentRasterizer) {
         this.healthRecordRepository = healthRecordRepository;
         this.userRepository = userRepository;
         this.storageService = storageService;
@@ -73,6 +79,8 @@ public class HealthRecordServiceImpl implements HealthRecordService {
         this.dashboardReportRepository = dashboardReportRepository;
         this.webClient = webClientBuilder.build();
         this.objectMapper = objectMapper;
+        this.geminiVisionService = geminiVisionService;
+        this.documentRasterizer = documentRasterizer;
     }
 
     @Override
@@ -220,53 +228,92 @@ public class HealthRecordServiceImpl implements HealthRecordService {
                     "}";
         }
 
-        List<Map<String, Object>> messages;
-        String modelName;
+        try {
+            String jsonText;
 
-        if (record.getExtractedText() != null && !record.getExtractedText().trim().isEmpty()) {
-            modelName = groqModel;
-            messages = List.of(
+            if (record.getExtractedText() != null && !record.getExtractedText().trim().isEmpty()) {
+            // 1. Digital document with selectable text -> fast Groq LLM
+            List<Map<String, Object>> messages = List.of(
                     Map.of("role", "system", "content", systemPrompt),
                     Map.of("role", "user", "content", (isLabReport ? "Extract all biomarker values from this lab report:\n" : "Analyze this medical document:\n") + record.getExtractedText())
             );
-        } else if (record.getFileUrl() != null && (record.getFileUrl().endsWith(".png") || record.getFileUrl().endsWith(".jpg") || record.getFileUrl().endsWith(".jpeg"))) {
-            modelName = "meta-llama/llama-4-scout-17b-16e-instruct";
-            byte[] imageBytes = storageService.readFile(record.getFileUrl());
-            String base64 = Base64.getEncoder().encodeToString(imageBytes);
-            String mimeType = record.getFileUrl().endsWith(".png") ? "image/png" : "image/jpeg";
 
-            messages = List.of(
-                    Map.of("role", "user", "content", List.of(
-                            Map.of("type", "image_url", "image_url", Map.of("url", "data:" + mimeType + ";base64," + base64)),
-                            Map.of("type", "text", "text", systemPrompt + "\n\nAnalyze this medical document image and extract all findings, values and their normal ranges.")
-                    ))
-            );
-        } else {
-            throw new IllegalArgumentException("Record cannot be analyzed: No text could be extracted and it is not a valid image format.");
-        }
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("model", groqModel);
+            requestBody.put("messages", messages);
+            requestBody.put("temperature", 0.1);
 
-        Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("model", modelName);
-        requestBody.put("messages", messages);
-        requestBody.put("temperature", 0.1);
+            String responseStr = webClient.post()
+                    .uri(groqApiUrl)
+                    .header("Authorization", "Bearer " + groqApiKey)
+                    .bodyValue(requestBody)
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .block();
 
-        String responseStr = webClient.post()
-                .uri(groqApiUrl)
-                .header("Authorization", "Bearer " + groqApiKey)
-                .bodyValue(requestBody)
-                .retrieve()
-                .bodyToMono(String.class)
-                .block();
-
-        try {
             Map<String, Object> responseMap = objectMapper.readValue(responseStr, Map.class);
             List<Map<String, Object>> choices = (List<Map<String, Object>>) responseMap.get("choices");
             Map<String, Object> messageObj = (Map<String, Object>) choices.get(0).get("message");
-            String jsonText = ((String) messageObj.get("content")).trim();
+            jsonText = ((String) messageObj.get("content")).trim();
 
             if (jsonText.startsWith("```")) {
                 jsonText = jsonText.replaceAll("```json", "").replaceAll("```", "").trim();
             }
+        } else {
+            // 2. Scanned PDF or Image -> Multimodal Vision Pipeline
+            String fileUrl = record.getFileUrl() != null ? record.getFileUrl().toLowerCase() : "";
+            boolean isPdf = fileUrl.endsWith(".pdf");
+            boolean isImg = fileUrl.endsWith(".png") || fileUrl.endsWith(".jpg") || fileUrl.endsWith(".jpeg") || fileUrl.endsWith(".webp");
+
+            if (isPdf && geminiVisionService.isConfigured()) {
+                byte[] pdfBytes = storageService.readFile(record.getFileUrl());
+                byte[] rasterizedBytes = documentRasterizer.rasterizePdfFirstPage(pdfBytes);
+                Map<String, Object> visionResult = geminiVisionService.extractLabReport(rasterizedBytes, "image/jpeg", isLabReport);
+                jsonText = objectMapper.writeValueAsString(visionResult);
+            } else if (isImg && geminiVisionService.isConfigured()) {
+                byte[] imgBytes = storageService.readFile(record.getFileUrl());
+                byte[] processedBytes = documentRasterizer.processImageBytes(imgBytes);
+                String mimeType = fileUrl.endsWith(".png") ? "image/png" : "image/jpeg";
+                Map<String, Object> visionResult = geminiVisionService.extractLabReport(processedBytes, mimeType, isLabReport);
+                jsonText = objectMapper.writeValueAsString(visionResult);
+            } else if (isImg) {
+                // Fallback to Groq vision if Gemini is not configured
+                byte[] imageBytes = storageService.readFile(record.getFileUrl());
+                String base64 = Base64.getEncoder().encodeToString(imageBytes);
+                String mimeType = fileUrl.endsWith(".png") ? "image/png" : "image/jpeg";
+
+                List<Map<String, Object>> messages = List.of(
+                        Map.of("role", "user", "content", List.of(
+                                Map.of("type", "image_url", "image_url", Map.of("url", "data:" + mimeType + ";base64," + base64)),
+                                Map.of("type", "text", "text", systemPrompt + "\n\nAnalyze this medical document image and extract all findings, values and their normal ranges.")
+                        ))
+                );
+
+                Map<String, Object> requestBody = new HashMap<>();
+                requestBody.put("model", groqModel);
+                requestBody.put("messages", messages);
+                requestBody.put("temperature", 0.1);
+
+                String responseStr = webClient.post()
+                        .uri(groqApiUrl)
+                        .header("Authorization", "Bearer " + groqApiKey)
+                        .bodyValue(requestBody)
+                        .retrieve()
+                        .bodyToMono(String.class)
+                        .block();
+
+                Map<String, Object> responseMap = objectMapper.readValue(responseStr, Map.class);
+                List<Map<String, Object>> choices = (List<Map<String, Object>>) responseMap.get("choices");
+                Map<String, Object> messageObj = (Map<String, Object>) choices.get(0).get("message");
+                jsonText = ((String) messageObj.get("content")).trim();
+
+                if (jsonText.startsWith("```")) {
+                    jsonText = jsonText.replaceAll("```json", "").replaceAll("```", "").trim();
+                }
+            } else {
+                throw new IllegalArgumentException("Record cannot be analyzed: Document contains no text layer and vision API is not configured.");
+            }
+        }
 
             if (isLabReport) {
                 // Ensure valid json structure

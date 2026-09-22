@@ -3,6 +3,7 @@ import { recordApi } from "@/api/recordApi";
 import { API_ORIGIN } from "@/api/axiosInstance";
 import { motion, AnimatePresence } from "motion/react";
 import Loader from "@/components/common/Loader";
+import DocumentViewerModal from "@/components/records/DocumentViewerModal";
 import toast from "react-hot-toast";
 import { sortBiomarkersByPriority } from "@/utils/biomarkerUtils";
 import {
@@ -12,6 +13,7 @@ import {
   Cpu,
   Send,
   Download,
+  Eye,
   X,
   ChevronRight,
   Filter,
@@ -233,6 +235,7 @@ export default function HealthRecordsPage() {
   // Biomarkers Edit State
   const [isEditingFindings, setIsEditingFindings] = useState(false);
   const [editedFindings, setEditedFindings] = useState([]);
+  const [viewerOpen, setViewerOpen] = useState(false);
 
   const fetchRecords = async () => {
     try {
@@ -523,7 +526,7 @@ export default function HealthRecordsPage() {
                     type="file"
                     ref={fileInputRef}
                     onChange={handleFileChange}
-                    accept=".pdf,image/jpeg,image/png"
+                    accept=".pdf,image/jpeg,image/png,image/webp,image/jpg"
                     required
                     className="w-full bg-cream-light/60 border border-stone-line/60 rounded-lg pl-3 pr-3 py-1.5 text-xs text-ink file:mr-3 file:py-1 file:px-2.5 file:rounded-full file:border-none file:bg-ink file:text-cream file:font-mono-accent file:text-[9px] file:tracking-wider hover:file:bg-forest transition-all cursor-pointer"
                   />
@@ -604,21 +607,31 @@ export default function HealthRecordsPage() {
                 >
                   <Plus className="w-3.5 h-3.5" /> New Upload
                 </button>
-                <div className="flex gap-2">
+                <div className="flex items-center gap-2">
                   {selectedRecord.fileUrl && (
-                    <a
-                      href={`${API_ORIGIN}${selectedRecord.fileUrl}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="p-1 text-stone hover:text-forest transition-colors"
-                      title="Download document"
-                    >
-                      <Download className="w-3.5 h-3.5" />
-                    </a>
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => setViewerOpen(true)}
+                        className="p-1 text-stone hover:text-forest transition-colors cursor-pointer"
+                        title="View original document"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                      </button>
+                      <a
+                        href={`${API_ORIGIN}${selectedRecord.fileUrl}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="p-1 text-stone hover:text-forest transition-colors"
+                        title="Download document"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                      </a>
+                    </>
                   )}
                   <button
                     onClick={() => handleDelete(selectedRecord.id)}
-                    className="p-1 text-stone hover:text-rose-500 transition-colors"
+                    className="p-1 text-stone hover:text-rose-500 transition-colors cursor-pointer"
                     title="Delete record"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -960,6 +973,15 @@ export default function HealthRecordsPage() {
           </div>
         )}
       </div>
+
+      {/* Document Viewer Modal */}
+      <DocumentViewerModal
+        isOpen={viewerOpen}
+        onClose={() => setViewerOpen(false)}
+        fileUrl={selectedRecord?.fileUrl ? `${API_ORIGIN}${selectedRecord.fileUrl}` : null}
+        fileName={selectedRecord?.fileName || selectedRecord?.title}
+        recordType={selectedRecord?.recordType}
+      />
     </div>
   );
 }
