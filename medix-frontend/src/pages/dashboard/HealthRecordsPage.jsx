@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { recordApi } from "@/api/recordApi";
+import { medicationApi } from "@/api/medicationApi";
 import { API_ORIGIN } from "@/api/axiosInstance";
 import { motion, AnimatePresence } from "motion/react";
 import Loader from "@/components/common/Loader";
@@ -23,6 +24,7 @@ import {
   Upload,
   ChevronDown,
   Calendar,
+  Pill,
 } from "lucide-react";
 
 const RECORD_TYPES = [
@@ -308,6 +310,80 @@ export default function HealthRecordsPage() {
     }
   };
 
+  const [syncingMeds, setSyncingMeds] = useState(false);
+
+  const parseAndSyncPrescriptionMedications = async (findings, recordTitle) => {
+    if (!findings || findings.length === 0) return 0;
+    const today = new Date().toISOString().split("T")[0];
+
+    const payload = findings.map((finding) => {
+      const val = (finding.value || "").toUpperCase();
+      let freq = "ONCE_DAILY";
+      let reminderTimes = ["09:00"];
+
+      if (val.includes("BD") || val.includes("BID") || val.includes("TWICE") || val.includes("1-0-1")) {
+        freq = "TWICE_DAILY";
+        reminderTimes = ["09:00", "21:00"];
+      } else if (val.includes("TDS") || val.includes("TID") || val.includes("THREE") || val.includes("1-1-1")) {
+        freq = "THREE_TIMES_DAILY";
+        reminderTimes = ["08:00", "14:00", "20:00"];
+      } else if (val.includes("QID") || val.includes("FOUR") || val.includes("1-1-1-1")) {
+        freq = "FOUR_TIMES_DAILY";
+        reminderTimes = ["08:00", "12:00", "16:00", "20:00"];
+      } else if (val.includes("SOS") || val.includes("PRN") || val.includes("AS NEEDED") || val.includes("NEEDED")) {
+        freq = "AS_NEEDED";
+        reminderTimes = [];
+      } else if (val.includes("WEEK") || val.includes("WEEKLY")) {
+        freq = "WEEKLY";
+        reminderTimes = ["09:00"];
+      }
+
+      let daysToAdd = 30;
+      const dayMatch = val.match(/(\d+)\s*(DAY|DAYS|D\b)/i);
+      const weekMatch = val.match(/(\d+)\s*(WEEK|WEEKS|WK\b)/i);
+      const monthMatch = val.match(/(\d+)\s*(MONTH|MONTHS|MO\b)/i);
+
+      if (dayMatch) {
+        daysToAdd = parseInt(dayMatch[1], 10);
+      } else if (weekMatch) {
+        daysToAdd = parseInt(weekMatch[1], 10) * 7;
+      } else if (monthMatch) {
+        daysToAdd = parseInt(monthMatch[1], 10) * 30;
+      }
+
+      const end = new Date();
+      end.setDate(end.getDate() + daysToAdd);
+      const endDate = end.toISOString().split("T")[0];
+
+      return {
+        name: finding.parameter || "Prescribed Medication",
+        dosage: finding.value || "As prescribed",
+        frequency: freq,
+        startDate: today,
+        endDate: endDate,
+        notes: finding.explanation || `Prescribed in ${recordTitle || "Doctor Prescription"}`,
+        reminderTimes: reminderTimes,
+      };
+    });
+
+    await medicationApi.confirmPrescription(payload);
+    window.dispatchEvent(new CustomEvent("medix:schedule-updated"));
+    return payload.length;
+  };
+
+  const handleSyncToMedications = async () => {
+    if (!selectedRecord || editedFindings.length === 0) return;
+    setSyncingMeds(true);
+    try {
+      const count = await parseAndSyncPrescriptionMedications(editedFindings, selectedRecord.title);
+      toast.success(`${count} medication(s) synchronized to Medication Tracker & Health Calendar!`);
+    } catch (err) {
+      toast.error(err.message || "Failed to sync medications.");
+    } finally {
+      setSyncingMeds(false);
+    }
+  };
+
   const handleUploadAndAnalyze = async (e) => {
     e.preventDefault();
     if (!file) {
@@ -330,13 +406,28 @@ export default function HealthRecordsPage() {
       const newRecord = await recordApi.create(formData);
       
       // 2. Immediate auto-analysis
-      setLoadingLabel("Extracting biomarkers & analyzing report...");
+      setLoadingLabel(recordType === "PRESCRIPTION" ? "Transcribing prescription medications..." : "Extracting biomarkers & analyzing report...");
       const analysisResult = await recordApi.analyze(newRecord.id);
       
       // 3. Fetch completed record
       const finalRecord = await recordApi.getById(newRecord.id);
       
-      toast.success("Record uploaded and analyzed successfully!");
+      if (recordType === "PRESCRIPTION") {
+        try {
+          const parsed = JSON.parse(finalRecord.aiAnalysis);
+          if (parsed.findings && parsed.findings.length > 0) {
+            const count = await parseAndSyncPrescriptionMedications(parsed.findings, finalRecord.title);
+            toast.success(`Prescription uploaded & ${count} medication(s) added to Tracker & Calendar!`);
+          } else {
+            toast.success("Prescription uploaded and analyzed successfully!");
+          }
+        } catch {
+          toast.success("Prescription uploaded and analyzed successfully!");
+        }
+      } else {
+        toast.success("Record uploaded and analyzed successfully!");
+      }
+
       setRecords((prev) => [finalRecord, ...prev]);
       setSelectedRecord(finalRecord);
 
@@ -411,14 +502,14 @@ export default function HealthRecordsPage() {
         aiAnalysis: JSON.stringify(updatedAnalysis),
       });
 
-      toast.success("Biomarkers updated successfully!");
+      toast.success(selectedRecord.recordType === "PRESCRIPTION" ? "Prescription orders updated!" : "Biomarkers updated successfully!");
       setSelectedRecord(updatedRecord);
       setRecords((prev) =>
         prev.map((r) => (r.id === selectedRecord.id ? updatedRecord : r))
       );
       setIsEditingFindings(false);
     } catch (err) {
-      toast.error("Failed to save edited biomarkers.");
+      toast.error("Failed to save edited values.");
     }
   };
 
@@ -667,18 +758,22 @@ export default function HealthRecordsPage() {
                 </p>
               </div>
 
-              {/* Biomarkers Panel */}
+              {/* Biomarkers / Medications Panel */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between border-b border-stone-line/40 pb-1">
                   <span className="font-mono-accent text-[10px] tracking-wider text-stone uppercase">
-                    Extracted Biomarkers
+                    {selectedRecord?.recordType === "PRESCRIPTION"
+                      ? "Prescription Medications & Regimen"
+                      : selectedRecord?.recordType === "LAB_REPORT"
+                      ? "Extracted Biomarkers"
+                      : "Extracted Clinical Observations"}
                   </span>
                   {!isEditingFindings && (
                     <button
                       onClick={() => setIsEditingFindings(true)}
                       className="text-[10px] font-mono-accent text-forest hover:underline flex items-center gap-1"
                     >
-                      <Edit2 className="w-3 h-3" /> Edit values
+                      <Edit2 className="w-3 h-3" /> Edit {selectedRecord?.recordType === "PRESCRIPTION" ? "medications" : "values"}
                     </button>
                   )}
                 </div>
@@ -691,17 +786,17 @@ export default function HealthRecordsPage() {
                         <div key={idx} className="flex gap-2 items-center bg-cream-light p-2 rounded-lg border border-stone-line/40">
                           <input
                             type="text"
-                            placeholder="Biomarker"
+                            placeholder={selectedRecord?.recordType === "PRESCRIPTION" ? "Medication Name (e.g. Augmentin 625mg)" : "Biomarker"}
                             value={finding.parameter}
                             onChange={(e) => handleFindingChange(idx, "parameter", e.target.value)}
                             className="flex-1 bg-transparent text-[11px] text-ink focus:outline-none border-b border-stone-line/40"
                           />
                           <input
                             type="text"
-                            placeholder="Value"
+                            placeholder={selectedRecord?.recordType === "PRESCRIPTION" ? "Dosage & Regimen (e.g. 1 tab BD x 5 days)" : "Value"}
                             value={finding.value}
                             onChange={(e) => handleFindingChange(idx, "value", e.target.value)}
-                            className="w-20 bg-transparent text-[11px] text-ink focus:outline-none border-b border-stone-line/40"
+                            className="w-48 bg-transparent text-[11px] text-ink focus:outline-none border-b border-stone-line/40"
                           />
                           <select
                             value={finding.status}
@@ -730,7 +825,7 @@ export default function HealthRecordsPage() {
                         onClick={handleAddFindingField}
                         className="text-[10px] font-mono-accent text-stone hover:text-ink flex items-center gap-1 border border-dashed border-stone-line/60 px-2 py-1 rounded"
                       >
-                        <Plus className="w-3 h-3" /> Add Biomarker
+                        <Plus className="w-3 h-3" /> Add {selectedRecord?.recordType === "PRESCRIPTION" ? "Medication" : "Biomarker"}
                       </button>
                       <div className="flex gap-2">
                         <button
@@ -760,17 +855,23 @@ export default function HealthRecordsPage() {
                   </div>
                 ) : (
                   /* View Mode */
-                  <div className="space-y-1.5">
+                  <div className="space-y-2">
                     {editedFindings.length === 0 ? (
-                      <p className="text-xs text-stone italic">No biomarker values extracted.</p>
+                      <p className="text-xs text-stone italic">No extracted values available.</p>
                     ) : (
                       <div className="border border-stone-line/40 rounded-xl overflow-hidden text-xs">
                         <table className="w-full text-left border-collapse bg-cream-light/40">
                           <thead>
                             <tr className="border-b border-stone-line/40 font-mono-accent text-[9px] text-stone uppercase bg-cream-light">
-                              <th className="px-3 py-1.5 font-medium">Biomarker</th>
-                              <th className="px-3 py-1.5 font-medium text-right">Value</th>
-                              <th className="px-3 py-1.5 font-medium text-center">Status</th>
+                              <th className="px-3 py-1.5 font-medium">
+                                {selectedRecord?.recordType === "PRESCRIPTION" ? "Medication" : "Biomarker"}
+                              </th>
+                              <th className="px-3 py-1.5 font-medium text-right">
+                                {selectedRecord?.recordType === "PRESCRIPTION" ? "Dosage & Regimen" : "Value"}
+                              </th>
+                              <th className="px-3 py-1.5 font-medium text-center">
+                                {selectedRecord?.recordType === "PRESCRIPTION" ? "Regimen" : "Status"}
+                              </th>
                             </tr>
                           </thead>
                           <tbody>
@@ -796,6 +897,18 @@ export default function HealthRecordsPage() {
                           </tbody>
                         </table>
                       </div>
+                    )}
+
+                    {selectedRecord?.recordType === "PRESCRIPTION" && editedFindings.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={handleSyncToMedications}
+                        disabled={syncingMeds}
+                        className="w-full mt-2 py-2 px-3 bg-forest text-cream rounded-lg text-[11px] font-mono-accent flex items-center justify-center gap-2 hover:bg-forest-bright transition-colors cursor-pointer shadow-sm"
+                      >
+                        <Pill className="w-3.5 h-3.5" />
+                        {syncingMeds ? "Syncing to Tracker & Calendar..." : "Sync to Medication Tracker & Health Calendar"}
+                      </button>
                     )}
                   </div>
                 )}
