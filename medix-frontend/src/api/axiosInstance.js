@@ -38,7 +38,6 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    handleRequestCleanup(error.config);
     const { response, config } = error;
     const isAuthCall = config?.url?.includes("/auth/");
 

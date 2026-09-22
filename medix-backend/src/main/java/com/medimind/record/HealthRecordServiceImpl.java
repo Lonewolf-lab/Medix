@@ -102,8 +102,8 @@ public class HealthRecordServiceImpl implements HealthRecordService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
 
         user.resetDailyCountersIfNewDay();
-        if (user.getDailyUploadCount() >= 3) {
-            throw new IllegalArgumentException("Daily document upload limit (3 files) reached. Please try again tomorrow.");
+        if (user.getDailyUploadCount() >= 5) {
+            throw new IllegalArgumentException("Daily document upload limit (5 files) reached. Please try again tomorrow.");
         }
         user.setDailyUploadCount(user.getDailyUploadCount() + 1);
         userRepository.save(user);
@@ -290,7 +290,7 @@ public class HealthRecordServiceImpl implements HealthRecordService {
                 );
 
                 Map<String, Object> requestBody = new HashMap<>();
-                requestBody.put("model", groqModel);
+                requestBody.put("model", "llama-3.2-11b-vision-preview");
                 requestBody.put("messages", messages);
                 requestBody.put("temperature", 0.1);
 
@@ -341,21 +341,25 @@ public class HealthRecordServiceImpl implements HealthRecordService {
                 if (biomarkersList != null) {
                     for (Map<String, Object> bio : biomarkersList) {
                         Map<String, Object> finding = new HashMap<>();
-                        finding.put("parameter", bio.get("parameter"));
-                        finding.put("value", bio.get("value") + " " + bio.get("unit"));
-                        finding.put("status", bio.get("status"));
-                        finding.put("explanation", bio.get("explanation"));
+                        String param = bio.get("parameter") != null ? String.valueOf(bio.get("parameter")) : (bio.get("name") != null ? String.valueOf(bio.get("name")) : "Biomarker");
+                        String val = bio.get("value") != null ? String.valueOf(bio.get("value")) : "";
+                        String unit = bio.get("unit") != null ? String.valueOf(bio.get("unit")) : "";
+                        String fullVal = (val + " " + unit).trim();
+                        finding.put("parameter", param);
+                        finding.put("value", fullVal.isEmpty() ? "N/A" : fullVal);
+                        finding.put("status", bio.get("status") != null ? bio.get("status") : "NORMAL");
+                        finding.put("explanation", bio.get("explanation") != null ? String.valueOf(bio.get("explanation")) : (bio.get("description") != null ? String.valueOf(bio.get("description")) : ""));
                         findingsList.add(finding);
                     }
                 }
 
                 Map<String, Object> healthAnalysis = new HashMap<>();
-                healthAnalysis.put("summary", "Successfully scanned biomarkers and synchronized to dashboard overview.");
+                healthAnalysis.put("summary", parsedReport.get("summary") != null ? parsedReport.get("summary") : "Successfully scanned biomarkers and synchronized to dashboard overview.");
                 healthAnalysis.put("findings", findingsList);
-                healthAnalysis.put("abnormalCount", parsedReport.get("abnormalCount"));
-                healthAnalysis.put("overallAssessment", parsedReport.get("overallAssessment"));
+                healthAnalysis.put("abnormalCount", parsedReport.get("abnormalCount") != null ? parsedReport.get("abnormalCount") : 0);
+                healthAnalysis.put("overallAssessment", parsedReport.get("overallAssessment") != null ? parsedReport.get("overallAssessment") : "Normal lab evaluation.");
                 healthAnalysis.put("suggestedQuestions", List.of("How can I improve my biomarker values?", "Are any of these readings critical?"));
-                healthAnalysis.put("disclaimer", parsedReport.get("disclaimer"));
+                healthAnalysis.put("disclaimer", parsedReport.get("disclaimer") != null ? parsedReport.get("disclaimer") : "This analysis is for informational purposes only. Please consult your doctor.");
 
                 record.setAiAnalysis(objectMapper.writeValueAsString(healthAnalysis));
             } else {

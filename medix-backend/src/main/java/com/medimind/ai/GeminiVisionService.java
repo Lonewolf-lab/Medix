@@ -98,12 +98,12 @@ public class GeminiVisionService {
                     "{\n" +
                     "  \"biomarkers\": [\n" +
                     "    {\n" +
-                    "      \"name\": \"parameter name (e.g. Fasting Blood Sugar, Serum Creatinine, Hemoglobin, Total Calcium)\",\n" +
+                    "      \"parameter\": \"parameter name (e.g. Fasting Blood Sugar, Serum Creatinine, Hemoglobin, Total Calcium)\",\n" +
                     "      \"value\": \"numeric or qualitative measured value\",\n" +
                     "      \"unit\": \"unit of measurement (e.g. mg/dL, g/dL, %)\",\n" +
                     "      \"referenceRange\": \"normal reference range interval (e.g. 70-100 mg/dL)\",\n" +
                     "      \"status\": \"NORMAL or HIGH or LOW or BORDERLINE or ABNORMAL\",\n" +
-                    "      \"description\": \"brief plain-English explanation of this reading\"\n" +
+                    "      \"explanation\": \"brief plain-English explanation of this reading\"\n" +
                     "    }\n" +
                     "  ],\n" +
                     "  \"totalBiomarkers\": 1,\n" +
@@ -113,14 +113,26 @@ public class GeminiVisionService {
                     "  \"disclaimer\": \"This analysis is for informational purposes only. Please consult your doctor.\"\n" +
                     "}";
         } else {
-            prompt = "You are an expert clinical medical analyst. Analyze this medical document image.\n" +
+            prompt = "You are an expert clinical medical analyst. Analyze this medical document or prescription image.\n" +
                     "Return ONLY a valid raw JSON object strictly matching this schema with NO markdown code blocks:\n" +
                     "{\n" +
-                    "  \"documentType\": \"e.g. Radiology Report / Prescription / Discharge Summary / Clinical Note\",\n" +
-                    "  \"summary\": \"clear structured summary of findings and diagnosis\",\n" +
-                    "  \"keyFindings\": [\"finding 1\", \"finding 2\"],\n" +
-                    "  \"recommendations\": [\"recommendation 1\"],\n" +
-                    "  \"disclaimer\": \"This analysis is for informational purposes only. Please consult your doctor.\"\n" +
+                    "  \"documentType\": \"Prescription / Radiology Report / Discharge Summary / Clinical Note\",\n" +
+                    "  \"summary\": \"clear structured clinical summary of findings, diagnoses, or prescribed medications\",\n" +
+                    "  \"findings\": [\n" +
+                    "    {\n" +
+                    "      \"parameter\": \"Prescribed Medication / Clinical Observation Name\",\n" +
+                    "      \"value\": \"Dosage / Frequency / Duration\",\n" +
+                    "      \"status\": \"NORMAL\",\n" +
+                    "      \"explanation\": \"Timing, food instructions, or observation details\"\n" +
+                    "    }\n" +
+                    "  ],\n" +
+                    "  \"abnormalCount\": 0,\n" +
+                    "  \"overallAssessment\": \"overall prescription / document assessment\",\n" +
+                    "  \"suggestedQuestions\": [\n" +
+                    "    \"How should I take these medications?\",\n" +
+                    "    \"Are there any potential drug interactions with my current routine?\"\n" +
+                    "  ],\n" +
+                    "  \"disclaimer\": \"This analysis is for informational purposes only. Please consult your doctor or pharmacist.\"\n" +
                     "}";
         }
 
