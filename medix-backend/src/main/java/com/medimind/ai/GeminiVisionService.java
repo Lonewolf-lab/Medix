@@ -139,70 +139,103 @@ public class GeminiVisionService {
         return callGeminiVision(base64Data, targetMimeType, prompt);
     }
 
+    private static final List<String> FALLBACK_MODELS = List.of(
+            "gemini-3.1-flash-lite",
+            "gemini-3.5-flash-lite",
+            "gemini-3.7-flash",
+            "gemini-3.6-flash"
+    );
+
     @SuppressWarnings("unchecked")
     private Map<String, Object> callGeminiVision(String base64Data, String mimeType, String prompt) {
-        try {
-            String fullUrl = geminiApiUrl + "?key=" + geminiApiKey;
+        Map<String, Object> requestPayload = Map.of(
+                "contents", List.of(
+                        Map.of(
+                                "parts", List.of(
+                                        Map.of(
+                                                "inline_data", Map.of(
+                                                        "mime_type", mimeType,
+                                                        "data", base64Data
+                                                )
+                                        ),
+                                        Map.of(
+                                                "text", prompt
+                                        )
+                                )
+                        )
+                ),
+                "generationConfig", Map.of(
+                        "response_mime_type", "application/json",
+                        "temperature", 0.1
+                )
+        );
 
-            Map<String, Object> requestPayload = Map.of(
-                    "contents", List.of(
-                            Map.of(
-                                    "parts", List.of(
-                                            Map.of(
-                                                    "inline_data", Map.of(
-                                                            "mime_type", mimeType,
-                                                            "data", base64Data
-                                                    )
-                                            ),
-                                            Map.of(
-                                                    "text", prompt
-                                            )
-                                    )
-                            )
-                    ),
-                    "generationConfig", Map.of(
-                            "response_mime_type", "application/json",
-                            "temperature", 0.1
-                    )
-            );
+        Exception lastException = null;
 
-            log.info("Dispatching image to Gemini 1.5 Flash Vision...");
-
-            String responseStr = webClient.post()
-                    .uri(fullUrl)
-                    .header("Content-Type", "application/json")
-                    .bodyValue(requestPayload)
-                    .retrieve()
-                    .onStatus(status -> status.is4xxClientError() || status.is5xxServerError(), response ->
-                            response.bodyToMono(String.class)
-                                    .map(body -> {
-                                        log.error("Gemini Vision API Error: {}", body);
-                                        return new RuntimeException("Gemini Vision API error: " + body);
-                                    })
-                    )
-                    .bodyToMono(String.class)
-                    .block();
-
-            Map<String, Object> responseMap = objectMapper.readValue(responseStr, Map.class);
-            List<Map<String, Object>> candidates = (List<Map<String, Object>>) responseMap.get("candidates");
-            if (candidates == null || candidates.isEmpty()) {
-                throw new RuntimeException("No candidates returned from Gemini Vision API.");
-            }
-
-            Map<String, Object> content = (Map<String, Object>) candidates.get(0).get("content");
-            List<Map<String, Object>> parts = (List<Map<String, Object>>) content.get("parts");
-            String rawJson = (String) parts.get(0).get("text");
-
-            rawJson = rawJson.trim();
-            if (rawJson.startsWith("```")) {
-                rawJson = rawJson.replaceAll("```json", "").replaceAll("```", "").trim();
-            }
-
-            return objectMapper.readValue(rawJson, Map.class);
-
-        } catch (Exception e) {
-            log.error("Gemini Vision execution failed: {}", e.getMessage(), e);
-            throw new RuntimeException("Gemini Vision extraction failed: " + e.getMessage(), e);
+        java.util.List<String> modelsToTry = new java.util.ArrayList<>(FALLBACK_MODELS);
+        String configuredModel = extractModelFromUrl(geminiApiUrl);
+        if (configuredModel != null && !modelsToTry.contains(configuredModel)) {
+            modelsToTry.add(0, configuredModel);
+        } else if (configuredModel != null) {
+            modelsToTry.remove(configuredModel);
+            modelsToTry.add(0, configuredModel);
         }
+
+        for (String model : modelsToTry) {
+            try {
+                String targetUrl = "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent?key=" + geminiApiKey;
+                log.info("Dispatching image to Gemini Vision model: {}", model);
+
+                String responseStr = webClient.post()
+                        .uri(targetUrl)
+                        .header("Content-Type", "application/json")
+                        .bodyValue(requestPayload)
+                        .retrieve()
+                        .onStatus(status -> status.is4xxClientError() || status.is5xxServerError(), response ->
+                                response.bodyToMono(String.class)
+                                        .map(body -> {
+                                            log.warn("Gemini Vision model {} returned error: {}", model, body);
+                                            return new RuntimeException("Gemini Vision API error [" + model + "]: " + body);
+                                        })
+                        )
+                        .bodyToMono(String.class)
+                        .block();
+
+                Map<String, Object> responseMap = objectMapper.readValue(responseStr, Map.class);
+                List<Map<String, Object>> candidates = (List<Map<String, Object>>) responseMap.get("candidates");
+                if (candidates == null || candidates.isEmpty()) {
+                    throw new RuntimeException("No candidates returned from Gemini Vision API for model " + model);
+                }
+
+                Map<String, Object> content = (Map<String, Object>) candidates.get(0).get("content");
+                List<Map<String, Object>> parts = (List<Map<String, Object>>) content.get("parts");
+                String rawJson = (String) parts.get(0).get("text");
+
+                rawJson = rawJson.trim();
+                if (rawJson.startsWith("```")) {
+                    rawJson = rawJson.replaceAll("```json", "").replaceAll("```", "").trim();
+                }
+
+                return objectMapper.readValue(rawJson, Map.class);
+
+            } catch (Exception e) {
+                log.warn("Gemini Vision attempt failed with model {}: {}. Attempting fallback model...", model, e.getMessage());
+                lastException = e;
+            }
+        }
+
+        throw new RuntimeException("All Gemini Vision models failed: " + (lastException != null ? lastException.getMessage() : "Unknown error"), lastException);
+    }
+
+    private String extractModelFromUrl(String url) {
+        if (url == null) return null;
+        try {
+            int modelsIdx = url.indexOf("/models/");
+            int colonIdx = url.indexOf(":", modelsIdx);
+            if (modelsIdx != -1 && colonIdx != -1) {
+                return url.substring(modelsIdx + "/models/".length(), colonIdx);
+            }
+        } catch (Exception ignored) {}
+        return null;
     }
 }
