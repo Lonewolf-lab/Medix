@@ -574,13 +574,13 @@ export default function HealthRecordsPage() {
     : records;
 
   return (
-    <div className="px-6 py-10 max-w-5xl mx-auto space-y-16">
+    <div className="px-4 py-6 sm:px-6 sm:py-10 max-w-5xl mx-auto space-y-8 sm:space-y-16 pb-24 sm:pb-10">
       {/* Page Header */}
-      <div className="space-y-2">
-        <span className="font-mono-accent text-[10px] tracking-[0.3em] text-stone uppercase block">
+      <div className="space-y-1.5 sm:space-y-2">
+        <span className="font-mono-accent text-[9px] sm:text-[10px] tracking-[0.25em] sm:tracking-[0.3em] text-stone uppercase block">
           CLINICAL ARCHIVE
         </span>
-        <h1 className="font-display text-4xl uppercase tracking-tight text-ink leading-none">
+        <h1 className="font-display text-2xl sm:text-4xl uppercase tracking-tight text-ink leading-tight sm:leading-none">
           Health Records
         </h1>
         <p className="font-sans text-xs text-ink-soft max-w-md leading-relaxed">
@@ -589,28 +589,28 @@ export default function HealthRecordsPage() {
       </div>
 
       {/* Top Section: Left (Form or Biomarkers) | Right (Chat Consult) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
         
         {/* Left Panel: Upload Form OR Biomarkers (Col span 7) */}
-        <div className="lg:col-span-7 space-y-6">
+        <div className="lg:col-span-7 space-y-4 sm:space-y-6">
           {actionLoading ? (
-            <div className="py-24 flex items-center justify-center border border-dashed border-stone-line/60 rounded-2xl bg-cream-light/10">
+            <div className="py-16 sm:py-24 flex items-center justify-center border border-dashed border-stone-line/60 rounded-2xl bg-cream-light/10">
               <Loader label={loadingLabel} />
             </div>
           ) : !selectedRecord ? (
             /* Upload Form (Displayed at start) */
-            <form onSubmit={handleUploadAndAnalyze} className="space-y-6">
+            <form onSubmit={handleUploadAndAnalyze} className="space-y-4 sm:space-y-6">
               <div className="flex items-center justify-between border-b border-stone-line/60 pb-1.5">
-                <span className="font-mono-accent text-[10px] tracking-[0.25em] text-stone uppercase block">
+                <span className="font-mono-accent text-[9px] sm:text-[10px] tracking-[0.2em] sm:tracking-[0.25em] text-stone uppercase block">
                   01 — UPLOAD RECORD
                 </span>
-                <span className="font-mono-accent text-[9px] text-stone uppercase">AUTO-ANALYZE ENABLED</span>
+                <span className="font-mono-accent text-[8.5px] sm:text-[9px] text-stone uppercase">AUTO-ANALYZE ENABLED</span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 {/* File Input */}
                 <div className="space-y-1.5">
-                  <label className="font-mono-accent text-[9px] tracking-widest text-stone uppercase block">
+                  <label className="font-mono-accent text-[8.5px] sm:text-[9px] tracking-widest text-stone uppercase block">
                     FILE (PDF, JPG, PNG - MAX 10MB)
                   </label>
                   <input
@@ -625,7 +625,7 @@ export default function HealthRecordsPage() {
 
                 {/* Title */}
                 <div className="space-y-1.5">
-                  <span className="font-mono-accent text-[9px] tracking-widest text-stone uppercase block">
+                  <span className="font-mono-accent text-[8.5px] sm:text-[9px] tracking-widest text-stone uppercase block">
                     RECORD TITLE
                   </span>
                   <input
@@ -634,15 +634,15 @@ export default function HealthRecordsPage() {
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     required
-                    className="w-full bg-cream-light/60 border border-stone-line/60 rounded-lg px-3 py-2 text-xs text-ink focus:outline-none focus:border-forest transition-colors"
+                    className="w-full bg-cream-light/60 border border-stone-line/60 rounded-lg px-3 py-2 text-xs text-ink focus:outline-none focus:border-forest transition-colors placeholder:text-stone/60"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 {/* Type Select */}
                 <div className="space-y-1.5">
-                  <span className="font-mono-accent text-[9px] tracking-widest text-stone uppercase block">
+                  <span className="font-mono-accent text-[8.5px] sm:text-[9px] tracking-widest text-stone uppercase block">
                     RECORD TYPE
                   </span>
                   <ThemeSelect
@@ -654,7 +654,7 @@ export default function HealthRecordsPage() {
 
                 {/* Date */}
                 <div className="space-y-1.5">
-                  <span className="font-mono-accent text-[9px] tracking-widest text-stone uppercase block">
+                  <span className="font-mono-accent text-[8.5px] sm:text-[9px] tracking-widest text-stone uppercase block">
                     RECORD DATE (OPTIONAL)
                   </span>
                   <ThemeDatePicker
@@ -666,7 +666,7 @@ export default function HealthRecordsPage() {
 
               {/* Description */}
               <div className="space-y-1.5">
-                <span className="font-mono-accent text-[9px] tracking-widest text-stone uppercase block">
+                <span className="font-mono-accent text-[8.5px] sm:text-[9px] tracking-widest text-stone uppercase block">
                   DESCRIPTION / NOTES
                 </span>
                 <input
@@ -674,14 +674,14 @@ export default function HealthRecordsPage() {
                   placeholder="Details or brief summary..."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full bg-cream-light/60 border border-stone-line/60 rounded-lg px-3 py-2 text-xs text-ink focus:outline-none focus:border-forest transition-colors"
+                  className="w-full bg-cream-light/60 border border-stone-line/60 rounded-lg px-3 py-2 text-xs text-ink focus:outline-none focus:border-forest transition-colors placeholder:text-stone/60"
                 />
               </div>
 
-              <div className="flex justify-end">
+              <div className="flex sm:justify-end pt-1">
                 <button
                   type="submit"
-                  className="font-mono-accent text-xs tracking-[0.2em] bg-ink text-cream px-8 py-3 rounded-full hover:bg-forest transition-all duration-300 flex items-center gap-2 hover:scale-105"
+                  className="w-full sm:w-auto font-mono-accent text-[11px] sm:text-xs tracking-[0.15em] sm:tracking-[0.2em] bg-ink text-cream px-6 sm:px-8 py-3 rounded-full hover:bg-forest transition-all duration-300 flex items-center justify-center gap-2 active:scale-98 sm:hover:scale-105"
                 >
                   <Upload className="w-4 h-4" />
                   UPLOAD & ANALYZE
@@ -689,12 +689,12 @@ export default function HealthRecordsPage() {
               </div>
             </form>
           ) : (
-            /* AI Summary & Extracted Biomarkers (Replaces Form when record selected) */
-            <div className="space-y-6">
+            /* AI Summary & Extracted Biomarkers */
+            <div className="space-y-4 sm:space-y-6">
               <div className="flex items-center justify-between border-b border-stone-line/60 pb-2">
                 <button
                   onClick={() => setSelectedRecord(null)}
-                  className="font-mono-accent text-[10px] tracking-[0.15em] bg-transparent border border-stone-line/60 hover:border-forest text-ink hover:text-forest px-3.5 py-1.5 rounded-full transition-all duration-300 uppercase flex items-center gap-1.5"
+                  className="font-mono-accent text-[9px] sm:text-[10px] tracking-[0.15em] bg-transparent border border-stone-line/60 hover:border-forest text-ink hover:text-forest px-3 py-1.5 rounded-full transition-all duration-300 uppercase flex items-center gap-1.5 active:scale-95"
                 >
                   <Plus className="w-3.5 h-3.5" /> New Upload
                 </button>
@@ -704,37 +704,37 @@ export default function HealthRecordsPage() {
                       <button
                         type="button"
                         onClick={() => setViewerOpen(true)}
-                        className="p-1 text-stone hover:text-forest transition-colors cursor-pointer"
+                        className="p-1.5 text-stone hover:text-forest transition-colors cursor-pointer"
                         title="View original document"
                       >
-                        <Eye className="w-3.5 h-3.5" />
+                        <Eye className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
                       </button>
                       <a
                         href={`${API_ORIGIN}${selectedRecord.fileUrl}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="p-1 text-stone hover:text-forest transition-colors"
+                        className="p-1.5 text-stone hover:text-forest transition-colors"
                         title="Download document"
                       >
-                        <Download className="w-3.5 h-3.5" />
+                        <Download className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
                       </a>
                     </>
                   )}
                   <button
                     onClick={() => handleDelete(selectedRecord.id)}
-                    className="p-1 text-stone hover:text-rose-500 transition-colors cursor-pointer"
+                    className="p-1.5 text-stone hover:text-rose-500 transition-colors cursor-pointer"
                     title="Delete record"
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
+                    <Trash2 className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
                   </button>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <h3 className="font-display text-2xl uppercase tracking-wider text-ink">
+              <div className="space-y-1.5">
+                <h3 className="font-display text-xl sm:text-2xl uppercase tracking-wider text-ink leading-tight">
                   {selectedRecord.title}
                 </h3>
-                <div className="flex gap-2 text-[9px] font-mono-accent text-stone uppercase">
+                <div className="flex flex-wrap gap-2 text-[8.5px] sm:text-[9px] font-mono-accent text-stone uppercase">
                   <span>TYPE: {selectedRecord.recordType}</span>
                   <span>•</span>
                   <span>DATE: {selectedRecord.recordDate || "N/A"}</span>
@@ -742,11 +742,11 @@ export default function HealthRecordsPage() {
               </div>
 
               {/* Summary Block */}
-              <div className="bg-cream-light border border-stone-line/50 rounded-xl p-4 space-y-2 text-xs">
-                <span className="font-mono-accent text-[9px] tracking-widest text-stone uppercase block flex items-center gap-1">
+              <div className="bg-cream-light border border-stone-line/50 rounded-xl p-3.5 sm:p-4 space-y-1.5 text-xs">
+                <span className="font-mono-accent text-[8.5px] sm:text-[9px] tracking-widest text-stone uppercase block flex items-center gap-1">
                   <Cpu className="w-3.5 h-3.5 text-forest" /> AI Assessment Summary
                 </span>
-                <p className="font-sans text-ink-soft leading-relaxed text-[11px]">
+                <p className="font-sans text-ink-soft leading-relaxed text-[11px] sm:text-xs">
                   {(() => {
                     try {
                       const parsed = JSON.parse(selectedRecord.aiAnalysis);
@@ -761,7 +761,7 @@ export default function HealthRecordsPage() {
               {/* Biomarkers / Medications Panel */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between border-b border-stone-line/40 pb-1">
-                  <span className="font-mono-accent text-[10px] tracking-wider text-stone uppercase">
+                  <span className="font-mono-accent text-[9px] sm:text-[10px] tracking-wider text-stone uppercase font-medium">
                     {selectedRecord?.recordType === "PRESCRIPTION"
                       ? "Prescription Medications & Regimen"
                       : selectedRecord?.recordType === "LAB_REPORT"
@@ -771,9 +771,9 @@ export default function HealthRecordsPage() {
                   {!isEditingFindings && (
                     <button
                       onClick={() => setIsEditingFindings(true)}
-                      className="text-[10px] font-mono-accent text-forest hover:underline flex items-center gap-1"
+                      className="text-[9px] sm:text-[10px] font-mono-accent text-forest hover:underline flex items-center gap-1 active:scale-95"
                     >
-                      <Edit2 className="w-3 h-3" /> Edit {selectedRecord?.recordType === "PRESCRIPTION" ? "medications" : "values"}
+                      <Edit2 className="w-3 h-3" /> Edit {selectedRecord?.recordType === "PRESCRIPTION" ? "meds" : "values"}
                     </button>
                   )}
                 </div>
@@ -783,38 +783,40 @@ export default function HealthRecordsPage() {
                   <div className="space-y-3">
                     <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
                       {editedFindings.map((finding, idx) => (
-                        <div key={idx} className="flex gap-2 items-center bg-cream-light p-2 rounded-lg border border-stone-line/40">
+                        <div key={idx} className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center bg-cream-light p-2.5 sm:p-2 rounded-lg border border-stone-line/40">
                           <input
                             type="text"
-                            placeholder={selectedRecord?.recordType === "PRESCRIPTION" ? "Medication Name (e.g. Augmentin 625mg)" : "Biomarker"}
+                            placeholder={selectedRecord?.recordType === "PRESCRIPTION" ? "Medication Name" : "Biomarker"}
                             value={finding.parameter}
                             onChange={(e) => handleFindingChange(idx, "parameter", e.target.value)}
-                            className="flex-1 bg-transparent text-[11px] text-ink focus:outline-none border-b border-stone-line/40"
+                            className="flex-1 bg-transparent text-[11px] text-ink focus:outline-none border-b border-stone-line/40 py-1"
                           />
                           <input
                             type="text"
-                            placeholder={selectedRecord?.recordType === "PRESCRIPTION" ? "Dosage & Regimen (e.g. 1 tab BD x 5 days)" : "Value"}
+                            placeholder={selectedRecord?.recordType === "PRESCRIPTION" ? "Dosage & Regimen" : "Value"}
                             value={finding.value}
                             onChange={(e) => handleFindingChange(idx, "value", e.target.value)}
-                            className="w-48 bg-transparent text-[11px] text-ink focus:outline-none border-b border-stone-line/40"
+                            className="w-full sm:w-48 bg-transparent text-[11px] text-ink focus:outline-none border-b border-stone-line/40 py-1"
                           />
-                          <select
-                            value={finding.status}
-                            onChange={(e) => handleFindingChange(idx, "status", e.target.value)}
-                            className="bg-transparent text-[10px] font-mono-accent text-ink focus:outline-none border-b border-stone-line/40"
-                          >
-                            <option value="NORMAL">NORMAL</option>
-                            <option value="HIGH">HIGH</option>
-                            <option value="LOW">LOW</option>
-                            <option value="ABNORMAL">ABNORMAL</option>
-                          </select>
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveFindingField(idx)}
-                            className="text-stone hover:text-rose-500 p-0.5"
-                          >
-                            <X className="w-3.5 h-3.5" />
-                          </button>
+                          <div className="flex items-center justify-between gap-2 pt-1 sm:pt-0">
+                            <select
+                              value={finding.status}
+                              onChange={(e) => handleFindingChange(idx, "status", e.target.value)}
+                              className="bg-transparent text-[10px] font-mono-accent text-ink focus:outline-none border-b border-stone-line/40"
+                            >
+                              <option value="NORMAL">NORMAL</option>
+                              <option value="HIGH">HIGH</option>
+                              <option value="LOW">LOW</option>
+                              <option value="ABNORMAL">ABNORMAL</option>
+                            </select>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveFindingField(idx)}
+                              className="text-stone hover:text-rose-500 p-1"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -823,7 +825,7 @@ export default function HealthRecordsPage() {
                       <button
                         type="button"
                         onClick={handleAddFindingField}
-                        className="text-[10px] font-mono-accent text-stone hover:text-ink flex items-center gap-1 border border-dashed border-stone-line/60 px-2 py-1 rounded"
+                        className="text-[9.5px] sm:text-[10px] font-mono-accent text-stone hover:text-ink flex items-center gap-1 border border-dashed border-stone-line/60 px-2.5 py-1 rounded active:scale-95"
                       >
                         <Plus className="w-3 h-3" /> Add {selectedRecord?.recordType === "PRESCRIPTION" ? "Medication" : "Biomarker"}
                       </button>
@@ -839,14 +841,14 @@ export default function HealthRecordsPage() {
                               setEditedFindings([]);
                             }
                           }}
-                          className="text-[10px] font-mono-accent text-stone hover:text-ink px-2.5 py-1"
+                          className="text-[9.5px] sm:text-[10px] font-mono-accent text-stone hover:text-ink px-2.5 py-1"
                         >
                           Cancel
                         </button>
                         <button
                           type="button"
                           onClick={handleSaveChanges}
-                          className="text-[10px] font-mono-accent bg-ink text-cream px-3 py-1 rounded hover:bg-forest"
+                          className="text-[9.5px] sm:text-[10px] font-mono-accent bg-ink text-cream px-3 py-1 rounded hover:bg-forest active:scale-95"
                         >
                           Save
                         </button>
@@ -859,10 +861,10 @@ export default function HealthRecordsPage() {
                     {editedFindings.length === 0 ? (
                       <p className="text-xs text-stone italic">No extracted values available.</p>
                     ) : (
-                      <div className="border border-stone-line/40 rounded-xl overflow-hidden text-xs">
-                        <table className="w-full text-left border-collapse bg-cream-light/40">
+                      <div className="border border-stone-line/40 rounded-xl overflow-hidden text-xs overflow-x-auto scrollbar-none">
+                        <table className="w-full min-w-[280px] text-left border-collapse bg-cream-light/40">
                           <thead>
-                            <tr className="border-b border-stone-line/40 font-mono-accent text-[9px] text-stone uppercase bg-cream-light">
+                            <tr className="border-b border-stone-line/40 font-mono-accent text-[8.5px] sm:text-[9px] text-stone uppercase bg-cream-light">
                               <th className="px-3 py-1.5 font-medium">
                                 {selectedRecord?.recordType === "PRESCRIPTION" ? "Medication" : "Biomarker"}
                               </th>
@@ -876,12 +878,12 @@ export default function HealthRecordsPage() {
                           </thead>
                           <tbody>
                             {sortBiomarkersByPriority(editedFindings).map((f, idx) => (
-                              <tr key={idx} className="border-b border-stone-line/20 last:border-none">
+                              <tr key={idx} className="border-b border-stone-line/20 last:border-none text-[11px] sm:text-xs">
                                 <td className="px-3 py-2 font-medium text-ink">{f.parameter}</td>
                                 <td className="px-3 py-2 text-right font-sans text-ink-soft">{f.value}</td>
                                 <td className="px-3 py-2 text-center">
                                   <span
-                                    className={`inline-block px-2 py-0.5 rounded text-[9px] font-mono-accent font-semibold ${
+                                    className={`inline-block px-2 py-0.5 rounded text-[8.5px] sm:text-[9px] font-mono-accent font-semibold ${
                                       f.status === "NORMAL"
                                         ? "bg-emerald-500/10 text-emerald-600"
                                         : f.status === "LOW"
@@ -904,7 +906,7 @@ export default function HealthRecordsPage() {
                         type="button"
                         onClick={handleSyncToMedications}
                         disabled={syncingMeds}
-                        className="w-full mt-2 py-2 px-3 bg-forest text-cream rounded-lg text-[11px] font-mono-accent flex items-center justify-center gap-2 hover:bg-forest-bright transition-colors cursor-pointer shadow-sm"
+                        className="w-full mt-2 py-2.5 px-3 bg-forest text-cream rounded-lg text-[10.5px] sm:text-[11px] font-mono-accent flex items-center justify-center gap-2 hover:bg-forest-bright transition-colors cursor-pointer shadow-sm active:scale-98"
                       >
                         <Pill className="w-3.5 h-3.5" />
                         {syncingMeds ? "Syncing to Tracker & Calendar..." : "Sync to Medication Tracker & Health Calendar"}
@@ -919,8 +921,8 @@ export default function HealthRecordsPage() {
 
         {/* Right Panel: Consult Chat (Col span 5) */}
         <div className="lg:col-span-5 h-full flex flex-col min-h-0 overflow-hidden">
-          <div className="border-b border-stone-line/60 pb-1.5 mb-4 flex-shrink-0">
-            <span className="font-mono-accent text-[10px] tracking-[0.25em] text-stone uppercase block">
+          <div className="border-b border-stone-line/60 pb-1.5 mb-3 sm:mb-4 flex-shrink-0">
+            <span className="font-mono-accent text-[9px] sm:text-[10px] tracking-[0.2em] sm:tracking-[0.25em] text-stone uppercase block">
               02 — CONSULT PORTAL
             </span>
           </div>
@@ -932,26 +934,26 @@ export default function HealthRecordsPage() {
                 initial={{ opacity: 0, x: 15 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 15 }}
-                className="flex-shrink-0 flex flex-col max-h-[480px] bg-cream-light/30 border border-stone-line/60 rounded-2xl overflow-hidden p-4 space-y-4"
+                className="flex-shrink-0 flex flex-col max-h-[420px] sm:max-h-[480px] bg-cream-light/30 border border-stone-line/60 rounded-xl sm:rounded-2xl overflow-hidden p-3.5 sm:p-4 space-y-3 sm:space-y-4"
               >
                 <div className="flex items-center justify-between border-b border-stone-line/40 pb-2 flex-shrink-0">
-                  <span className="font-mono-accent text-[9px] tracking-widest text-stone uppercase flex items-center gap-1.5">
+                  <span className="font-mono-accent text-[8.5px] sm:text-[9px] tracking-widest text-stone uppercase flex items-center gap-1.5">
                     <MessageSquare className="w-3.5 h-3.5 text-stone" /> Document Consult Chat
                   </span>
                   <button
                     onClick={handleClearChat}
-                    className="text-[9px] font-mono-accent tracking-widest text-stone hover:text-rose-500 uppercase"
+                    className="text-[8.5px] sm:text-[9px] font-mono-accent tracking-widest text-stone hover:text-rose-500 uppercase"
                   >
                     Wipe History
                   </button>
                 </div>
 
                 {/* Chat Messages */}
-                <div className="flex-1 overflow-y-auto pr-1 space-y-3.5 custom-scrollbar">
+                <div className="flex-1 overflow-y-auto pr-1 space-y-3 custom-scrollbar min-h-[160px]">
                   {chatHistory.length === 0 ? (
-                    <div className="h-full flex flex-col items-center justify-center text-center py-10">
-                      <ShieldCheck className="w-6 h-6 text-stone mb-2" />
-                      <p className="font-sans text-[11px] text-stone leading-relaxed max-w-[200px]">
+                    <div className="h-full flex flex-col items-center justify-center text-center py-8">
+                      <ShieldCheck className="w-5 h-5 sm:w-6 sm:h-6 text-stone mb-1.5" />
+                      <p className="font-sans text-[11px] text-stone leading-relaxed max-w-[220px]">
                         Ask questions regarding your lab values, trends, or medical guidance.
                       </p>
                     </div>
@@ -959,7 +961,7 @@ export default function HealthRecordsPage() {
                     chatHistory.map((m) => (
                       <div
                         key={m.id}
-                        className={`flex flex-col max-w-[85%] ${
+                        className={`flex flex-col max-w-[88%] sm:max-w-[85%] ${
                           m.role === "user" ? "self-end items-end ml-auto" : "self-start items-start mr-auto"
                         }`}
                       >
@@ -990,19 +992,19 @@ export default function HealthRecordsPage() {
                 </div>
 
                 {/* Chat Input */}
-                <form onSubmit={handleSendChat} className="flex gap-2 border-t border-stone-line/40 pt-3 flex-shrink-0">
+                <form onSubmit={handleSendChat} className="flex gap-2 border-t border-stone-line/40 pt-2.5 sm:pt-3 flex-shrink-0">
                   <input
                     type="text"
                     placeholder="Ask about this document..."
                     value={chatMsg}
                     onChange={(e) => setChatMsg(e.target.value)}
                     disabled={chatLoading}
-                    className="flex-1 bg-cream border border-stone-line/60 rounded-full px-4 py-2 text-xs text-ink focus:outline-none focus:border-forest transition-colors"
+                    className="flex-1 bg-cream border border-stone-line/60 rounded-full px-3.5 sm:px-4 py-1.5 sm:py-2 text-xs text-ink focus:outline-none focus:border-forest transition-colors placeholder:text-stone/60"
                   />
                   <button
                     type="submit"
                     disabled={chatLoading || !chatMsg.trim()}
-                    className="w-8 h-8 rounded-full bg-ink text-cream flex items-center justify-center hover:bg-forest disabled:opacity-50 transition-colors"
+                    className="w-8 h-8 rounded-full bg-ink text-cream flex items-center justify-center hover:bg-forest disabled:opacity-50 transition-colors flex-shrink-0 active:scale-95"
                   >
                     <Send className="w-3.5 h-3.5" />
                   </button>
@@ -1010,12 +1012,12 @@ export default function HealthRecordsPage() {
               </motion.div>
             ) : (
               /* No selection placeholder */
-              <div className="h-48 border border-dashed border-stone-line/60 rounded-2xl flex flex-col items-center justify-center text-center p-4">
-                <FileText className="w-8 h-8 text-stone mb-2" />
-                <span className="font-mono-accent text-[10px] tracking-widest text-stone uppercase block">
+              <div className="h-40 sm:h-48 border border-dashed border-stone-line/60 rounded-xl sm:rounded-2xl flex flex-col items-center justify-center text-center p-4">
+                <FileText className="w-7 h-7 sm:w-8 sm:h-8 text-stone mb-1.5" />
+                <span className="font-mono-accent text-[9.5px] sm:text-[10px] tracking-widest text-stone uppercase block">
                   NO SELECTION
                 </span>
-                <p className="font-sans text-[11px] text-stone max-w-[200px] mt-1 leading-relaxed">
+                <p className="font-sans text-[11px] text-stone max-w-[220px] mt-1 leading-relaxed">
                   Select a document or upload a new record to begin your AI clinical consult.
                 </p>
               </div>
@@ -1025,20 +1027,20 @@ export default function HealthRecordsPage() {
       </div>
 
       {/* Bottom Section: Archive Database */}
-      <div className="border-t border-stone-line/60 pt-10 space-y-6">
+      <div className="border-t border-stone-line/60 pt-6 sm:pt-10 space-y-4 sm:space-y-6">
         <div className="flex items-baseline justify-between">
-          <div className="space-y-1">
-            <span className="font-mono-accent text-[10px] tracking-[0.3em] text-stone">HISTORY ARCHIVE</span>
-            <h3 className="font-display text-xl uppercase tracking-wider text-ink">Archive Database</h3>
+          <div className="space-y-0.5 sm:space-y-1">
+            <span className="font-mono-accent text-[9px] sm:text-[10px] tracking-[0.25em] sm:tracking-[0.3em] text-stone">HISTORY ARCHIVE</span>
+            <h3 className="font-display text-lg sm:text-xl uppercase tracking-wider text-ink">Archive Database</h3>
           </div>
 
           {/* Filter */}
-          <div className="flex items-center gap-1.5 text-[10px] font-mono-accent text-stone">
+          <div className="flex items-center gap-1.5 text-[9px] sm:text-[10px] font-mono-accent text-stone">
             <Filter className="w-3.5 h-3.5" />
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              className="bg-transparent border-none outline-none text-ink text-[10px] font-mono-accent cursor-pointer"
+              className="bg-transparent border-none outline-none text-ink text-[9px] sm:text-[10px] font-mono-accent cursor-pointer"
             >
               <option value="">All Types</option>
               {RECORD_TYPES.map((t) => (
@@ -1051,39 +1053,75 @@ export default function HealthRecordsPage() {
         </div>
 
         {loading ? (
-          <div className="py-10 text-center font-mono-accent text-xs text-stone">Loading database records...</div>
+          <div className="py-8 sm:py-10 text-center font-mono-accent text-xs text-stone">Loading database records...</div>
         ) : filteredRecords.length === 0 ? (
-          <div className="py-10 text-center font-mono-accent text-xs text-stone border border-dashed border-stone-line/60 rounded-xl">
+          <div className="py-8 sm:py-10 text-center font-mono-accent text-xs text-stone border border-dashed border-stone-line/60 rounded-xl">
             No records indexed matching criteria.
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredRecords.map((rec) => (
-              <button
-                key={rec.id}
-                onClick={() => setSelectedRecord(rec)}
-                className={`text-left bg-transparent border-b border-stone-line/60 hover:border-forest pb-4 transition-all duration-300 flex items-start justify-between gap-3 group ${
-                  selectedRecord?.id === rec.id ? "border-forest" : ""
-                }`}
-              >
-                <div className="space-y-1.5 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <FileText className={`w-3.5 h-3.5 ${selectedRecord?.id === rec.id ? "text-forest" : "text-stone"}`} />
-                    <span className="font-mono-accent text-[9px] tracking-wide text-stone block">
-                      {rec.recordDate || new Date(rec.createdAt).toLocaleDateString()}
+          <>
+            {/* Mobile Carousel View (< md) */}
+            <div className="md:hidden flex overflow-x-auto gap-3 pb-2 -mx-4 px-4 snap-x snap-mandatory scrollbar-none">
+              {filteredRecords.map((rec) => (
+                <button
+                  key={rec.id}
+                  onClick={() => setSelectedRecord(rec)}
+                  className={`w-[230px] shrink-0 snap-start bg-cream-light/70 border rounded-xl p-3.5 flex flex-col justify-between text-left active:scale-[0.98] transition-transform space-y-2.5 ${
+                    selectedRecord?.id === rec.id ? "border-forest bg-forest/5" : "border-stone-line/60"
+                  }`}
+                >
+                  <div className="space-y-1 w-full">
+                    <div className="flex items-center gap-1.5">
+                      <FileText className={`w-3.5 h-3.5 ${selectedRecord?.id === rec.id ? "text-forest" : "text-stone"}`} />
+                      <span className="font-mono-accent text-[8.5px] tracking-wide text-stone block">
+                        {rec.recordDate || new Date(rec.createdAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <p className="font-sans text-xs text-ink font-semibold truncate">
+                      {rec.title}
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-between w-full pt-1 border-t border-stone-line/40">
+                    <span className="inline-block text-[8.5px] font-mono-accent tracking-widest text-stone uppercase">
+                      {rec.recordType}
+                    </span>
+                    <span className="text-[9.5px] font-mono-accent text-stone flex items-center gap-0.5">
+                      Open <ChevronRight className="w-3.5 h-3.5 text-stone" />
                     </span>
                   </div>
-                  <p className="font-sans text-xs text-ink font-semibold truncate group-hover:text-forest transition-colors">
-                    {rec.title}
-                  </p>
-                  <span className="inline-block text-[9px] font-mono-accent tracking-widest text-stone uppercase">
-                    {rec.recordType}
-                  </span>
-                </div>
-                <ChevronRight className="w-4 h-4 text-stone group-hover:text-forest transition-transform duration-300 group-hover:translate-x-1 flex-shrink-0 mt-1" />
-              </button>
-            ))}
-          </div>
+                </button>
+              ))}
+            </div>
+
+            {/* Desktop Grid View (>= md) */}
+            <div className="hidden md:grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredRecords.map((rec) => (
+                <button
+                  key={rec.id}
+                  onClick={() => setSelectedRecord(rec)}
+                  className={`text-left bg-transparent border-b border-stone-line/60 hover:border-forest pb-4 transition-all duration-300 flex items-start justify-between gap-3 group ${
+                    selectedRecord?.id === rec.id ? "border-forest" : ""
+                  }`}
+                >
+                  <div className="space-y-1.5 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <FileText className={`w-3.5 h-3.5 ${selectedRecord?.id === rec.id ? "text-forest" : "text-stone"}`} />
+                      <span className="font-mono-accent text-[9px] tracking-wide text-stone block">
+                        {rec.recordDate || new Date(rec.createdAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <p className="font-sans text-xs text-ink font-semibold truncate group-hover:text-forest transition-colors">
+                      {rec.title}
+                    </p>
+                    <span className="inline-block text-[9px] font-mono-accent tracking-widest text-stone uppercase">
+                      {rec.recordType}
+                    </span>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-stone group-hover:text-forest transition-transform duration-300 group-hover:translate-x-1 flex-shrink-0 mt-1" />
+                </button>
+              ))}
+            </div>
+          </>
         )}
       </div>
 
