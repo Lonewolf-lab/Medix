@@ -229,8 +229,8 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        {/* Top Quick Actions Row */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 pt-2">
+        {/* Top Quick Actions Row (Desktop-Only) */}
+        <div className="hidden sm:grid sm:grid-cols-3 gap-2.5 sm:gap-3 pt-2">
           <Link
             to="/symptoms"
             className="group flex items-center justify-between p-3.5 bg-cream-light/80 border border-stone-line/60 text-ink hover:border-forest rounded-xl transition-all duration-300 shadow-xs"
@@ -526,11 +526,73 @@ export default function DashboardPage() {
                   {/* Mobile swipe hint */}
                   <div className="flex justify-between items-center text-[9px] font-mono-accent text-stone/60 pt-1">
                     <span>← Swipe flashcards →</span>
-                    <span>Tap card to consult AI assistant</span>
+                    <span>Tap card to consult</span>
                   </div>
                 </div>
               </div>
             )}
+          </div>
+
+          {/* MOBILE-ONLY: Quick Actions Section in 1 Row (Positioned below Biomarkers) */}
+          <div className="sm:hidden space-y-2.5 pt-1">
+            <div className="flex items-center justify-between border-b border-stone-line/60 pb-1.5">
+              <h3 className="font-display text-xs uppercase tracking-wider text-ink flex items-center gap-1.5">
+                <Activity className="w-3.5 h-3.5 text-forest" />
+                Quick Actions
+              </h3>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2">
+              <Link
+                to="/symptoms"
+                className="flex flex-col items-center justify-center p-2.5 bg-cream-light/80 border border-stone-line/60 text-ink active:scale-95 hover:border-forest rounded-xl transition-all shadow-xs text-center"
+              >
+                <div className="p-2 rounded-lg bg-forest/10 text-forest mb-1.5">
+                  <Activity className="w-4 h-4" />
+                </div>
+                <span className="font-sans text-[11px] font-semibold text-ink leading-tight">Triage</span>
+                <span className="text-[9px] text-ink-soft leading-tight mt-0.5">Symptoms</span>
+              </Link>
+
+              <Link
+                to="/chat"
+                className="flex flex-col items-center justify-center p-2.5 bg-cream-light/80 border border-stone-line/60 text-ink active:scale-95 hover:border-forest rounded-xl transition-all shadow-xs text-center"
+              >
+                <div className="p-2 rounded-lg bg-ink/10 text-ink mb-1.5">
+                  <MessageSquare className="w-4 h-4" />
+                </div>
+                <span className="font-sans text-[11px] font-semibold text-ink leading-tight">Consult</span>
+                <span className="text-[9px] text-ink-soft leading-tight mt-0.5">AI Chat</span>
+              </Link>
+
+              {hasReport ? (
+                <label className="flex flex-col items-center justify-center p-2.5 bg-ink text-cream active:scale-95 hover:bg-forest rounded-xl transition-all cursor-pointer shadow-xs text-center">
+                  <div className="p-2 rounded-lg bg-cream/10 text-cream mb-1.5">
+                    <Upload className="w-4 h-4" />
+                  </div>
+                  <span className="font-sans text-[11px] font-semibold text-cream leading-tight">Upload</span>
+                  <span className="text-[9px] text-cream/70 leading-tight mt-0.5">Lab Report</span>
+                  <input
+                    type="file"
+                    accept=".pdf,image/jpeg,image/png"
+                    onChange={handleReportUpload}
+                    disabled={uploading}
+                    className="hidden"
+                  />
+                </label>
+              ) : (
+                <Link
+                  to="/records"
+                  className="flex flex-col items-center justify-center p-2.5 bg-cream-light/80 border border-stone-line/60 text-ink active:scale-95 hover:border-forest rounded-xl transition-all shadow-xs text-center"
+                >
+                  <div className="p-2 rounded-lg bg-stone-line/30 text-ink mb-1.5">
+                    <FileText className="w-4 h-4" />
+                  </div>
+                  <span className="font-sans text-[11px] font-semibold text-ink leading-tight">Clinical</span>
+                  <span className="text-[9px] text-ink-soft leading-tight mt-0.5">Records</span>
+                </Link>
+              )}
+            </div>
           </div>
         </>
       )}
