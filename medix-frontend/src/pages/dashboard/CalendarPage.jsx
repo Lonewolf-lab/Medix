@@ -398,73 +398,137 @@ export default function CalendarPage() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-6rem)] p-4 md:p-8 bg-cream text-ink font-sans max-w-7xl mx-auto w-full">
+    <div className="min-h-[calc(100vh-6rem)] px-4 py-6 sm:px-6 sm:py-8 bg-cream text-ink font-sans max-w-7xl mx-auto w-full space-y-6 sm:space-y-8 pb-24 sm:pb-10">
       
       {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-stone-line/60">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 pb-4 sm:pb-6 border-b border-stone-line/60">
         <div>
-          <div className="text-forest font-mono-accent text-xs tracking-widest uppercase">
+          <div className="text-forest font-mono-accent text-[9px] sm:text-xs tracking-widest uppercase">
             Interactive Health Calendar
           </div>
-          <h1 className="font-display uppercase tracking-tight text-3xl md:text-5xl mt-1 text-ink">
+          <h1 className="font-display uppercase tracking-tight text-2xl sm:text-4xl lg:text-5xl mt-0.5 sm:mt-1 text-ink leading-tight">
             Health Calendar
           </h1>
         </div>
 
         <button
           onClick={() => handleOpenScheduler()}
-          className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-forest text-cream-light font-mono-accent text-xs tracking-wider uppercase hover:bg-forest-bright shadow-xs transition-all transform active:scale-95 cursor-pointer self-end sm:self-auto"
+          className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-forest text-cream-light font-mono-accent text-[11px] sm:text-xs tracking-wider uppercase hover:bg-forest-bright shadow-xs transition-all transform active:scale-95 cursor-pointer self-stretch sm:self-auto text-center"
         >
           <Plus className="w-3.5 h-3.5" /> Book Visit
         </button>
       </div>
 
       {loading ? (
-        <div className="flex flex-col items-center justify-center h-96 gap-3">
+        <div className="flex flex-col items-center justify-center h-72 sm:h-96 gap-3">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-forest" />
           <p className="font-mono-accent text-xs text-stone">Synchronizing schedules...</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
           
-          {/* LEFT PANEL: Compact 5-column calendar (col-span 7) */}
-          <div className="lg:col-span-7 bg-cream-light border border-stone-line rounded-2xl p-5 md:p-6 shadow-sm">
+          {/* LEFT PANEL: Calendar */}
+          <div className="lg:col-span-7 bg-cream-light border border-stone-line rounded-2xl p-4 sm:p-5 md:p-6 shadow-sm space-y-4 sm:space-y-6">
             
             {/* Header Controls */}
-            <div className="flex flex-row items-center justify-between gap-4 mb-6 pb-4 border-b border-stone-line/60">
-              <div className="flex items-center gap-4">
-                <h2 className="font-display text-2xl md:text-3xl uppercase tracking-wider text-ink">
+            <div className="flex items-center justify-between gap-2 sm:gap-4 pb-3 sm:pb-4 border-b border-stone-line/60">
+              <div className="flex items-center gap-2.5 sm:gap-4">
+                <h2 className="font-display text-xl sm:text-2xl md:text-3xl uppercase tracking-wider text-ink leading-none">
                   {formatMonthYear(currentMonth)}
                 </h2>
                 <button
                   onClick={jumpToToday}
-                  className="px-3.5 py-1.5 rounded-xl border border-stone-line text-xs font-mono-accent text-stone hover:text-forest hover:border-forest transition-colors cursor-pointer"
+                  className="px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-lg sm:rounded-xl border border-stone-line text-[10px] sm:text-xs font-mono-accent text-stone hover:text-forest hover:border-forest transition-colors cursor-pointer active:scale-95"
                 >
                   Today
                 </button>
               </div>
 
               {/* Navigation Arrows */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2">
                 <button
                   onClick={prevMonth}
-                  className="p-2.5 border border-stone-line rounded-xl hover:bg-stone-line/20 transition-colors cursor-pointer"
+                  className="p-2 sm:p-2.5 border border-stone-line rounded-lg sm:rounded-xl hover:bg-stone-line/20 transition-colors cursor-pointer active:scale-95"
                   aria-label="Previous month"
                 >
-                  <ChevronLeft className="w-4 h-4" />
+                  <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </button>
                 <button
                   onClick={nextMonth}
-                  className="p-2.5 border border-stone-line rounded-xl hover:bg-stone-line/20 transition-colors cursor-pointer"
+                  className="p-2 sm:p-2.5 border border-stone-line rounded-lg sm:rounded-xl hover:bg-stone-line/20 transition-colors cursor-pointer active:scale-95"
                   aria-label="Next month"
                 >
-                  <ChevronRight className="w-4 h-4" />
+                  <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </button>
               </div>
             </div>
 
-            {/* Big Rectangular Box Grid (Spacious 5-column wrap layout) */}
-            <div className="grid grid-cols-5 gap-2.5">
+            {/* MOBILE ONLY: Horizontal Day Strip (Smooth, uncluttered date carousel) */}
+            <div className="lg:hidden space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-mono-accent text-[9px] tracking-wider text-stone uppercase">
+                  Swipe Dates
+                </span>
+                <span className="font-mono-accent text-[8.5px] text-stone/80">
+                  {days.filter(d => d.isCurrentMonth).length} Days in Month
+                </span>
+              </div>
+              <div className="flex overflow-x-auto gap-2 pb-2 -mx-2 px-2 snap-x snap-mandatory scrollbar-none">
+                {days.filter(item => item.isCurrentMonth).map((item, idx) => {
+                  const active = isSameDay(item.date, selectedDate);
+                  const today = isSameDay(item.date, new Date());
+                  const dayEvents = getEventsForDate(item.date, "ALL");
+                  const hasAppt = dayEvents.some(e => e.type === "appointment");
+                  const hasMed = dayEvents.some(e => e.type === "medication");
+
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => handleDayClick(item.date)}
+                      className={`w-[60px] shrink-0 snap-center py-2 px-1.5 rounded-xl border flex flex-col items-center justify-between transition-all cursor-pointer h-[74px] ${
+                        active
+                          ? "bg-forest border-forest text-cream-light shadow-sm"
+                          : today
+                          ? "bg-forest/10 border-forest/40 text-forest"
+                          : "bg-cream border-stone-line/70 text-ink active:scale-95"
+                      }`}
+                    >
+                      <span className={`text-[8.5px] font-mono-accent uppercase tracking-wider font-semibold ${
+                        active ? "text-cream-light/80" : today ? "text-forest" : "text-stone"
+                      }`}>
+                        {item.date.toLocaleDateString("en-US", { weekday: "short" })}
+                      </span>
+
+                      <span className={`text-base font-display leading-none font-bold ${
+                        active ? "text-cream-light" : today ? "text-forest" : "text-ink"
+                      }`}>
+                        {item.date.getDate()}
+                      </span>
+
+                      {/* Event Dot Indicators */}
+                      <div className="flex gap-1 items-center h-2">
+                        {hasAppt && (
+                          <span className={`w-1.5 h-1.5 rounded-full ${
+                            active ? "bg-cream-light" : "bg-ink"
+                          }`} title="Doctor Visit" />
+                        )}
+                        {hasMed && (
+                          <span className={`w-1.5 h-1.5 rounded-full ${
+                            active ? "bg-cream-light/70" : "bg-forest"
+                          }`} title="Medication" />
+                        )}
+                        {!hasAppt && !hasMed && (
+                          <span className="w-1.5 h-1.5 opacity-0" />
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Month Grid: Desktop untouched (5 columns), Mobile spacious 5-column grid */}
+            <div className="grid grid-cols-5 gap-1.5 sm:gap-2.5">
               {days.map((item, idx) => {
                 const active = isSameDay(item.date, selectedDate);
                 const today = isSameDay(item.date, new Date());
@@ -474,18 +538,18 @@ export default function CalendarPage() {
                   <div
                     key={idx}
                     onClick={() => handleDayClick(item.date)}
-                    className={`h-14 p-2 rounded-xl border transition-all cursor-pointer flex flex-col justify-between ${
+                    className={`h-12 sm:h-14 p-1.5 sm:p-2 rounded-lg sm:rounded-xl border transition-all cursor-pointer flex flex-col justify-between ${
                       active
-                        ? "bg-cream-light border-2 border-forest ring-2 ring-forest/30 shadow-xs"
+                        ? "bg-cream-light border-2 border-forest ring-1 sm:ring-2 ring-forest/30 shadow-xs"
                         : item.isCurrentMonth
                         ? "bg-cream border-stone-line/80 hover:border-stone text-ink hover:shadow-xs"
-                        : "bg-cream/40 border-stone-line/30 text-stone/40 hover:bg-cream/60"
+                        : "bg-cream/40 border-stone-line/30 text-stone/40 hover:bg-cream/60 opacity-60 sm:opacity-100"
                     }`}
                   >
-                    {/* Top Row: Date Number (Left) & Weekday Label (Right) */}
+                    {/* Top Row: Date Number & Weekday Label */}
                     <div className="flex justify-between items-start w-full">
                       <span
-                        className={`text-[11px] font-semibold px-1 py-0.5 rounded leading-none ${
+                        className={`text-[10px] sm:text-[11px] font-semibold px-1 py-0.2 sm:py-0.5 rounded leading-none ${
                           today
                             ? "bg-forest text-cream-light font-bold"
                             : active
@@ -495,19 +559,19 @@ export default function CalendarPage() {
                       >
                         {item.date.getDate()}
                       </span>
-                      <span className="text-[8px] font-mono-accent text-stone uppercase font-bold pt-0.5">
+                      <span className="text-[7.5px] sm:text-[8px] font-mono-accent text-stone uppercase font-bold pt-0.5 truncate max-w-[26px] sm:max-w-none text-right">
                         {item.date.toLocaleDateString("en-US", { weekday: "short" })}
                       </span>
                     </div>
 
-                    {/* Event Indicator Icons (Stethoscope for Appointment, Pill for Medication) */}
-                    <div className="flex gap-1 justify-center items-center h-3.5 mt-0.5">
+                    {/* Event Indicator Icons */}
+                    <div className="flex gap-0.5 sm:gap-1 justify-center items-center h-3 sm:h-3.5 mt-0.5">
                       {dayEvents.slice(0, 3).map((ev, evIdx) => (
                         <span key={evIdx} className="shrink-0">
                           {ev.type === "appointment" ? (
-                            <Stethoscope className="w-3 h-3 text-ink/80" />
+                            <Stethoscope className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-ink/80" />
                           ) : (
-                            <Pill className="w-3 h-3 text-forest/80" />
+                            <Pill className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-forest/80" />
                           )}
                         </span>
                       ))}
@@ -519,28 +583,28 @@ export default function CalendarPage() {
           </div>
 
           {/* RIGHT PANEL: Live Selected Day Agenda (col-span 5) */}
-          <div className="lg:col-span-5 bg-cream-light border border-stone-line rounded-2xl p-5 md:p-6 shadow-sm flex flex-col min-h-[480px]">
+          <div className="lg:col-span-5 bg-cream-light border border-stone-line rounded-2xl p-4 sm:p-5 md:p-6 shadow-sm flex flex-col min-h-[420px] sm:min-h-[480px] space-y-4">
             {/* Agenda Header */}
-            <div className="flex justify-between items-start pb-4 border-b border-stone-line/60 mb-4">
+            <div className="flex justify-between items-start pb-3 sm:pb-4 border-b border-stone-line/60">
               <div>
-                <span className="font-mono-accent text-[9px] text-forest uppercase tracking-widest block">
+                <span className="font-mono-accent text-[8.5px] sm:text-[9px] text-forest uppercase tracking-widest block">
                   Daily Schedule
                 </span>
-                <h3 className="font-display text-lg uppercase tracking-wide text-ink mt-0.5">
+                <h3 className="font-display text-base sm:text-lg uppercase tracking-wide text-ink mt-0.5 leading-snug">
                   {formatLongDate(selectedDate)}
                 </h3>
               </div>
               
               <button
                 onClick={() => handleOpenScheduler()}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-forest hover:bg-forest-bright text-cream-light font-mono-accent text-[9px] tracking-wider uppercase transition-colors cursor-pointer"
+                className="flex items-center gap-1 px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-lg bg-forest hover:bg-forest-bright text-cream-light font-mono-accent text-[8.5px] sm:text-[9px] tracking-wider uppercase transition-colors cursor-pointer active:scale-95 shrink-0"
               >
                 <Plus className="w-3 h-3" /> Visit
               </button>
             </div>
 
             {/* Filter Bar */}
-            <div className="flex items-center justify-between gap-1 bg-cream border border-stone-line/60 p-1 rounded-xl mb-4 flex-shrink-0">
+            <div className="flex items-center justify-between gap-1 bg-cream border border-stone-line/60 p-1 rounded-xl flex-shrink-0">
               {[
                 { id: "ALL", label: "All Items" },
                 { id: "MEDICATIONS", label: "Medications" },
@@ -549,7 +613,7 @@ export default function CalendarPage() {
                 <button
                   key={tab.id}
                   onClick={() => setFilterType(tab.id)}
-                  className={`relative flex-1 py-1 text-center text-[10px] font-mono-accent uppercase tracking-wider rounded-lg transition-all cursor-pointer ${
+                  className={`relative flex-1 py-1.5 sm:py-1 text-center text-[9px] sm:text-[10px] font-mono-accent uppercase tracking-wider rounded-lg transition-all cursor-pointer ${
                     filterType === tab.id
                       ? "text-cream-light font-bold"
                       : "text-stone hover:text-ink"
@@ -568,9 +632,9 @@ export default function CalendarPage() {
             </div>
 
             {/* Event List Container */}
-            <div className="space-y-3.5 overflow-y-auto flex-1 pr-1 custom-scrollbar max-h-[500px]">
+            <div className="space-y-3 sm:space-y-3.5 overflow-y-auto flex-1 pr-1 custom-scrollbar max-h-[500px]">
               {selectedDayEvents.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-16 text-center">
+                <div className="flex flex-col items-center justify-center py-12 sm:py-16 text-center">
                   <div className="w-10 h-10 rounded-xl bg-cream border border-stone-line flex items-center justify-center mb-2.5">
                     <CalendarIcon className="w-5 h-5 text-stone/50" />
                   </div>
@@ -583,58 +647,58 @@ export default function CalendarPage() {
                 selectedDayEvents.map((ev) => (
                   <div
                     key={ev.id}
-                    className={`p-4 rounded-xl border transition-all flex flex-col gap-3 relative overflow-hidden group bg-cream hover:shadow-xs ${
+                    className={`p-3.5 sm:p-4 rounded-xl border transition-all flex flex-col gap-2.5 sm:gap-3 relative overflow-hidden group bg-cream hover:shadow-xs ${
                       ev.type === "appointment"
                         ? "border-stone-line/80 border-l-4 border-l-ink"
                         : "border-stone-line/80 border-l-4 border-l-forest"
                     }`}
                   >
-                    <div className="flex justify-between items-start gap-4">
-                      <div className="space-y-1">
+                    <div className="flex justify-between items-start gap-3 sm:gap-4">
+                      <div className="space-y-1 min-w-0">
                         {/* Time */}
-                        <div className="flex items-center gap-1.5 text-stone font-mono-accent text-[9px] uppercase tracking-wider">
-                          <Clock className="w-3 h-3 text-stone" />
-                          <span>{ev.time}</span>
+                        <div className="flex items-center gap-1.5 text-stone font-mono-accent text-[8.5px] sm:text-[9px] uppercase tracking-wider">
+                          <Clock className="w-3 h-3 text-stone shrink-0" />
+                          <span className="truncate">{ev.time}</span>
                         </div>
                         {/* Title */}
-                        <h4 className="font-display text-sm uppercase text-ink tracking-wide leading-snug">
+                        <h4 className="font-display text-xs sm:text-sm uppercase text-ink tracking-wide leading-snug">
                           {ev.title}
                         </h4>
                         {/* Subtitle */}
-                        <p className="text-[11px] text-stone font-medium">
+                        <p className="text-[10.5px] sm:text-[11px] text-stone font-medium leading-tight">
                           {ev.subtitle}
                         </p>
                       </div>
 
-                      <div className="w-8 h-8 rounded-lg bg-cream-light border border-stone-line/50 flex items-center justify-center text-ink flex-shrink-0">
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-cream-light border border-stone-line/50 flex items-center justify-center text-ink flex-shrink-0">
                         {ev.type === "appointment" ? (
-                          <Stethoscope className="w-4 h-4 text-forest" />
+                          <Stethoscope className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-forest" />
                         ) : (
-                          <Pill className="w-4 h-4 text-ink-soft" />
+                          <Pill className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-ink-soft" />
                         )}
                       </div>
                     </div>
 
                     {/* Notes */}
                     {ev.notes && (
-                      <p className="text-[11px] text-stone font-sans italic bg-cream-light px-2.5 py-1.5 rounded-lg border border-stone-line/40">
+                      <p className="text-[10.5px] sm:text-[11px] text-stone font-sans italic bg-cream-light px-2.5 py-1.5 rounded-lg border border-stone-line/40 leading-relaxed">
                         "{ev.notes}"
                       </p>
                     )}
 
                     {/* Actions Row */}
-                    <div className="flex items-center justify-end gap-1.5 border-t border-stone-line/40 pt-2.5 mt-0.5">
+                    <div className="flex items-center justify-end gap-1.5 border-t border-stone-line/40 pt-2 sm:pt-2.5 mt-0.5">
                       {ev.type === "appointment" ? (
                         <>
                           <button
                             onClick={() => handleOpenScheduler(ev.raw)}
-                            className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-stone-line hover:border-forest text-stone hover:text-forest font-mono-accent text-[9px] uppercase tracking-wider transition-colors cursor-pointer"
+                            className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-stone-line hover:border-forest text-stone hover:text-forest font-mono-accent text-[8.5px] sm:text-[9px] uppercase tracking-wider transition-colors cursor-pointer active:scale-95"
                           >
                             <Edit3 className="w-3 h-3" /> Reschedule
                           </button>
                           <button
                             onClick={() => handleDeleteAppointment(ev.raw.id)}
-                            className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-stone-line hover:border-rose-500 text-stone hover:text-rose-500 font-mono-accent text-[9px] uppercase tracking-wider transition-colors cursor-pointer"
+                            className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-stone-line hover:border-rose-500 text-stone hover:text-rose-500 font-mono-accent text-[8.5px] sm:text-[9px] uppercase tracking-wider transition-colors cursor-pointer active:scale-95"
                           >
                             <Trash2 className="w-3 h-3" /> Cancel
                           </button>
@@ -643,13 +707,13 @@ export default function CalendarPage() {
                         <>
                           <button
                             onClick={() => handleOpenMedTimingsModal(ev.raw)}
-                            className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-stone-line hover:border-forest text-stone hover:text-forest font-mono-accent text-[9px] uppercase tracking-wider transition-colors cursor-pointer"
+                            className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-stone-line hover:border-forest text-stone hover:text-forest font-mono-accent text-[8.5px] sm:text-[9px] uppercase tracking-wider transition-colors cursor-pointer active:scale-95"
                           >
                             <Clock className="w-3 h-3" /> Timings
                           </button>
                           <button
                             onClick={() => handleDeleteMedication(ev.raw.id)}
-                            className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-stone-line hover:border-rose-500 text-stone hover:text-rose-500 font-mono-accent text-[9px] uppercase tracking-wider transition-colors cursor-pointer"
+                            className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-stone-line hover:border-rose-500 text-stone hover:text-rose-500 font-mono-accent text-[8.5px] sm:text-[9px] uppercase tracking-wider transition-colors cursor-pointer active:scale-95"
                           >
                             <Trash2 className="w-3 h-3" /> Stop Tracker
                           </button>
