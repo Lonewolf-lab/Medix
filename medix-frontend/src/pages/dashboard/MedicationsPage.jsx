@@ -485,14 +485,18 @@ export default function MedicationsPage() {
     { value: "AS_NEEDED", label: "As Needed (PRN)" },
   ];
 
+  const handleConfirmExtraction = () => {
+    handleConfirmFromModal(extractedMeds);
+  };
+
   return (
-    <div className="px-6 py-10 max-w-5xl mx-auto space-y-16">
+    <div className="px-4 py-6 sm:px-6 sm:py-10 max-w-5xl mx-auto space-y-8 sm:space-y-16 pb-24 sm:pb-10">
       {/* Header */}
-      <div className="space-y-2">
-        <span className="font-mono-accent text-[10px] tracking-[0.3em] text-stone uppercase block">
+      <div className="space-y-1.5 sm:space-y-2">
+        <span className="font-mono-accent text-[9px] sm:text-[10px] tracking-[0.25em] sm:tracking-[0.3em] text-stone uppercase block">
           TREATMENT PORTAL
         </span>
-        <h1 className="font-display text-4xl uppercase tracking-tight text-ink leading-none">
+        <h1 className="font-display text-2xl sm:text-4xl uppercase tracking-tight text-ink leading-tight sm:leading-none">
           Medication Tracker
         </h1>
         <p className="font-sans text-xs text-ink-soft max-w-md leading-relaxed">
@@ -501,14 +505,14 @@ export default function MedicationsPage() {
       </div>
 
       {/* Main Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
         {/* Left Side: Logging & Prescription Scan (Col Span 7) */}
-        <div className="lg:col-span-7 space-y-8">
+        <div className="lg:col-span-7 space-y-6 sm:space-y-8">
           {/* Action Tabs */}
-          <div className="flex gap-4 border-b border-stone-line/60 pb-2">
+          <div className="flex gap-4 sm:gap-6 border-b border-stone-line/60 pb-2">
             <button
               onClick={() => setActiveTab("add-manual")}
-              className={`font-mono-accent text-xs tracking-wider uppercase pb-1 cursor-pointer transition-all ${
+              className={`font-mono-accent text-[11px] sm:text-xs tracking-wider uppercase pb-1 cursor-pointer transition-all ${
                 activeTab === "add-manual"
                   ? "border-b border-forest text-forest font-semibold"
                   : "text-stone hover:text-ink"
@@ -518,7 +522,7 @@ export default function MedicationsPage() {
             </button>
             <button
               onClick={() => setActiveTab("scan")}
-              className={`font-mono-accent text-xs tracking-wider uppercase pb-1 cursor-pointer transition-all flex items-center gap-1.5 ${
+              className={`font-mono-accent text-[11px] sm:text-xs tracking-wider uppercase pb-1 cursor-pointer transition-all flex items-center gap-1.5 ${
                 activeTab === "scan"
                   ? "border-b border-forest text-forest font-semibold"
                   : "text-stone hover:text-ink"
@@ -530,11 +534,11 @@ export default function MedicationsPage() {
 
           {activeTab === "add-manual" ? (
             /* Manual Log Form */
-            <form onSubmit={handleCreateOrUpdateManual} className="space-y-5">
+            <form onSubmit={handleCreateOrUpdateManual} className="space-y-4 sm:space-y-5">
               {editingMedId && (
-                <div className="flex justify-between items-center bg-forest/10 border border-forest/20 px-4 py-2.5 rounded-xl text-xs text-forest">
-                  <span className="font-semibold">
-                    EDIT MODE: Updating Medication Details
+                <div className="flex justify-between items-center bg-forest/10 border border-forest/20 px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl text-xs text-forest">
+                  <span className="font-semibold text-[11px] sm:text-xs">
+                    EDIT MODE: Updating Details
                   </span>
                   <button
                     type="button"
@@ -549,16 +553,16 @@ export default function MedicationsPage() {
                       setReminderTimes([]);
                       setNewFormReminderTime("");
                     }}
-                    className="underline hover:text-rose-500 cursor-pointer font-medium"
+                    className="underline hover:text-rose-500 cursor-pointer font-medium text-[11px] sm:text-xs"
                   >
-                    Cancel Edit
+                    Cancel
                   </button>
                 </div>
               )}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 {/* Medication Name */}
                 <div className="space-y-1.5">
-                  <span className="font-mono-accent text-[9px] tracking-widest text-stone uppercase block">
+                  <span className="font-mono-accent text-[8.5px] sm:text-[9px] tracking-widest text-stone uppercase block">
                     MEDICATION NAME
                   </span>
                   <input
@@ -567,13 +571,13 @@ export default function MedicationsPage() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
-                    className="w-full bg-cream-light/60 border border-stone-line/60 rounded-lg px-3 py-2 text-xs text-ink focus:outline-none focus:border-forest transition-colors"
+                    className="w-full bg-cream-light/60 border border-stone-line/60 rounded-lg px-3 py-2 text-xs text-ink focus:outline-none focus:border-forest transition-colors placeholder:text-stone/60"
                   />
                 </div>
 
                 {/* Dosage */}
                 <div className="space-y-1.5">
-                  <span className="font-mono-accent text-[9px] tracking-widest text-stone uppercase block">
+                  <span className="font-mono-accent text-[8.5px] sm:text-[9px] tracking-widest text-stone uppercase block">
                     DOSAGE
                   </span>
                   <input
@@ -582,15 +586,15 @@ export default function MedicationsPage() {
                     value={dosage}
                     onChange={(e) => setDosage(e.target.value)}
                     required
-                    className="w-full bg-cream-light/60 border border-stone-line/60 rounded-lg px-3 py-2 text-xs text-ink focus:outline-none focus:border-forest transition-colors"
+                    className="w-full bg-cream-light/60 border border-stone-line/60 rounded-lg px-3 py-2 text-xs text-ink focus:outline-none focus:border-forest transition-colors placeholder:text-stone/60"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
                 {/* Frequency Select */}
                 <div className="space-y-1.5 sm:col-span-1">
-                  <span className="font-mono-accent text-[9px] tracking-widest text-stone uppercase block">
+                  <span className="font-mono-accent text-[8.5px] sm:text-[9px] tracking-widest text-stone uppercase block">
                     FREQUENCY
                   </span>
                   <ThemeSelect
@@ -602,7 +606,7 @@ export default function MedicationsPage() {
 
                 {/* Start Date */}
                 <div className="space-y-1.5 sm:col-span-1">
-                  <span className="font-mono-accent text-[9px] tracking-widest text-stone uppercase block">
+                  <span className="font-mono-accent text-[8.5px] sm:text-[9px] tracking-widest text-stone uppercase block">
                     START DATE
                   </span>
                   <ThemeDatePicker
@@ -614,7 +618,7 @@ export default function MedicationsPage() {
 
                 {/* End Date */}
                 <div className="space-y-1.5 sm:col-span-1">
-                  <span className="font-mono-accent text-[9px] tracking-widest text-stone uppercase block">
+                  <span className="font-mono-accent text-[8.5px] sm:text-[9px] tracking-widest text-stone uppercase block">
                     END DATE (OPTIONAL)
                   </span>
                   <ThemeDatePicker
@@ -627,7 +631,7 @@ export default function MedicationsPage() {
 
               {/* Instructions */}
               <div className="space-y-1.5">
-                <span className="font-mono-accent text-[9px] tracking-widest text-stone uppercase block">
+                <span className="font-mono-accent text-[8.5px] sm:text-[9px] tracking-widest text-stone uppercase block">
                   INSTRUCTIONS / NOTES
                 </span>
                 <input
@@ -635,13 +639,13 @@ export default function MedicationsPage() {
                   placeholder="e.g. Take with food, morning and evening..."
                   value={instructions}
                   onChange={(e) => setInstructions(e.target.value)}
-                  className="w-full bg-cream-light/60 border border-stone-line/60 rounded-lg px-3 py-2 text-xs text-ink focus:outline-none focus:border-forest transition-colors"
+                  className="w-full bg-cream-light/60 border border-stone-line/60 rounded-lg px-3 py-2 text-xs text-ink focus:outline-none focus:border-forest transition-colors placeholder:text-stone/60"
                 />
               </div>
 
               {/* Reminder Timings List Editor */}
-              <div className="space-y-2.5 pt-2">
-                <span className="font-mono-accent text-[9px] tracking-widest text-stone uppercase block flex items-center gap-1.5">
+              <div className="space-y-2 pt-1 sm:pt-2">
+                <span className="font-mono-accent text-[8.5px] sm:text-[9px] tracking-widest text-stone uppercase block flex items-center gap-1.5">
                   <Bell className="w-3.5 h-3.5 text-forest" /> Reminder Timings
                 </span>
                 
@@ -652,13 +656,13 @@ export default function MedicationsPage() {
                     reminderTimes.map((time, idx) => (
                       <span
                         key={idx}
-                        className="inline-flex items-center gap-1.5 px-3 py-1 bg-forest/10 border border-forest/20 rounded-full text-[11px] text-forest font-semibold"
+                        className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 bg-forest/10 border border-forest/20 rounded-full text-[10.5px] sm:text-[11px] text-forest font-semibold"
                       >
                         {time}
                         <button
                           type="button"
                           onClick={() => setReminderTimes((prev) => prev.filter((_, i) => i !== idx))}
-                          className="hover:text-rose-500 cursor-pointer"
+                          className="hover:text-rose-500 cursor-pointer p-0.5"
                         >
                           <X className="w-3 h-3" />
                         </button>
@@ -672,7 +676,7 @@ export default function MedicationsPage() {
                     type="time"
                     value={newFormReminderTime}
                     onChange={(e) => setNewFormReminderTime(e.target.value)}
-                    className="bg-cream border border-stone-line/60 rounded-lg px-3 py-2 text-xs text-ink focus:outline-none focus:border-forest transition-colors"
+                    className="bg-cream border border-stone-line/60 rounded-lg px-3 py-1.5 sm:py-2 text-xs text-ink focus:outline-none focus:border-forest transition-colors"
                   />
                   <button
                     type="button"
@@ -682,18 +686,18 @@ export default function MedicationsPage() {
                         setNewFormReminderTime("");
                       }
                     }}
-                    className="px-4 py-2 bg-ink hover:bg-forest text-cream text-[10px] font-mono-accent rounded-lg transition-colors cursor-pointer"
+                    className="px-3.5 py-1.5 sm:px-4 sm:py-2 bg-ink hover:bg-forest text-cream text-[9.5px] sm:text-[10px] font-mono-accent rounded-lg transition-colors cursor-pointer active:scale-95"
                   >
                     Add Time
                   </button>
                 </div>
               </div>
 
-              <div className="flex justify-end pt-4 border-t border-stone-line/30">
+              <div className="flex sm:justify-end pt-3 sm:pt-4 border-t border-stone-line/30">
                 <button
                   type="submit"
                   disabled={formLoading}
-                  className="font-mono-accent text-xs tracking-[0.2em] bg-ink text-cream px-8 py-3 rounded-full hover:bg-forest disabled:opacity-50 transition-all duration-300 hover:scale-105"
+                  className="w-full sm:w-auto font-mono-accent text-[11px] sm:text-xs tracking-[0.15em] sm:tracking-[0.2em] bg-ink text-cream px-6 sm:px-8 py-3 rounded-full hover:bg-forest disabled:opacity-50 transition-all duration-300 active:scale-98 sm:hover:scale-105 flex items-center justify-center gap-2"
                 >
                   {editingMedId ? "SAVE CHANGES" : "LOG MEDICATION"}
                 </button>
@@ -701,24 +705,24 @@ export default function MedicationsPage() {
             </form>
           ) : (
             /* AI Scanner Form */
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               {scanLoading ? (
-                <div className="py-16 text-center border border-dashed border-stone-line/60 rounded-2xl bg-cream-light/10">
+                <div className="py-12 sm:py-16 text-center border border-dashed border-stone-line/60 rounded-2xl bg-cream-light/10">
                   <Loader label="Scanning prescription and extracting parameters..." />
                 </div>
               ) : extractedMeds.length > 0 ? (
                 /* Extracted Review Table */
-                <div className="space-y-5">
+                <div className="space-y-4 sm:space-y-5">
                   <div className="border-b border-stone-line/45 pb-1">
-                    <span className="font-mono-accent text-[10px] tracking-wider text-forest font-semibold uppercase block">
+                    <span className="font-mono-accent text-[9px] sm:text-[10px] tracking-wider text-forest font-semibold uppercase block">
                       AI Extracted Medications Review
                     </span>
                   </div>
 
-                  <div className="border border-stone-line/40 rounded-xl overflow-hidden text-xs">
-                    <table className="w-full text-left border-collapse bg-cream-light/40">
+                  <div className="border border-stone-line/40 rounded-xl overflow-hidden text-xs overflow-x-auto scrollbar-none">
+                    <table className="w-full min-w-[340px] text-left border-collapse bg-cream-light/40">
                       <thead>
-                        <tr className="border-b border-stone-line/40 font-mono-accent text-[9px] text-stone uppercase bg-cream-light">
+                        <tr className="border-b border-stone-line/40 font-mono-accent text-[8.5px] sm:text-[9px] text-stone uppercase bg-cream-light">
                           <th className="px-3 py-2 font-medium">Medication</th>
                           <th className="px-3 py-2 font-medium">Dosage</th>
                           <th className="px-3 py-2 font-medium">Frequency</th>
@@ -728,7 +732,7 @@ export default function MedicationsPage() {
                       <tbody>
                         {extractedMeds.map((m, idx) => (
                           <tr key={idx} className="border-b border-stone-line/20 last:border-none">
-                            <td className="px-3 py-2.5 font-medium text-ink">
+                            <td className="px-3 py-2 font-medium text-ink">
                               <input
                                 type="text"
                                 value={m.name}
@@ -740,7 +744,7 @@ export default function MedicationsPage() {
                                 className="bg-transparent border-none outline-none font-sans text-xs w-full text-ink"
                               />
                             </td>
-                            <td className="px-3 py-2.5">
+                            <td className="px-3 py-2">
                               <input
                                 type="text"
                                 value={m.dosage}
@@ -752,7 +756,7 @@ export default function MedicationsPage() {
                                 className="bg-transparent border-none outline-none font-sans text-xs w-full text-ink-soft"
                               />
                             </td>
-                            <td className="px-3 py-2.5">
+                            <td className="px-3 py-2">
                               <input
                                 type="text"
                                 value={m.frequency || ""}
@@ -764,7 +768,7 @@ export default function MedicationsPage() {
                                 className="bg-transparent border-none outline-none font-sans text-xs w-full text-ink-soft"
                               />
                             </td>
-                            <td className="px-3 py-2.5">
+                            <td className="px-3 py-2">
                               <input
                                 type="text"
                                 value={m.instructions || ""}
@@ -782,16 +786,16 @@ export default function MedicationsPage() {
                     </table>
                   </div>
 
-                  <div className="flex justify-end gap-3 pt-2">
+                  <div className="flex flex-col sm:flex-row sm:justify-end gap-2 sm:gap-3 pt-2">
                     <button
                       onClick={() => setExtractedMeds([])}
-                      className="font-mono-accent text-[10px] tracking-widest text-stone hover:text-ink px-4 py-2"
+                      className="w-full sm:w-auto font-mono-accent text-[10px] tracking-widest text-stone hover:text-ink px-4 py-2 text-center"
                     >
                       Discard Scan
                     </button>
                     <button
                       onClick={handleConfirmExtraction}
-                      className="font-mono-accent text-xs tracking-widest bg-forest text-cream-light px-6 py-2.5 rounded-full hover:bg-forest-bright transition-all"
+                      className="w-full sm:w-auto font-mono-accent text-xs tracking-widest bg-forest text-cream-light px-6 py-2.5 rounded-full hover:bg-forest-bright transition-all active:scale-98 text-center"
                     >
                       Save to Tracker
                     </button>
@@ -799,13 +803,13 @@ export default function MedicationsPage() {
                 </div>
               ) : (
                 /* Scanner File Upload box */
-                <div className="space-y-4">
-                  <span className="font-mono-accent text-[9px] tracking-widest text-stone uppercase block">
+                <div className="space-y-3 sm:space-y-4">
+                  <span className="font-mono-accent text-[8.5px] sm:text-[9px] tracking-widest text-stone uppercase block">
                     UPLOAD PRESCRIPTION SHEET / DOCTOR NOTE
                   </span>
-                  <div className="border border-dashed border-stone-line rounded-2xl p-8 text-center bg-cream-light/30 flex flex-col items-center justify-center space-y-4">
-                    <div className="w-12 h-12 rounded-xl bg-forest/10 flex items-center justify-center text-forest">
-                      <FileText className="w-6 h-6" />
+                  <div className="border border-dashed border-stone-line rounded-xl sm:rounded-2xl p-5 sm:p-8 text-center bg-cream-light/30 flex flex-col items-center justify-center space-y-3 sm:space-y-4">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-forest/10 flex items-center justify-center text-forest">
+                      <FileText className="w-5 h-5 sm:w-6 sm:h-6" />
                     </div>
                     <div className="space-y-1">
                       <p className="font-sans text-xs text-ink font-semibold">Upload handwritten note, prescription photo, or PDF</p>
@@ -831,16 +835,16 @@ export default function MedicationsPage() {
                       id="prescription-camera"
                     />
 
-                    <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2 sm:gap-3 pt-1 sm:pt-2 w-full sm:w-auto">
                       <label
                         htmlFor="prescription-file"
-                        className="px-5 py-2.5 bg-ink text-cream font-mono-accent text-[10px] tracking-widest rounded-full hover:bg-forest transition-colors cursor-pointer flex items-center gap-2 shadow-sm"
+                        className="px-4 sm:px-5 py-2.5 bg-ink text-cream font-mono-accent text-[9.5px] sm:text-[10px] tracking-widest rounded-full hover:bg-forest transition-colors cursor-pointer flex items-center justify-center gap-2 shadow-sm active:scale-98"
                       >
                         <Upload className="w-3.5 h-3.5" /> SELECT FILE (PDF / IMAGE)
                       </label>
                       <label
                         htmlFor="prescription-camera"
-                        className="px-5 py-2.5 bg-cream border border-stone-line text-ink font-mono-accent text-[10px] tracking-widest rounded-full hover:border-forest hover:text-forest transition-colors cursor-pointer flex items-center gap-2 shadow-sm"
+                        className="px-4 sm:px-5 py-2.5 bg-cream border border-stone-line text-ink font-mono-accent text-[9.5px] sm:text-[10px] tracking-widest rounded-full hover:border-forest hover:text-forest transition-colors cursor-pointer flex items-center justify-center gap-2 shadow-sm active:scale-98"
                       >
                         <Camera className="w-3.5 h-3.5" /> TAKE PHOTO
                       </label>
@@ -853,40 +857,40 @@ export default function MedicationsPage() {
         </div>
 
         {/* Right Side: Tracker Database & Active Detail (Col Span 5) */}
-        <div className="lg:col-span-5 space-y-8">
+        <div className="lg:col-span-5 space-y-6 sm:space-y-8">
           <div className="border-b border-stone-line/60 pb-1.5 flex items-center justify-between">
-            <span className="font-mono-accent text-[10px] tracking-[0.25em] text-stone uppercase block">
+            <span className="font-mono-accent text-[9px] sm:text-[10px] tracking-[0.2em] sm:tracking-[0.25em] text-stone uppercase block">
               02 — TRACKER DATABASE
             </span>
             <div className="flex gap-3">
               <button
                 onClick={() => setListTab("active")}
-                className={`font-mono-accent text-[10px] tracking-wider uppercase cursor-pointer ${
+                className={`font-mono-accent text-[9.5px] sm:text-[10px] tracking-wider uppercase cursor-pointer ${
                   listTab === "active" ? "text-forest font-semibold" : "text-stone hover:text-ink"
                 }`}
               >
-                Active
+                Active ({activeMeds.length})
               </button>
               <button
                 onClick={() => setListTab("expired")}
-                className={`font-mono-accent text-[10px] tracking-wider uppercase cursor-pointer ${
+                className={`font-mono-accent text-[9.5px] sm:text-[10px] tracking-wider uppercase cursor-pointer ${
                   listTab === "expired" ? "text-forest font-semibold" : "text-stone hover:text-ink"
                 }`}
               >
-                Expired
+                Expired ({expiredMeds.length})
               </button>
             </div>
           </div>
 
           {displayedMeds.length === 0 ? (
-            <div className="py-12 text-center border border-dashed border-stone-line/60 rounded-xl font-mono-accent text-xs text-stone">
+            <div className="py-8 sm:py-12 text-center border border-dashed border-stone-line/60 rounded-xl font-mono-accent text-xs text-stone">
               No medications logged in this catalog.
             </div>
           ) : (
-            <div className="space-y-1">
+            <div className="space-y-2.5 sm:space-y-1">
               {displayedMeds.map((med) => (
-                <div key={med.id} className="border-b border-stone-line/30 pb-3 pt-3">
-                  <div className="flex items-start justify-between gap-4">
+                <div key={med.id} className="bg-cream-light/40 sm:bg-transparent border sm:border-0 border-stone-line/40 rounded-xl sm:rounded-none p-3 sm:p-0 sm:border-b sm:border-stone-line/30 sm:pb-3 sm:pt-3">
+                  <div className="flex items-start justify-between gap-3">
                     <button
                       onClick={() => setSelectedMed(selectedMed?.id === med.id ? null : med)}
                       className="text-left min-w-0 flex items-start gap-2.5 group cursor-pointer"
@@ -896,26 +900,28 @@ export default function MedicationsPage() {
                         <p className="font-sans text-xs font-semibold text-ink truncate group-hover:text-forest transition-colors">
                           {med.name}
                         </p>
-                        <p className="font-mono-accent text-[9px] tracking-wide text-stone uppercase">
+                        <p className="font-mono-accent text-[8.5px] sm:text-[9px] tracking-wide text-stone uppercase">
                           {med.dosage} — {med.frequency}
                         </p>
                       </div>
                     </button>
 
-                    <div className="flex items-center gap-2 flex-shrink-0">
+                    <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
                       {med.active ? (
                         <>
                           <button
-                            onClick={() => handleStartEdit(med)}
-                            className="p-1 text-stone hover:text-forest rounded border border-stone-line/50 transition-colors cursor-pointer"
+                            onClick={() => handleEditClick(med)}
+                            className="p-1.5 sm:p-1 text-stone hover:text-forest rounded border border-stone-line/50 transition-colors cursor-pointer"
                             title="Edit medication"
+                            aria-label="Edit medication"
                           >
                             <Edit3 className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => handleStopMed(med.id)}
-                            className="p-1 text-stone hover:text-rose-500 rounded border border-stone-line/50 transition-colors cursor-pointer"
+                            className="p-1.5 sm:p-1 text-stone hover:text-rose-500 rounded border border-stone-line/50 transition-colors cursor-pointer"
                             title="Stop tracker log"
+                            aria-label="Stop medication"
                           >
                             <Square className="w-3.5 h-3.5 fill-current" />
                           </button>
@@ -931,8 +937,9 @@ export default function MedicationsPage() {
                           />
                           <button
                             onClick={() => handleContinueMed(med.id)}
-                            className="p-1 text-stone hover:text-forest rounded border border-stone-line/50 transition-colors cursor-pointer"
+                            className="p-1.5 sm:p-1 text-stone hover:text-forest rounded border border-stone-line/50 transition-colors cursor-pointer"
                             title="Renew tracker log"
+                            aria-label="Renew medication"
                           >
                             <Play className="w-3.5 h-3.5 fill-current" />
                           </button>
@@ -940,8 +947,9 @@ export default function MedicationsPage() {
                       )}
                       <button
                         onClick={() => handleDeleteMed(med.id)}
-                        className="p-1 text-stone hover:text-rose-500 rounded border border-stone-line/50 transition-colors cursor-pointer"
+                        className="p-1.5 sm:p-1 text-stone hover:text-rose-500 rounded border border-stone-line/50 transition-colors cursor-pointer"
                         title="Delete log"
+                        aria-label="Delete medication"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -955,18 +963,18 @@ export default function MedicationsPage() {
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: "auto" }}
                         exit={{ opacity: 0, height: 0 }}
-                        className="mt-3 pl-6 space-y-3 border-l border-stone-line/60 overflow-hidden text-xs"
+                        className="mt-3 pl-3 sm:pl-6 space-y-2.5 sm:space-y-3 border-l-2 sm:border-l border-stone-line/60 overflow-hidden text-xs"
                       >
                         {med.notes && (
                           <div className="flex gap-1.5 text-ink-soft bg-cream-light/60 p-2 rounded-lg border border-stone-line/40">
-                            <AlertCircle className="w-4 h-4 flex-shrink-0 text-stone" />
-                            <p className="font-sans text-[11px] leading-relaxed">{med.notes}</p>
+                            <AlertCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0 text-stone mt-0.5" />
+                            <p className="font-sans text-[10.5px] sm:text-[11px] leading-relaxed">{med.notes}</p>
                           </div>
                         )}
 
                         <div className="space-y-1.5">
-                          <span className="font-mono-accent text-[9px] tracking-widest text-stone uppercase block flex items-center gap-1">
-                            <Bell className="w-3.5 h-3.5" /> Reminder Schedules
+                          <span className="font-mono-accent text-[8.5px] sm:text-[9px] tracking-widest text-stone uppercase block flex items-center gap-1">
+                            <Bell className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> Reminder Schedules
                           </span>
                           
                           {med.reminders?.length === 0 ? (
@@ -976,11 +984,11 @@ export default function MedicationsPage() {
                               {med.reminders?.map((r) => (
                                 <span
                                   key={r.id}
-                                  className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-forest/10 border border-forest/20 rounded-full text-[10px] text-forest"
+                                  className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-forest/10 border border-forest/20 rounded-full text-[9.5px] sm:text-[10px] text-forest"
                                 >
                                   {r.reminderTime}
-                                  <button onClick={() => handleDeleteReminder(r.id)} aria-label="Remove reminder">
-                                    <X className="w-2.5 h-2.5 hover:text-rose-500" />
+                                  <button onClick={() => handleDeleteReminder(r.id)} aria-label="Remove reminder" className="p-0.5 hover:text-rose-500">
+                                    <X className="w-2.5 h-2.5" />
                                   </button>
                                 </span>
                               ))}
@@ -993,11 +1001,11 @@ export default function MedicationsPage() {
                               required
                               value={newReminderTime}
                               onChange={(e) => setNewReminderTime(e.target.value)}
-                              className="bg-cream-light border border-stone-line/60 rounded px-2 py-0.5 text-xs text-ink focus:outline-none focus:border-forest"
+                              className="bg-cream-light border border-stone-line/60 rounded px-2 py-1 text-xs text-ink focus:outline-none focus:border-forest"
                             />
                             <button
                               type="submit"
-                              className="px-2.5 py-0.5 bg-ink text-cream text-[10px] font-mono-accent rounded hover:bg-forest transition-colors"
+                              className="px-2.5 py-1 bg-ink text-cream text-[9.5px] sm:text-[10px] font-mono-accent rounded hover:bg-forest transition-colors active:scale-95"
                             >
                               Add Reminder
                             </button>
