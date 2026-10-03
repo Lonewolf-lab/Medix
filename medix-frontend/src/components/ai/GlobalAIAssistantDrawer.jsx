@@ -172,10 +172,10 @@ export default function GlobalAIAssistantDrawer() {
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-40 rounded-full w-14 h-14 bg-ink hover:bg-forest text-cream flex items-center justify-center shadow-lg transition-all duration-300 cursor-pointer"
+        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 rounded-full w-12 h-12 sm:w-14 sm:h-14 bg-ink hover:bg-forest text-cream flex items-center justify-center shadow-lg transition-all duration-300 cursor-pointer"
         aria-label="Open AI Assistant"
       >
-        <MessageSquare className="w-6 h-6" />
+        <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6" />
       </motion.button>
 
       {/* Slide-over Drawer (Every Page) */}

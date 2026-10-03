@@ -134,7 +134,7 @@ export default function AppLayout() {
         </div>
 
         {/* Content Area */}
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto pb-20 md:pb-8">
           <div className="max-w-6xl mx-auto w-full">
             <Outlet />
           </div>
