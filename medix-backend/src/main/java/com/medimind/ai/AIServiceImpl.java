@@ -111,9 +111,19 @@ public class AIServiceImpl implements AIService {
     public Map<String, Object> parseSchedulePrompt(String userPrompt, LocalDate todayDate) {
         try {
             LocalDate today = todayDate != null ? todayDate : LocalDate.now();
+            java.time.DayOfWeek todayDow = today.getDayOfWeek();
 
-            String systemPrompt = "You are an AI medical schedule & reminder intent parser. " +
-                    "Today's date is: " + today + ". " +
+            StringBuilder calReference = new StringBuilder();
+            calReference.append("Today's Date: ").append(today).append(" (").append(todayDow.name()).append(")\n");
+            calReference.append("Upcoming 14-Day Calendar Reference (Use this exact table to map relative and day names to YYYY-MM-DD):\n");
+            for (int i = 0; i <= 14; i++) {
+                LocalDate d = today.plusDays(i);
+                String rel = (i == 0) ? " [TODAY]" : (i == 1 ? " [TOMORROW]" : "");
+                calReference.append("  - ").append(d.getDayOfWeek().name()).append(": ").append(d).append(rel).append("\n");
+            }
+
+            String systemPrompt = "You are an AI medical schedule & reminder intent parser.\n" +
+                    calReference + "\n" +
                     "Analyze the user's natural language input and determine their exact intent.\n" +
                     "Return ONLY a raw valid JSON object (no markdown, no ``` json, no extra commentary) matching this schema:\n" +
                     "{\n" +
@@ -121,22 +131,29 @@ public class AIServiceImpl implements AIService {
                     "  \"doctorName\": \"Dr. Name or null\",\n" +
                     "  \"specialty\": \"Specialty or null\",\n" +
                     "  \"appointmentTime\": \"YYYY-MM-DDTHH:mm:ss or null\",\n" +
+                    "  \"targetDayOfWeek\": \"MONDAY or TUESDAY or WEDNESDAY or THURSDAY or FRIDAY or SATURDAY or SUNDAY or null\",\n" +
                     "  \"medicationName\": \"Medication Name or null\",\n" +
                     "  \"dosage\": \"Dosage e.g. 500mg or 1 tablet or null\",\n" +
                     "  \"frequency\": \"ONCE_DAILY or TWICE_DAILY or THREE_TIMES_DAILY or WEEKLY or AS_NEEDED\",\n" +
-                    "  \"startDate\": \"YYYY-MM-DD or null (default to today: " + today + ")\",\n" +
-                    "  \"endDate\": \"YYYY-MM-DD or null (compute based on requested duration e.g. 3 weeks from start date)\",\n" +
+                    "  \"startDate\": \"YYYY-MM-DD or null\",\n" +
+                    "  \"endDate\": \"YYYY-MM-DD or null\",\n" +
                     "  \"reminderTimes\": [\"10:00\", \"19:00\"],\n" +
                     "  \"notes\": \"Any extra notes or instructions or null\"\n" +
                     "}\n" +
-                    "Rules:\n" +
-                    "1. If prompt asks to schedule, book, or add a doctor/physician visit, set intentType='CREATE_APPOINTMENT'. Format appointmentTime using today's context (" + today + ").\n" +
-                    "2. If prompt asks to delete, cancel, remove, stop, or drop a doctor visit/appointment, set intentType='DELETE_APPOINTMENT'. Extract doctorName.\n" +
-                    "3. If prompt asks to add, log, create, or start a new medicine/prescription/reminder, set intentType='CREATE_MEDICATION'. Default startDate to " + today + ". If duration is specified, compute endDate.\n" +
-                    "4. If prompt asks to remove, delete, stop, deactivate, or drop a medicine/prescription (e.g., 'remove the zinkuf-dx medication'), set intentType='DELETE_MEDICATION'. Extract medicationName.\n" +
-                    "5. If prompt asks to edit, update, change, or modify timings/reminders of an existing medicine (e.g., 'edit the timings of zinkuf-dx to 11:50 AM and 7:30 PM'), set intentType='EDIT_MEDICATION_TIMINGS'. Extract medicationName and reminderTimes.\n" +
-                    "6. Extract all reminder times in 24-hour 'HH:mm' format (e.g. 11:50 AM -> '11:50', 7:30 PM -> '19:30').\n" +
-                    "7. For general questions or unclear actions, set intentType='UNKNOWN'.\n\n" +
+                    "Rules for date resolution:\n" +
+                    "1. When the user specifies a day of the week (e.g. 'on Friday', 'this Friday', 'upcoming Friday', 'meet Dr. Gupta on Friday'), MUST pick the upcoming date matching that day of the week from the Upcoming Calendar Reference above.\n" +
+                    "   - If today is " + todayDow.name() + " and user says 'on Friday', look up the date for FRIDAY from the reference table.\n" +
+                    "   - NEVER default to tomorrow or the next day if a specific day of the week was mentioned.\n" +
+                    "   - Set targetDayOfWeek to the requested day (e.g. 'FRIDAY').\n" +
+                    "2. If no time of day is specified in the prompt, default time to 10:00:00 (e.g. YYYY-MM-DDT10:00:00).\n" +
+                    "   If a time is specified (e.g. 'at 4 PM', 'at 11:30 AM', '3:00', '16:00'), format as 24-hour time HH:mm:ss.\n" +
+                    "3. If prompt asks to schedule, book, or add a doctor/physician visit, set intentType='CREATE_APPOINTMENT'.\n" +
+                    "4. If prompt asks to delete, cancel, remove, stop, or drop a doctor visit/appointment, set intentType='DELETE_APPOINTMENT'. Extract doctorName.\n" +
+                    "5. If prompt asks to add, log, create, or start a new medicine/prescription/reminder, set intentType='CREATE_MEDICATION'. Default startDate to " + today + ". If duration is specified (e.g. 3 weeks), compute endDate using the reference calendar.\n" +
+                    "6. If prompt asks to remove, delete, stop, deactivate, or drop a medicine/prescription (e.g., 'remove the zinkuf-dx medication'), set intentType='DELETE_MEDICATION'. Extract medicationName.\n" +
+                    "7. If prompt asks to edit, update, change, or modify timings/reminders of an existing medicine (e.g., 'edit the timings of zinkuf-dx to 11:50 AM and 7:30 PM'), set intentType='EDIT_MEDICATION_TIMINGS'. Extract medicationName and reminderTimes.\n" +
+                    "8. Extract all reminder times in 24-hour 'HH:mm' format (e.g. 11:50 AM -> '11:50', 7:30 PM -> '19:30').\n" +
+                    "9. For general questions or unclear actions, set intentType='UNKNOWN'.\n\n" +
                     "User Input: \"" + userPrompt + "\"";
 
             Map<String, Object> requestBody = new HashMap<>();
