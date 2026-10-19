@@ -1,17 +1,22 @@
 package com.medimind.auth;
 
 import com.medimind.auth.dto.AuthResponse;
+import com.medimind.auth.dto.GoogleAuthRequest;
 import com.medimind.auth.dto.LoginRequest;
 import com.medimind.auth.dto.RegisterRequest;
 import com.medimind.security.JwtTokenProvider;
 import com.medimind.user.User;
 import com.medimind.user.UserRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
+
+import java.util.Map;
 
 @Service
 public class AuthServiceImpl implements AuthService {
@@ -21,6 +26,10 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider tokenProvider;
     private final BlacklistedTokenRepository blacklistedTokenRepository;
+    private final WebClient webClient;
+
+    @Value("${google.client.id:}")
+    private String configuredGoogleClientId;
 
     public AuthServiceImpl(AuthenticationManager authenticationManager,
                            UserRepository userRepository,
@@ -32,6 +41,7 @@ public class AuthServiceImpl implements AuthService {
         this.passwordEncoder = passwordEncoder;
         this.tokenProvider = tokenProvider;
         this.blacklistedTokenRepository = blacklistedTokenRepository;
+        this.webClient = WebClient.builder().build();
     }
 
     @Override
@@ -143,5 +153,94 @@ public class AuthServiceImpl implements AuthService {
             BlacklistedToken blacklistedToken = new BlacklistedToken(token, expiresAt);
             blacklistedTokenRepository.save(blacklistedToken);
         }
+    }
+
+    @Override
+    public AuthResponse loginWithGoogle(GoogleAuthRequest request) {
+        if (request == null || request.getCredential() == null || request.getCredential().isBlank()) {
+            throw new IllegalArgumentException("Google authentication token is missing.");
+        }
+
+        Map<String, Object> tokenInfo;
+        String rawToken = request.getCredential().trim();
+        try {
+            if (rawToken.startsWith("ya29.") || !rawToken.contains(".")) {
+                // Access Token: query Google userinfo endpoint
+                tokenInfo = webClient.get()
+                        .uri("https://www.googleapis.com/oauth2/v3/userinfo")
+                        .header("Authorization", "Bearer " + rawToken)
+                        .retrieve()
+                        .bodyToMono(new org.springframework.core.ParameterizedTypeReference<Map<String, Object>>() {})
+                        .block();
+            } else {
+                // ID Token JWT: query Google tokeninfo endpoint
+                tokenInfo = webClient.get()
+                        .uri("https://oauth2.googleapis.com/tokeninfo?id_token=" + rawToken)
+                        .retrieve()
+                        .bodyToMono(new org.springframework.core.ParameterizedTypeReference<Map<String, Object>>() {})
+                        .block();
+            }
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Failed to verify Google token with Google servers: " + e.getMessage());
+        }
+
+        if (tokenInfo == null || tokenInfo.get("email") == null) {
+            throw new IllegalArgumentException("Invalid Google token or email not present.");
+        }
+
+        if (configuredGoogleClientId != null && !configuredGoogleClientId.isBlank()) {
+            String aud = (String) tokenInfo.get("aud");
+            if (!configuredGoogleClientId.equals(aud)) {
+                throw new IllegalArgumentException("Google token client mismatch (aud does not match configured client id).");
+            }
+        }
+
+        String email = ((String) tokenInfo.get("email")).trim().toLowerCase();
+        String name = (String) tokenInfo.get("name");
+        if (name == null || name.isBlank()) {
+            name = (String) tokenInfo.get("given_name");
+        }
+        if (name == null || name.isBlank()) {
+            name = email.split("@")[0];
+        }
+
+        User user = userRepository.findByEmail(email).orElse(null);
+        if (user == null) {
+            user = User.builder()
+                    .name(name)
+                    .email(email)
+                    .passwordHash(passwordEncoder.encode(java.util.UUID.randomUUID().toString()))
+                    .build();
+            user = userRepository.save(user);
+        } else {
+            if (user.getLockoutUntil() != null && user.getLockoutUntil().isBefore(java.time.LocalDateTime.now())) {
+                user.setLockoutUntil(null);
+            }
+            user.setFailedLoginAttempts(0);
+            userRepository.save(user);
+        }
+
+        org.springframework.security.core.userdetails.UserDetails userDetails =
+                new org.springframework.security.core.userdetails.User(
+                        user.getEmail(),
+                        user.getPasswordHash(),
+                        java.util.Collections.emptyList()
+                );
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                userDetails,
+                null,
+                userDetails.getAuthorities()
+        );
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        String jwt = tokenProvider.generateToken(authentication, user.getId().toString());
+
+        return AuthResponse.builder()
+                .token(jwt)
+                .userId(user.getId())
+                .name(user.getName())
+                .email(user.getEmail())
+                .build();
     }
 }

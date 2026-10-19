@@ -45,6 +45,13 @@ public class AuthController {
         return ResponseEntity.ok(authResponse);
     }
 
+    @PostMapping("/google")
+    public ResponseEntity<AuthResponse> googleLogin(@Valid @RequestBody com.medimind.auth.dto.GoogleAuthRequest googleAuthRequest, HttpServletResponse response) {
+        AuthResponse authResponse = authService.loginWithGoogle(googleAuthRequest);
+        setCookie(response, authResponse.getToken(), 86400);
+        return ResponseEntity.ok(authResponse);
+    }
+
     @PostMapping("/logout")
     public ResponseEntity<Map<String, String>> logout(HttpServletRequest request, HttpServletResponse response) {
         String token = null;

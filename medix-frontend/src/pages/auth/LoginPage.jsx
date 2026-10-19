@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "@/store/authStore";
 import toast from "react-hot-toast";
 import AuthShell, { AuthField, AuthSubmit } from "./AuthShell.jsx";
+import GoogleAuthButton from "@/components/auth/GoogleAuthButton.jsx";
 
 export default function LoginPage() {
   const [form, setForm] = useState({ email: "", password: "" });
@@ -69,6 +70,7 @@ export default function LoginPage() {
         <AuthSubmit disabled={loading}>
           {loading ? "Signing in..." : "Sign in"}
         </AuthSubmit>
+        <GoogleAuthButton mode="login" />
       </form>
     </AuthShell>
   );

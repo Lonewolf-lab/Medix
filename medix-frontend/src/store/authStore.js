@@ -40,6 +40,13 @@ export const useAuthStore = create((set) => ({
     return user;
   },
 
+  loginWithGoogle: async (credential) => {
+    await authApi.googleLogin(credential);
+    const user = await userApi.getProfile();
+    set({ user, status: "authed" });
+    return user;
+  },
+
   logout: async () => {
     try {
       await authApi.logout();

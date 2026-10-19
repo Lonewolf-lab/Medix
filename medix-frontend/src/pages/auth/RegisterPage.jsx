@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/store/authStore";
 import toast from "react-hot-toast";
 import AuthShell, { AuthField, AuthSubmit } from "./AuthShell.jsx";
+import GoogleAuthButton from "@/components/auth/GoogleAuthButton.jsx";
 
 const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
@@ -120,7 +121,8 @@ export default function RegisterPage() {
         <AuthSubmit disabled={loading}>
           {loading ? "Creating account..." : "Create account"}
         </AuthSubmit>
-        <p className="font-mono-accent text-[10px] tracking-widest text-stone -mt-2">
+        <GoogleAuthButton mode="register" />
+        <p className="font-mono-accent text-[10px] tracking-widest text-stone -mt-1 sm:-mt-2">
           MEDIX IS NOT A SUBSTITUTE FOR PROFESSIONAL MEDICAL ADVICE.
         </p>
       </form>

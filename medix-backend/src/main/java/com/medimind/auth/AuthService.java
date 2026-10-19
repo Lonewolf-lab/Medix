@@ -7,5 +7,6 @@ import com.medimind.auth.dto.RegisterRequest;
 public interface AuthService {
     AuthResponse register(RegisterRequest registerRequest);
     AuthResponse login(LoginRequest loginRequest);
+    AuthResponse loginWithGoogle(com.medimind.auth.dto.GoogleAuthRequest request);
     void blacklistToken(String token);
 }
