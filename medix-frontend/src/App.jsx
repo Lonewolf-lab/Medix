@@ -14,6 +14,8 @@ import LandingPage from "./pages/landing/LandingPage.jsx";
 import FeaturesPage from "./pages/features/FeaturesPage.jsx";
 import AboutPage from "./pages/about/AboutPage.jsx";
 import ContactPage from "./pages/contact/ContactPage.jsx";
+import TermsPage from "./pages/legal/TermsPage.jsx";
+import PrivacyPage from "./pages/legal/PrivacyPage.jsx";
 
 // Auth imports
 import LoginPage from "./pages/auth/LoginPage.jsx";
@@ -116,6 +118,8 @@ function App() {
               <Route path="/features" element={<FeaturesPage />} />
               <Route path="/about" element={<AboutPage />} />
               <Route path="/contact" element={<ContactPage />} />
+              <Route path="/terms" element={<TermsPage />} />
+              <Route path="/privacy" element={<PrivacyPage />} />
             </Route>
 
             {/* Guest-Only Auth Routes */}

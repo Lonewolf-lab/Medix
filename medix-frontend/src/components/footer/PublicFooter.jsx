@@ -7,6 +7,8 @@ const SITEMAP = [
   { label: "Features", to: "/features" },
   { label: "About", to: "/about" },
   { label: "Contact", to: "/contact" },
+  { label: "Terms of Service", to: "/terms" },
+  { label: "Privacy Policy", to: "/privacy" },
   { label: "Sign in", to: "/login" },
   { label: "Get started", to: "/register" },
 ];
@@ -111,6 +113,17 @@ export default function PublicFooter() {
         <span className="font-mono-accent text-[9px] sm:text-[10px] tracking-[0.2em] sm:tracking-[0.25em] text-stone">
           ©2026 MEDIX. ALL RIGHTS RESERVED. BUILT BY SIDDHANT SINHA
         </span>
+
+        <div className="flex items-center gap-3 text-[9px] sm:text-[10px] font-mono-accent tracking-widest text-stone">
+          <Link to="/terms" className="hover:text-forest-bright transition-colors uppercase">
+            Terms of Service
+          </Link>
+          <span>•</span>
+          <Link to="/privacy" className="hover:text-forest-bright transition-colors uppercase">
+            Privacy Policy
+          </Link>
+        </div>
+
         <a
           href="https://github.com/Lonewolf-lab/Medix"
           target="_blank"

@@ -15,6 +15,7 @@ export default function RegisterPage() {
     dob: "",
     bloodGroup: "",
   });
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const register = useAuthStore((s) => s.register);
   const navigate = useNavigate();
@@ -23,6 +24,12 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!agreedToTerms) {
+      toast.error("Please agree to the Terms of Service and Privacy Policy to continue.");
+      return;
+    }
+
     setLoading(true);
 
     // Clean up empty optional fields
@@ -118,12 +125,46 @@ export default function RegisterPage() {
             </select>
           </div>
         </div>
+
+        {/* Legal Consent Checkbox */}
+        <div className="pt-1">
+          <label className="flex items-start gap-2.5 sm:gap-3 cursor-pointer select-none text-[11px] sm:text-xs text-ink-soft leading-relaxed group">
+            <input
+              type="checkbox"
+              required
+              checked={agreedToTerms}
+              onChange={(e) => setAgreedToTerms(e.target.checked)}
+              className="mt-0.5 w-4 h-4 rounded border-stone-line text-forest focus:ring-forest cursor-pointer accent-forest shrink-0"
+              disabled={loading}
+            />
+            <span>
+              I agree to Medix&rsquo;s{" "}
+              <Link
+                to="/terms"
+                target="_blank"
+                className="font-semibold text-forest underline hover:text-forest-bright"
+              >
+                Terms of Service
+              </Link>{" "}
+              and acknowledge the{" "}
+              <Link
+                to="/privacy"
+                target="_blank"
+                className="font-semibold text-forest underline hover:text-forest-bright"
+              >
+                Privacy Policy
+              </Link>
+              , including the non-liability medical disclaimer.
+            </span>
+          </label>
+        </div>
+
         <AuthSubmit disabled={loading}>
           {loading ? "Creating account..." : "Create account"}
         </AuthSubmit>
         <GoogleAuthButton mode="register" />
-        <p className="font-mono-accent text-[10px] tracking-widest text-stone -mt-1 sm:-mt-2">
-          MEDIX IS NOT A SUBSTITUTE FOR PROFESSIONAL MEDICAL ADVICE.
+        <p className="font-mono-accent text-[9px] sm:text-[10px] tracking-widest text-stone -mt-1 sm:-mt-2 text-center sm:text-left">
+          BY CREATING AN ACCOUNT YOU AGREE TO OUR TERMS OF SERVICE & PRIVACY POLICY.
         </p>
       </form>
     </AuthShell>
