@@ -32,7 +32,7 @@ export default function GoogleAuthButton({ mode = "login" }) {
       setLoading(true);
       const client = window.google.accounts.oauth2.initTokenClient({
         client_id: clientId.trim(),
-        scope: "email profile openid https://www.googleapis.com/auth/calendar.events",
+        scope: "email profile openid",
         callback: async (response) => {
           if (response.error) {
             setLoading(false);
@@ -54,7 +54,7 @@ export default function GoogleAuthButton({ mode = "login" }) {
         },
       });
 
-      client.requestAccessToken({ prompt: "consent" });
+      client.requestAccessToken({ prompt: "select_account" });
     } catch (err) {
       setLoading(false);
       toast.error("Failed to initialize Google authentication popup.");

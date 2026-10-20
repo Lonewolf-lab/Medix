@@ -233,13 +233,15 @@ public class AuthServiceImpl implements AuthService {
             user = userRepository.save(user);
         }
 
-        // Retroactively sync all existing appointments and active medications to Google Calendar
-        try {
-            log.info("Auto-syncing schedules to Google Calendar for user: {}", user.getEmail());
-            int count = googleCalendarService.syncAllExistingSchedules(user.getId());
-            log.info("Successfully synced {} schedule item(s) to Google Calendar for user: {}", count, user.getEmail());
-        } catch (Exception e) {
-            log.error("Failed to auto-sync existing schedules upon Google sign-in: {}", e.getMessage(), e);
+        // Retroactively sync all existing appointments and active medications to Google Calendar if already connected
+        if (user.isGoogleConnected() && user.getGoogleAccessToken() != null) {
+            try {
+                log.info("Auto-syncing schedules to Google Calendar for user: {}", user.getEmail());
+                int count = googleCalendarService.syncAllExistingSchedules(user.getId());
+                log.info("Successfully synced {} schedule item(s) to Google Calendar for user: {}", count, user.getEmail());
+            } catch (Exception e) {
+                log.warn("Auto-sync on Google login deferred: {}", e.getMessage());
+            }
         }
 
         org.springframework.security.core.userdetails.UserDetails userDetails =
