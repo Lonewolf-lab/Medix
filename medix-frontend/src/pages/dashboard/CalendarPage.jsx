@@ -12,10 +12,14 @@ import {
   ChevronRight,
   Stethoscope,
   Pill,
-  Bell
+  Bell,
+  RefreshCw,
+  Check
 } from "lucide-react";
 import { appointmentApi } from "../../api/appointmentApi";
 import { medicationApi } from "../../api/medicationApi";
+import { calendarApi } from "../../api/calendarApi";
+import GoogleCalendarModal from "../../components/calendar/GoogleCalendarModal";
 import toast from "react-hot-toast";
 
 export default function CalendarPage() {
@@ -26,7 +30,11 @@ export default function CalendarPage() {
   const [loading, setLoading] = useState(true);
   const [filterType, setFilterType] = useState("ALL"); // ALL | APPOINTMENTS | MEDICATIONS
 
-
+  // Google Calendar Integration State
+  const [isGoogleConnected, setIsGoogleConnected] = useState(false);
+  const [isGoogleModalOpen, setIsGoogleModalOpen] = useState(false);
+  const [syncingGoogle, setSyncingGoogle] = useState(false);
+  const [pendingOpenDrawer, setPendingOpenDrawer] = useState(false);
 
   // Scheduler Form Drawer State
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -59,16 +67,59 @@ export default function CalendarPage() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [apptsData, medsData] = await Promise.all([
+      const [apptsData, medsData, calStatus] = await Promise.allSettled([
         appointmentApi.getAll(),
         medicationApi.getAll(),
+        calendarApi.getStatus(),
       ]);
-      setAppointments(apptsData || []);
-      setMedications(medsData || []);
+
+      if (apptsData.status === "fulfilled") setAppointments(apptsData.value || []);
+      if (medsData.status === "fulfilled") setMedications(medsData.value || []);
+      if (calStatus.status === "fulfilled") {
+        setIsGoogleConnected(Boolean(calStatus.value?.connected));
+      }
     } catch (err) {
       toast.error("Failed to load calendar events.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSyncAllGoogle = async () => {
+    try {
+      setSyncingGoogle(true);
+      const res = await calendarApi.syncAll();
+      toast.success(
+        res.message || `Google Calendar synced! ${res.syncedCount || 0} items updated.`
+      );
+      setIsGoogleConnected(true);
+    } catch (err) {
+      toast.error("Failed to sync Google Calendar. Please reconnect.");
+    } finally {
+      setSyncingGoogle(false);
+    }
+  };
+
+  const handleGoogleConnectedSuccess = (syncResult) => {
+    setIsGoogleConnected(true);
+    if (syncResult) {
+      toast.success(
+        syncResult.message || `Google Calendar connected! ${syncResult.syncedCount || 0} items synced.`
+      );
+    } else {
+      toast.success("Google Calendar connected successfully!");
+    }
+    if (pendingOpenDrawer) {
+      setPendingOpenDrawer(false);
+      handleOpenSchedulerActual();
+    }
+  };
+
+  const handleContinueWithoutGoogle = () => {
+    sessionStorage.setItem("medix:gcal-dismissed", "true");
+    if (pendingOpenDrawer) {
+      setPendingOpenDrawer(false);
+      handleOpenSchedulerActual();
     }
   };
 
@@ -236,8 +287,8 @@ export default function CalendarPage() {
     setSelectedDate(date);
   };
 
-  // Open Scheduler drawer
-  const handleOpenScheduler = (appt = null) => {
+  // Actual Open Scheduler drawer
+  const handleOpenSchedulerActual = (appt = null) => {
     if (appt) {
       const apptTime = new Date(appt.appointmentTime);
       const hour = String(apptTime.getHours()).padStart(2, "0");
@@ -260,6 +311,16 @@ export default function CalendarPage() {
       });
     }
     setIsDrawerOpen(true);
+  };
+
+  // Open Scheduler drawer with optional Google Calendar prompt
+  const handleOpenScheduler = (appt = null) => {
+    if (!isGoogleConnected && !sessionStorage.getItem("medix:gcal-dismissed") && !appt) {
+      setPendingOpenDrawer(true);
+      setIsGoogleModalOpen(true);
+      return;
+    }
+    handleOpenSchedulerActual(appt);
   };
 
   // Form Submit
@@ -411,12 +472,39 @@ export default function CalendarPage() {
           </h1>
         </div>
 
-        <button
-          onClick={() => handleOpenScheduler()}
-          className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-forest text-cream-light font-mono-accent text-[11px] sm:text-xs tracking-wider uppercase hover:bg-forest-bright shadow-xs transition-all transform active:scale-95 cursor-pointer self-stretch sm:self-auto text-center"
-        >
-          <Plus className="w-3.5 h-3.5" /> Book Visit
-        </button>
+        <div className="flex items-center gap-2.5 flex-wrap">
+          {isGoogleConnected ? (
+            <div className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-forest/10 border border-forest/20 text-forest text-xs font-mono-accent">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Google Calendar Active</span>
+              <button
+                type="button"
+                onClick={handleSyncAllGoogle}
+                disabled={syncingGoogle}
+                title="Resync Medix appointments and medications with Google Calendar"
+                className="hover:text-forest-bright transition-colors cursor-pointer disabled:opacity-50 ml-1 p-0.5 rounded"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${syncingGoogle ? "animate-spin" : ""}`} />
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setIsGoogleModalOpen(true)}
+              className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-stone-line bg-cream-light hover:border-forest text-ink-soft hover:text-forest text-[11px] sm:text-xs font-mono-accent uppercase tracking-wider transition-all cursor-pointer shadow-xs active:scale-95"
+            >
+              <CalendarIcon className="w-3.5 h-3.5 text-forest" />
+              <span>Connect Google Calendar</span>
+            </button>
+          )}
+
+          <button
+            onClick={() => handleOpenScheduler()}
+            className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-forest text-cream-light font-mono-accent text-[11px] sm:text-xs tracking-wider uppercase hover:bg-forest-bright shadow-xs transition-all transform active:scale-95 cursor-pointer self-stretch sm:self-auto text-center"
+          >
+            <Plus className="w-3.5 h-3.5" /> Book Visit
+          </button>
+        </div>
       </div>
 
       {loading ? (
@@ -979,6 +1067,17 @@ export default function CalendarPage() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Google Calendar Consent & Setup Modal */}
+      <GoogleCalendarModal
+        isOpen={isGoogleModalOpen}
+        onClose={() => {
+          setIsGoogleModalOpen(false);
+          setPendingOpenDrawer(false);
+        }}
+        onConnected={handleGoogleConnectedSuccess}
+        onContinueWithout={handleContinueWithoutGoogle}
+      />
     </div>
   );
 }
