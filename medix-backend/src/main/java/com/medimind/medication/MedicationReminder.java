@@ -25,6 +25,9 @@ public class MedicationReminder {
     @Column(name = "is_active", nullable = false)
     private boolean isActive;
 
+    @Column(name = "google_event_id")
+    private String googleEventId;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -44,6 +47,8 @@ public class MedicationReminder {
     public void setReminderTime(String reminderTime) { this.reminderTime = reminderTime; }
     public boolean isActive() { return isActive; }
     public void setActive(boolean active) { isActive = active; }
+    public String getGoogleEventId() { return googleEventId; }
+    public void setGoogleEventId(String googleEventId) { this.googleEventId = googleEventId; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 

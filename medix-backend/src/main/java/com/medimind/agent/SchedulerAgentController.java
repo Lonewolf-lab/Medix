@@ -115,6 +115,26 @@ public class SchedulerAgentController {
                     endDate = LocalDate.parse(endDateStr.trim());
                 } catch (Exception ignored) {}
             }
+            if (endDate == null && request.getPrompt() != null) {
+                Matcher dayMatcher = Pattern.compile("(?i)\\b(?:for\\s+)?(\\d{1,3})\\s*days?\\b").matcher(request.getPrompt());
+                if (dayMatcher.find()) {
+                    int days = Integer.parseInt(dayMatcher.group(1));
+                    if (days > 0) {
+                        endDate = startDate.plusDays(days);
+                    }
+                }
+            }
+
+            if (request.getPrompt() != null) {
+                String pLower = request.getPrompt().toLowerCase();
+                if ((pLower.contains("3 times") || pLower.contains("three times") || pLower.contains("thrice"))
+                        && frequency == FrequencyType.ONCE_DAILY) {
+                    frequency = FrequencyType.THREE_TIMES_DAILY;
+                } else if ((pLower.contains("2 times") || pLower.contains("twice") || pLower.contains("two times"))
+                        && frequency == FrequencyType.ONCE_DAILY) {
+                    frequency = FrequencyType.TWICE_DAILY;
+                }
+            }
 
             MedicationRequest medReq = new MedicationRequest();
             medReq.setName(medName);
@@ -127,16 +147,24 @@ public class SchedulerAgentController {
             MedicationResponse createdMed = medicationService.createMedication(medReq, userId);
 
             List<String> reminderTimes = (List<String>) parsed.get("reminderTimes");
-            if (reminderTimes != null && !reminderTimes.isEmpty()) {
-                for (String timeStr : reminderTimes) {
-                    try {
-                        MedicationReminderRequest rReq = new MedicationReminderRequest();
-                        rReq.setReminderTime(timeStr);
-                        medicationService.addReminder(createdMed.getId(), rReq, userId);
-                    } catch (Exception ignored) {}
+            if (reminderTimes == null || reminderTimes.isEmpty()) {
+                if (frequency == FrequencyType.THREE_TIMES_DAILY) {
+                    reminderTimes = List.of("08:00", "14:00", "20:00");
+                } else if (frequency == FrequencyType.TWICE_DAILY) {
+                    reminderTimes = List.of("09:00", "21:00");
+                } else {
+                    reminderTimes = List.of("09:00");
                 }
-                createdMed = medicationService.getMedicationById(createdMed.getId(), userId);
             }
+
+            for (String timeStr : reminderTimes) {
+                try {
+                    MedicationReminderRequest rReq = new MedicationReminderRequest();
+                    rReq.setReminderTime(timeStr);
+                    medicationService.addReminder(createdMed.getId(), rReq, userId);
+                } catch (Exception ignored) {}
+            }
+            createdMed = medicationService.getMedicationById(createdMed.getId(), userId);
 
             response.setCreatedMedication(createdMed);
             response.setMessage("Successfully added medication reminder for " + createdMed.getName() +

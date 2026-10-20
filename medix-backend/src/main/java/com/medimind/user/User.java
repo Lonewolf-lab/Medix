@@ -51,6 +51,18 @@ public class User {
     @Column(name = "last_usage_reset_date")
     private LocalDate lastUsageResetDate;
 
+    @Column(name = "google_connected")
+    private Boolean googleConnected = false;
+
+    @Column(name = "google_access_token", columnDefinition = "TEXT")
+    private String googleAccessToken;
+
+    @Column(name = "google_token_expires_at")
+    private LocalDateTime googleTokenExpiresAt;
+
+    @Column(name = "timezone")
+    private String timeZone;
+
     public User() {}
 
     @PrePersist
@@ -86,6 +98,15 @@ public class User {
     public void setDailyAiChatCount(Integer dailyAiChatCount) { this.dailyAiChatCount = dailyAiChatCount != null ? dailyAiChatCount : 0; }
     public LocalDate getLastUsageResetDate() { return lastUsageResetDate; }
     public void setLastUsageResetDate(LocalDate lastUsageResetDate) { this.lastUsageResetDate = lastUsageResetDate; }
+
+    public boolean isGoogleConnected() { return Boolean.TRUE.equals(googleConnected); }
+    public void setGoogleConnected(Boolean googleConnected) { this.googleConnected = googleConnected; }
+    public String getGoogleAccessToken() { return googleAccessToken; }
+    public void setGoogleAccessToken(String googleAccessToken) { this.googleAccessToken = googleAccessToken; }
+    public LocalDateTime getGoogleTokenExpiresAt() { return googleTokenExpiresAt; }
+    public void setGoogleTokenExpiresAt(LocalDateTime googleTokenExpiresAt) { this.googleTokenExpiresAt = googleTokenExpiresAt; }
+    public String getTimeZone() { return timeZone; }
+    public void setTimeZone(String timeZone) { this.timeZone = timeZone; }
 
     public void resetDailyCountersIfNewDay() {
         LocalDate today = LocalDate.now();

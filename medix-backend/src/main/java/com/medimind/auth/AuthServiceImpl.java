@@ -18,14 +18,21 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.Map;
 
+import com.medimind.calendar.GoogleCalendarService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Service
 public class AuthServiceImpl implements AuthService {
+
+    private static final Logger log = LoggerFactory.getLogger(AuthServiceImpl.class);
 
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider tokenProvider;
     private final BlacklistedTokenRepository blacklistedTokenRepository;
+    private final GoogleCalendarService googleCalendarService;
     private final WebClient webClient;
 
     @Value("${google.client.id:}")
@@ -35,12 +42,14 @@ public class AuthServiceImpl implements AuthService {
                            UserRepository userRepository,
                            PasswordEncoder passwordEncoder,
                            JwtTokenProvider tokenProvider,
-                           BlacklistedTokenRepository blacklistedTokenRepository) {
+                           BlacklistedTokenRepository blacklistedTokenRepository,
+                           GoogleCalendarService googleCalendarService) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.tokenProvider = tokenProvider;
         this.blacklistedTokenRepository = blacklistedTokenRepository;
+        this.googleCalendarService = googleCalendarService;
         this.webClient = WebClient.builder().build();
     }
 
@@ -211,13 +220,26 @@ public class AuthServiceImpl implements AuthService {
                     .email(email)
                     .passwordHash(passwordEncoder.encode(java.util.UUID.randomUUID().toString()))
                     .build();
+            user.setGoogleConnected(true);
+            user.setGoogleAccessToken(rawToken);
             user = userRepository.save(user);
         } else {
             if (user.getLockoutUntil() != null && user.getLockoutUntil().isBefore(java.time.LocalDateTime.now())) {
                 user.setLockoutUntil(null);
             }
             user.setFailedLoginAttempts(0);
-            userRepository.save(user);
+            user.setGoogleConnected(true);
+            user.setGoogleAccessToken(rawToken);
+            user = userRepository.save(user);
+        }
+
+        // Retroactively sync all existing appointments and active medications to Google Calendar
+        try {
+            log.info("Auto-syncing schedules to Google Calendar for user: {}", user.getEmail());
+            int count = googleCalendarService.syncAllExistingSchedules(user.getId());
+            log.info("Successfully synced {} schedule item(s) to Google Calendar for user: {}", count, user.getEmail());
+        } catch (Exception e) {
+            log.error("Failed to auto-sync existing schedules upon Google sign-in: {}", e.getMessage(), e);
         }
 
         org.springframework.security.core.userdetails.UserDetails userDetails =

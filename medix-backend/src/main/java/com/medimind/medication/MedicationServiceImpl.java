@@ -3,6 +3,7 @@ package com.medimind.medication;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.medimind.ai.DocumentRasterizer;
 import com.medimind.ai.GeminiVisionService;
+import com.medimind.calendar.GoogleCalendarService;
 import com.medimind.exception.ResourceNotFoundException;
 import com.medimind.exception.UnauthorizedException;
 import com.medimind.medication.dto.*;
@@ -31,6 +32,7 @@ public class MedicationServiceImpl implements MedicationService {
     private final ObjectMapper objectMapper;
     private final GeminiVisionService geminiVisionService;
     private final DocumentRasterizer documentRasterizer;
+    private final GoogleCalendarService googleCalendarService;
     private final String groqApiUrl;
     private final String groqApiKey;
     private final String groqModel;
@@ -43,6 +45,7 @@ public class MedicationServiceImpl implements MedicationService {
             ObjectMapper objectMapper,
             GeminiVisionService geminiVisionService,
             DocumentRasterizer documentRasterizer,
+            GoogleCalendarService googleCalendarService,
             @Value("${ai.api.url}") String groqApiUrl,
             @Value("${ai.api.key}") String groqApiKey,
             @Value("${ai.api.model:openai/gpt-oss-120b}") String groqModel) {
@@ -53,6 +56,7 @@ public class MedicationServiceImpl implements MedicationService {
         this.objectMapper = objectMapper;
         this.geminiVisionService = geminiVisionService;
         this.documentRasterizer = documentRasterizer;
+        this.googleCalendarService = googleCalendarService;
         this.groqApiUrl = groqApiUrl;
         this.groqApiKey = groqApiKey;
         this.groqModel = groqModel;
@@ -114,7 +118,11 @@ public class MedicationServiceImpl implements MedicationService {
 
         Medication saved = medicationRepository.save(medication);
         addReminderTimes(saved, request.getReminderTimes());
-        return toResponse(medicationRepository.save(saved));
+        Medication finalSaved = medicationRepository.save(saved);
+        try {
+            googleCalendarService.syncMedicationReminders(finalSaved, user);
+        } catch (Exception ignored) {}
+        return toResponse(finalSaved);
     }
 
     @Override
@@ -134,7 +142,11 @@ public class MedicationServiceImpl implements MedicationService {
             addReminderTimes(medication, request.getReminderTimes());
         }
 
-        return toResponse(medicationRepository.save(medication));
+        Medication updated = medicationRepository.save(medication);
+        try {
+            googleCalendarService.syncMedicationReminders(updated, updated.getUser());
+        } catch (Exception ignored) {}
+        return toResponse(updated);
     }
 
     @Override
@@ -144,13 +156,20 @@ public class MedicationServiceImpl implements MedicationService {
         medication.getReminders().clear();
         medicationRepository.saveAndFlush(medication); // force deletion via orphanRemoval/flush
         addReminderTimes(medication, reminderTimes);
-        return toResponse(medicationRepository.save(medication));
+        Medication updated = medicationRepository.save(medication);
+        try {
+            googleCalendarService.syncMedicationReminders(updated, updated.getUser());
+        } catch (Exception ignored) {}
+        return toResponse(updated);
     }
 
     @Override
     @Transactional
     public void deleteMedication(UUID medicationId, UUID userId) {
         Medication medication = findAndVerifyOwnership(medicationId, userId);
+        try {
+            googleCalendarService.deleteMedicationEvents(medication, medication.getUser());
+        } catch (Exception ignored) {}
         medicationRepository.delete(medication);
     }
 
@@ -158,6 +177,9 @@ public class MedicationServiceImpl implements MedicationService {
     @Transactional
     public MedicationResponse deactivateMedication(UUID medicationId, UUID userId) {
         Medication medication = findAndVerifyOwnership(medicationId, userId);
+        try {
+            googleCalendarService.deleteMedicationEvents(medication, medication.getUser());
+        } catch (Exception ignored) {}
         medication.setActive(false);
         medication.setExpired(false);
         return toResponse(medicationRepository.save(medication));
@@ -174,6 +196,9 @@ public class MedicationServiceImpl implements MedicationService {
                 .reminderTime(request.getReminderTime())
                 .build();
         MedicationReminder saved = reminderRepository.save(reminder);
+        try {
+            googleCalendarService.syncMedicationReminders(medication, medication.getUser());
+        } catch (Exception ignored) {}
         return toReminderResponse(saved);
     }
 

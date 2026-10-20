@@ -2,10 +2,13 @@ package com.medimind.appointment;
 
 import com.medimind.appointment.dto.AppointmentRequest;
 import com.medimind.appointment.dto.AppointmentResponse;
+import com.medimind.calendar.GoogleCalendarService;
 import com.medimind.exception.ResourceNotFoundException;
 import com.medimind.exception.UnauthorizedException;
 import com.medimind.user.User;
 import com.medimind.user.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
@@ -16,12 +19,18 @@ import java.util.stream.Collectors;
 @Transactional
 public class AppointmentServiceImpl implements AppointmentService {
 
+    private static final Logger log = LoggerFactory.getLogger(AppointmentServiceImpl.class);
+
     private final AppointmentRepository appointmentRepository;
     private final UserRepository userRepository;
+    private final GoogleCalendarService googleCalendarService;
 
-    public AppointmentServiceImpl(AppointmentRepository appointmentRepository, UserRepository userRepository) {
+    public AppointmentServiceImpl(AppointmentRepository appointmentRepository,
+                                  UserRepository userRepository,
+                                  GoogleCalendarService googleCalendarService) {
         this.appointmentRepository = appointmentRepository;
         this.userRepository = userRepository;
+        this.googleCalendarService = googleCalendarService;
     }
 
     @Override
@@ -54,6 +63,11 @@ public class AppointmentServiceImpl implements AppointmentService {
                 .build();
 
         Appointment saved = appointmentRepository.save(appointment);
+        try {
+            googleCalendarService.syncAppointment(saved, user);
+        } catch (Exception e) {
+            log.error("Failed to sync newly created appointment with Google Calendar: {}", e.getMessage(), e);
+        }
         return mapToResponse(saved);
     }
 
@@ -67,12 +81,22 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointment.setNotes(request.getNotes());
 
         Appointment updated = appointmentRepository.save(appointment);
+        try {
+            googleCalendarService.syncAppointment(updated, updated.getUser());
+        } catch (Exception e) {
+            log.error("Failed to sync updated appointment with Google Calendar: {}", e.getMessage(), e);
+        }
         return mapToResponse(updated);
     }
 
     @Override
     public void deleteAppointment(UUID appointmentId, UUID userId) {
         Appointment appointment = getAppointmentAndVerifyOwnership(appointmentId, userId);
+        try {
+            googleCalendarService.deleteAppointmentEvent(appointment, appointment.getUser());
+        } catch (Exception e) {
+            log.error("Failed to delete appointment from Google Calendar: {}", e.getMessage(), e);
+        }
         appointmentRepository.delete(appointment);
     }
 
