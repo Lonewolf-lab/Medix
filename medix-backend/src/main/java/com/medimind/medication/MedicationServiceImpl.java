@@ -430,7 +430,10 @@ public class MedicationServiceImpl implements MedicationService {
                     .medication(medication)
                     .reminderTime(time)
                     .build();
-            reminderRepository.save(reminder);
+            MedicationReminder saved = reminderRepository.save(reminder);
+            if (medication.getReminders() != null) {
+                medication.getReminders().add(saved);
+            }
         }
     }
 

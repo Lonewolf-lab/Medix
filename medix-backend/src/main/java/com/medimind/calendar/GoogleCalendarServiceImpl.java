@@ -231,7 +231,10 @@ public class GoogleCalendarServiceImpl implements GoogleCalendarService {
                 recurrence.add("RRULE:FREQ=DAILY");
             }
 
-            List<MedicationReminder> reminders = medication.getReminders();
+            List<MedicationReminder> reminders = medicationReminderRepository.findByMedicationId(medication.getId());
+            if (reminders == null || reminders.isEmpty()) {
+                reminders = medication.getReminders();
+            }
             if (reminders == null || reminders.isEmpty()) {
                 // Generate default times from frequency
                 List<String> defaultTimes = getDefaultTimes(medication.getFrequency());

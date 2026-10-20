@@ -125,16 +125,8 @@ public class SchedulerAgentController {
                 }
             }
 
-            if (request.getPrompt() != null) {
-                String pLower = request.getPrompt().toLowerCase();
-                if ((pLower.contains("3 times") || pLower.contains("three times") || pLower.contains("thrice"))
-                        && frequency == FrequencyType.ONCE_DAILY) {
-                    frequency = FrequencyType.THREE_TIMES_DAILY;
-                } else if ((pLower.contains("2 times") || pLower.contains("twice") || pLower.contains("two times"))
-                        && frequency == FrequencyType.ONCE_DAILY) {
-                    frequency = FrequencyType.TWICE_DAILY;
-                }
-            }
+            frequency = resolveFrequency(request.getPrompt(), frequency);
+            List<String> reminderTimes = resolveReminderTimes(frequency, (List<String>) parsed.get("reminderTimes"), request.getPrompt());
 
             MedicationRequest medReq = new MedicationRequest();
             medReq.setName(medName);
@@ -143,28 +135,9 @@ public class SchedulerAgentController {
             medReq.setStartDate(startDate);
             medReq.setEndDate(endDate);
             medReq.setNotes(notes != null && !notes.equalsIgnoreCase("null") ? notes : "Added via AI Assistant");
+            medReq.setReminderTimes(reminderTimes);
 
             MedicationResponse createdMed = medicationService.createMedication(medReq, userId);
-
-            List<String> reminderTimes = (List<String>) parsed.get("reminderTimes");
-            if (reminderTimes == null || reminderTimes.isEmpty()) {
-                if (frequency == FrequencyType.THREE_TIMES_DAILY) {
-                    reminderTimes = List.of("08:00", "14:00", "20:00");
-                } else if (frequency == FrequencyType.TWICE_DAILY) {
-                    reminderTimes = List.of("09:00", "21:00");
-                } else {
-                    reminderTimes = List.of("09:00");
-                }
-            }
-
-            for (String timeStr : reminderTimes) {
-                try {
-                    MedicationReminderRequest rReq = new MedicationReminderRequest();
-                    rReq.setReminderTime(timeStr);
-                    medicationService.addReminder(createdMed.getId(), rReq, userId);
-                } catch (Exception ignored) {}
-            }
-            createdMed = medicationService.getMedicationById(createdMed.getId(), userId);
 
             response.setCreatedMedication(createdMed);
             response.setMessage("Successfully added medication reminder for " + createdMed.getName() +
@@ -425,5 +398,50 @@ public class SchedulerAgentController {
             } catch (Exception ignored) {}
         }
         return today;
+    }
+
+    FrequencyType resolveFrequency(String prompt, FrequencyType frequency) {
+        if (prompt != null) {
+            String pLower = prompt.toLowerCase();
+            if ((pLower.contains("3 times") || pLower.contains("three times") || pLower.contains("thrice") || pLower.contains("3 time"))
+                    && (frequency == null || frequency == FrequencyType.ONCE_DAILY)) {
+                return FrequencyType.THREE_TIMES_DAILY;
+            } else if ((pLower.contains("2 times") || pLower.contains("twice") || pLower.contains("two times") || pLower.contains("2 time"))
+                    && (frequency == null || frequency == FrequencyType.ONCE_DAILY)) {
+                return FrequencyType.TWICE_DAILY;
+            }
+        }
+        return frequency != null ? frequency : FrequencyType.ONCE_DAILY;
+    }
+
+    List<String> resolveReminderTimes(FrequencyType frequency, List<String> parsedReminderTimes, String prompt) {
+        List<String> reminderTimes = parsedReminderTimes;
+        if (prompt != null) {
+            String pLower = prompt.toLowerCase();
+            boolean hasMorning = pLower.contains("morning") || pLower.contains("breakfast");
+            boolean hasNight = pLower.contains("night") || pLower.contains("dinner") || pLower.contains("evening") || pLower.contains("bedtime");
+            boolean hasAfternoon = pLower.contains("afternoon") || pLower.contains("lunch") || pLower.contains("noon");
+
+            if (frequency == FrequencyType.TWICE_DAILY && (hasMorning || hasNight)) {
+                reminderTimes = List.of("09:00", "21:00");
+            } else if (frequency == FrequencyType.THREE_TIMES_DAILY && (hasMorning || hasAfternoon || hasNight)) {
+                reminderTimes = List.of("08:00", "14:00", "20:00");
+            }
+        }
+
+        if (reminderTimes == null || reminderTimes.isEmpty()) {
+            if (frequency == FrequencyType.THREE_TIMES_DAILY) {
+                reminderTimes = List.of("08:00", "14:00", "20:00");
+            } else if (frequency == FrequencyType.TWICE_DAILY) {
+                reminderTimes = List.of("09:00", "21:00");
+            } else {
+                reminderTimes = List.of("09:00");
+            }
+        } else if (frequency == FrequencyType.TWICE_DAILY && reminderTimes.size() > 2) {
+            reminderTimes = reminderTimes.subList(0, 2);
+        } else if (frequency == FrequencyType.ONCE_DAILY && reminderTimes.size() > 1) {
+            reminderTimes = reminderTimes.subList(0, 1);
+        }
+        return reminderTimes;
     }
 }
