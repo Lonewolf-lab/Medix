@@ -94,7 +94,9 @@ export default function CalendarPage() {
       );
       setIsGoogleConnected(true);
     } catch (err) {
-      toast.error("Failed to sync Google Calendar. Please reconnect.");
+      toast.error(err.response?.data?.message || err.message || "Failed to sync Google Calendar. Please reconnect.");
+      setIsGoogleConnected(false);
+      setIsGoogleModalOpen(true);
     } finally {
       setSyncingGoogle(false);
     }
@@ -485,6 +487,14 @@ export default function CalendarPage() {
                 className="hover:text-forest-bright transition-colors cursor-pointer disabled:opacity-50 ml-1 p-0.5 rounded"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${syncingGoogle ? "animate-spin" : ""}`} />
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsGoogleModalOpen(true)}
+                title="Reconnect Google account"
+                className="hover:text-forest-bright transition-colors cursor-pointer text-[10px] text-forest/70 hover:underline ml-1"
+              >
+                Reconnect
               </button>
             </div>
           ) : (

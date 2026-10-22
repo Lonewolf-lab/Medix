@@ -49,6 +49,7 @@ export default function GoogleCalendarModal({
             const res = await calendarApi.connect({
               accessToken: response.access_token,
               timeZone,
+              expiresIn: response.expires_in ? parseInt(response.expires_in, 10) : 3540,
             });
 
             toast.success(res.message || "Google Calendar connected! Existing schedules synced.");

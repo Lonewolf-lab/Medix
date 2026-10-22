@@ -9,11 +9,19 @@ public class CalendarConnectRequest {
 
     private String timeZone;
 
+    private Integer expiresIn;
+
     public CalendarConnectRequest() {}
 
     public CalendarConnectRequest(String accessToken, String timeZone) {
         this.accessToken = accessToken;
         this.timeZone = timeZone;
+    }
+
+    public CalendarConnectRequest(String accessToken, String timeZone, Integer expiresIn) {
+        this.accessToken = accessToken;
+        this.timeZone = timeZone;
+        this.expiresIn = expiresIn;
     }
 
     public String getAccessToken() {
@@ -30,5 +38,13 @@ public class CalendarConnectRequest {
 
     public void setTimeZone(String timeZone) {
         this.timeZone = timeZone;
+    }
+
+    public Integer getExpiresIn() {
+        return expiresIn;
+    }
+
+    public void setExpiresIn(Integer expiresIn) {
+        this.expiresIn = expiresIn;
     }
 }

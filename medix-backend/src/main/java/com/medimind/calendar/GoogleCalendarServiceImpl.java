@@ -50,10 +50,26 @@ public class GoogleCalendarServiceImpl implements GoogleCalendarService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
+        boolean isConnected = user.isGoogleConnected() && user.getGoogleAccessToken() != null;
+        if (isConnected) {
+            boolean expired = user.getGoogleTokenExpiresAt() != null && LocalDateTime.now().isAfter(user.getGoogleTokenExpiresAt());
+            if (!expired && (user.getGoogleTokenExpiresAt() == null || !isTokenValid(user.getGoogleAccessToken()))) {
+                expired = true;
+            }
+
+            if (expired) {
+                user.setGoogleConnected(false);
+                user.setGoogleAccessToken(null);
+                user.setGoogleTokenExpiresAt(null);
+                userRepository.save(user);
+                isConnected = false;
+            }
+        }
+
         return new CalendarStatusResponse(
-                user.isGoogleConnected(),
+                isConnected,
                 user.getTimeZone(),
-                user.isGoogleConnected() ? "Google Calendar is connected and syncing." : "Google Calendar is not connected.",
+                isConnected ? "Google Calendar is connected and syncing." : "Google Calendar is not connected.",
                 0
         );
     }
@@ -69,6 +85,8 @@ public class GoogleCalendarServiceImpl implements GoogleCalendarService {
 
         user.setGoogleConnected(true);
         user.setGoogleAccessToken(request.getAccessToken().trim());
+        int ttl = (request.getExpiresIn() != null && request.getExpiresIn() > 0) ? request.getExpiresIn() : 3540;
+        user.setGoogleTokenExpiresAt(LocalDateTime.now().plusSeconds(ttl));
         if (request.getTimeZone() != null && !request.getTimeZone().isBlank()) {
             user.setTimeZone(request.getTimeZone().trim());
         }
@@ -92,6 +110,7 @@ public class GoogleCalendarServiceImpl implements GoogleCalendarService {
 
         user.setGoogleConnected(false);
         user.setGoogleAccessToken(null);
+        user.setGoogleTokenExpiresAt(null);
         userRepository.save(user);
 
         return new CalendarStatusResponse(
@@ -109,6 +128,14 @@ public class GoogleCalendarServiceImpl implements GoogleCalendarService {
             return 0;
         }
 
+        if (!isTokenValid(user.getGoogleAccessToken())) {
+            user.setGoogleConnected(false);
+            user.setGoogleAccessToken(null);
+            user.setGoogleTokenExpiresAt(null);
+            userRepository.save(user);
+            throw new IllegalStateException("Google Calendar session expired. Please reconnect.");
+        }
+
         int count = 0;
 
         // 1. Sync future and recent appointments
@@ -118,7 +145,9 @@ public class GoogleCalendarServiceImpl implements GoogleCalendarService {
             for (Appointment a : appts) {
                 if (a.getAppointmentTime() != null && a.getAppointmentTime().isAfter(cutoff)) {
                     syncAppointment(a, user);
-                    count++;
+                    if (a.getGoogleEventId() != null) {
+                        count++;
+                    }
                 }
             }
         } catch (Exception e) {
@@ -130,7 +159,11 @@ public class GoogleCalendarServiceImpl implements GoogleCalendarService {
             List<Medication> activeMeds = medicationRepository.findByUserIdAndIsActiveTrueOrderByCreatedAtDesc(userId);
             for (Medication m : activeMeds) {
                 syncMedicationReminders(m, user);
-                count++;
+                List<MedicationReminder> rems = medicationReminderRepository.findByMedicationId(m.getId());
+                boolean anySynced = rems != null && rems.stream().anyMatch(r -> r.getGoogleEventId() != null && !r.getGoogleEventId().isBlank());
+                if (anySynced) {
+                    count++;
+                }
             }
         } catch (Exception e) {
             log.error("Error batch syncing medications to Google Calendar: {}", e.getMessage());
@@ -182,9 +215,9 @@ public class GoogleCalendarServiceImpl implements GoogleCalendarService {
             ));
 
             if (appointment.getGoogleEventId() != null && !appointment.getGoogleEventId().isBlank()) {
-                updateGoogleEvent(user.getGoogleAccessToken(), appointment.getGoogleEventId(), payload);
+                updateGoogleEvent(user, appointment.getGoogleEventId(), payload);
             } else {
-                Map<String, Object> res = createGoogleEvent(user.getGoogleAccessToken(), payload);
+                Map<String, Object> res = createGoogleEvent(user, payload);
                 if (res != null && res.get("id") != null) {
                     appointment.setGoogleEventId((String) res.get("id"));
                     appointmentRepository.save(appointment);
@@ -202,7 +235,7 @@ public class GoogleCalendarServiceImpl implements GoogleCalendarService {
         }
         if (appointment.getGoogleEventId() != null && !appointment.getGoogleEventId().isBlank()) {
             try {
-                deleteGoogleEvent(user.getGoogleAccessToken(), appointment.getGoogleEventId());
+                deleteGoogleEvent(user, appointment.getGoogleEventId());
             } catch (Exception e) {
                 log.warn("Failed to delete appointment from Google Calendar: {}", e.getMessage());
             }
@@ -269,25 +302,25 @@ public class GoogleCalendarServiceImpl implements GoogleCalendarService {
                         + "\nNotes: " + (medication.getNotes() != null ? medication.getNotes() : "Take as directed by doctor"));
 
                 payload.put("start", Map.of(
-                        "dateTime", startZdt.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME),
-                        "timeZone", zoneId.getId()
+                    "dateTime", startZdt.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME),
+                    "timeZone", zoneId.getId()
                 ));
                 payload.put("end", Map.of(
-                        "dateTime", endZdt.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME),
-                        "timeZone", zoneId.getId()
+                    "dateTime", endZdt.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME),
+                    "timeZone", zoneId.getId()
                 ));
                 payload.put("recurrence", recurrence);
 
                 // Exact-time reminder popup (0 minutes = exact time)
                 payload.put("reminders", Map.of(
-                        "useDefault", false,
-                        "overrides", List.of(Map.of("method", "popup", "minutes", 0))
+                    "useDefault", false,
+                    "overrides", List.of(Map.of("method", "popup", "minutes", 0))
                 ));
 
                 if (r.getGoogleEventId() != null && !r.getGoogleEventId().isBlank()) {
-                    updateGoogleEvent(user.getGoogleAccessToken(), r.getGoogleEventId(), payload);
+                    updateGoogleEvent(user, r.getGoogleEventId(), payload);
                 } else {
-                    Map<String, Object> res = createGoogleEvent(user.getGoogleAccessToken(), payload);
+                    Map<String, Object> res = createGoogleEvent(user, payload);
                     if (res != null && res.get("id") != null) {
                         r.setGoogleEventId((String) res.get("id"));
                         medicationReminderRepository.save(r);
@@ -310,7 +343,7 @@ public class GoogleCalendarServiceImpl implements GoogleCalendarService {
             if (reminders != null) {
                 for (MedicationReminder r : reminders) {
                     if (r.getGoogleEventId() != null && !r.getGoogleEventId().isBlank()) {
-                        deleteGoogleEvent(user.getGoogleAccessToken(), r.getGoogleEventId());
+                        deleteGoogleEvent(user, r.getGoogleEventId());
                         r.setGoogleEventId(null);
                         medicationReminderRepository.save(r);
                     }
@@ -341,11 +374,43 @@ public class GoogleCalendarServiceImpl implements GoogleCalendarService {
         };
     }
 
-    private Map<String, Object> createGoogleEvent(String accessToken, Map<String, Object> payload) {
+    private boolean isTokenValid(String token) {
+        if (token == null || token.isBlank()) return false;
+        try {
+            webClient.get()
+                    .uri("https://www.googleapis.com/calendar/v3/calendars/primary/events?maxResults=1")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                    .retrieve()
+                    .toBodilessEntity()
+                    .block();
+            return true;
+        } catch (org.springframework.web.reactive.function.client.WebClientResponseException e) {
+            if (e.getStatusCode().value() == 401) {
+                return false;
+            }
+            return true;
+        } catch (Exception e) {
+            return true;
+        }
+    }
+
+    private void handleUnauthorized(User user) {
+        if (user != null) {
+            user.setGoogleConnected(false);
+            user.setGoogleAccessToken(null);
+            user.setGoogleTokenExpiresAt(null);
+            try {
+                userRepository.save(user);
+            } catch (Exception ignored) {}
+        }
+    }
+
+    private Map<String, Object> createGoogleEvent(User user, Map<String, Object> payload) {
+        if (user == null || user.getGoogleAccessToken() == null) return null;
         try {
             return webClient.post()
                     .uri("https://www.googleapis.com/calendar/v3/calendars/primary/events")
-                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + user.getGoogleAccessToken())
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(payload)
                     .retrieve()
@@ -353,6 +418,9 @@ public class GoogleCalendarServiceImpl implements GoogleCalendarService {
                     .block();
         } catch (org.springframework.web.reactive.function.client.WebClientResponseException e) {
             log.error("Google Calendar create event API returned HTTP {}: {}", e.getStatusCode(), e.getResponseBodyAsString());
+            if (e.getStatusCode().value() == 401) {
+                handleUnauthorized(user);
+            }
             return null;
         } catch (Exception e) {
             log.error("Google Calendar create event API call failed: {}", e.getMessage(), e);
@@ -360,11 +428,12 @@ public class GoogleCalendarServiceImpl implements GoogleCalendarService {
         }
     }
 
-    private void updateGoogleEvent(String accessToken, String eventId, Map<String, Object> payload) {
+    private void updateGoogleEvent(User user, String eventId, Map<String, Object> payload) {
+        if (user == null || user.getGoogleAccessToken() == null) return;
         try {
             webClient.put()
                     .uri("https://www.googleapis.com/calendar/v3/calendars/primary/events/" + eventId)
-                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + user.getGoogleAccessToken())
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(payload)
                     .retrieve()
@@ -372,21 +441,28 @@ public class GoogleCalendarServiceImpl implements GoogleCalendarService {
                     .block();
         } catch (org.springframework.web.reactive.function.client.WebClientResponseException e) {
             log.error("Google Calendar update event API returned HTTP {}: {}", e.getStatusCode(), e.getResponseBodyAsString());
+            if (e.getStatusCode().value() == 401) {
+                handleUnauthorized(user);
+            }
         } catch (Exception e) {
             log.error("Google Calendar update event API call failed for event {}: {}", eventId, e.getMessage(), e);
         }
     }
 
-    private void deleteGoogleEvent(String accessToken, String eventId) {
+    private void deleteGoogleEvent(User user, String eventId) {
+        if (user == null || user.getGoogleAccessToken() == null) return;
         try {
             webClient.delete()
                     .uri("https://www.googleapis.com/calendar/v3/calendars/primary/events/" + eventId)
-                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + user.getGoogleAccessToken())
                     .retrieve()
                     .toBodilessEntity()
                     .block();
         } catch (org.springframework.web.reactive.function.client.WebClientResponseException e) {
             log.error("Google Calendar delete event API returned HTTP {}: {}", e.getStatusCode(), e.getResponseBodyAsString());
+            if (e.getStatusCode().value() == 401) {
+                handleUnauthorized(user);
+            }
         } catch (Exception e) {
             log.error("Google Calendar delete event API call failed for event {}: {}", eventId, e.getMessage(), e);
         }

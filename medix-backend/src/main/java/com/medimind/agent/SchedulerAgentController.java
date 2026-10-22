@@ -85,8 +85,15 @@ public class SchedulerAgentController {
 
             AppointmentResponse createdAppt = appointmentService.createAppointment(apptReq, userId);
             response.setCreatedAppointment(createdAppt);
-            response.setMessage("Successfully scheduled appointment with " + createdAppt.getDoctorName() +
-                    " for " + createdAppt.getAppointmentTime().format(HUMAN_FORMATTER));
+            boolean apptGCalSynced = createdAppt.getGoogleEventId() != null && !createdAppt.getGoogleEventId().isBlank();
+            if (apptGCalSynced) {
+                response.setMessage("Successfully scheduled appointment with " + createdAppt.getDoctorName() +
+                        " for " + createdAppt.getAppointmentTime().format(HUMAN_FORMATTER) + " & synced to Google Calendar.");
+            } else {
+                response.setMessage("Successfully scheduled appointment with " + createdAppt.getDoctorName() +
+                        " for " + createdAppt.getAppointmentTime().format(HUMAN_FORMATTER) +
+                        " in your Medix tracker. (Note: Connect or reconnect Google Calendar in Health Calendar to sync to your Google account).");
+            }
 
         } else if ("CREATE_MEDICATION".equalsIgnoreCase(intentType) || "MEDICATION".equalsIgnoreCase(intentType)) {
             String medName = (String) parsed.get("medicationName");
@@ -140,8 +147,15 @@ public class SchedulerAgentController {
             MedicationResponse createdMed = medicationService.createMedication(medReq, userId);
 
             response.setCreatedMedication(createdMed);
-            response.setMessage("Successfully added medication reminder for " + createdMed.getName() +
-                    " (" + createdMed.getDosage() + ") to your calendar & tracker.");
+            boolean medGCalSynced = createdMed.getReminders() != null && createdMed.getReminders().stream()
+                    .anyMatch(r -> r.getGoogleEventId() != null && !r.getGoogleEventId().isBlank());
+            if (medGCalSynced) {
+                response.setMessage("Successfully added medication reminder for " + createdMed.getName() +
+                        " (" + createdMed.getDosage() + ") to your Medix tracker and Google Calendar.");
+            } else {
+                response.setMessage("Successfully added medication reminder for " + createdMed.getName() +
+                        " (" + createdMed.getDosage() + ") to your Medix tracker. (Note: Connect or reconnect Google Calendar in Health Calendar to sync to your Google account).");
+            }
 
         } else if ("DELETE_MEDICATION".equalsIgnoreCase(intentType)) {
             String medName = (String) parsed.get("medicationName");
