@@ -7,8 +7,11 @@ export const authApi = {
   // { email, password } -> { token, userId, name, email }
   login: (payload) => api.post("/auth/login", payload).then((r) => r.data),
 
-  // { credential } -> { token, userId, name, email }
-  googleLogin: (credential) => api.post("/auth/google", { credential }).then((r) => r.data),
+  // { credential, expiresIn?, timeZone? } or string -> { token, userId, name, email }
+  googleLogin: (payload) => {
+    const body = typeof payload === "string" ? { credential: payload } : payload;
+    return api.post("/auth/google", body).then((r) => r.data);
+  },
 
   // clears cookie + blacklists token -> { message }
   logout: () => api.post("/auth/logout").then((r) => r.data),

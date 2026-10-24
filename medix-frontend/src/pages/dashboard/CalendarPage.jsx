@@ -32,6 +32,8 @@ export default function CalendarPage() {
 
   // Google Calendar Integration State
   const [isGoogleConnected, setIsGoogleConnected] = useState(false);
+  const [isGoogleUser, setIsGoogleUser] = useState(false);
+  const [sessionExpired, setSessionExpired] = useState(false);
   const [isGoogleModalOpen, setIsGoogleModalOpen] = useState(false);
   const [syncingGoogle, setSyncingGoogle] = useState(false);
   const [pendingOpenDrawer, setPendingOpenDrawer] = useState(false);
@@ -77,6 +79,8 @@ export default function CalendarPage() {
       if (medsData.status === "fulfilled") setMedications(medsData.value || []);
       if (calStatus.status === "fulfilled") {
         setIsGoogleConnected(Boolean(calStatus.value?.connected));
+        setIsGoogleUser(Boolean(calStatus.value?.isGoogleUser));
+        setSessionExpired(Boolean(calStatus.value?.sessionExpired));
       }
     } catch (err) {
       toast.error("Failed to load calendar events.");
@@ -497,6 +501,15 @@ export default function CalendarPage() {
                 Reconnect
               </button>
             </div>
+          ) : sessionExpired && isGoogleUser ? (
+            <button
+              type="button"
+              onClick={() => setIsGoogleModalOpen(true)}
+              className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-amber-300 bg-amber-50 text-amber-900 text-[11px] sm:text-xs font-mono-accent tracking-wider uppercase transition-all cursor-pointer shadow-xs active:scale-95 hover:bg-amber-100"
+            >
+              <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+              <span>Session Expired • Reconnect Google</span>
+            </button>
           ) : (
             <button
               type="button"

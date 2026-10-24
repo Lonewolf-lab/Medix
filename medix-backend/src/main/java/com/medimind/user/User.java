@@ -63,6 +63,9 @@ public class User {
     @Column(name = "timezone")
     private String timeZone;
 
+    @Column(name = "auth_provider")
+    private String authProvider = "LOCAL";
+
     public User() {}
 
     @PrePersist
@@ -107,6 +110,9 @@ public class User {
     public void setGoogleTokenExpiresAt(LocalDateTime googleTokenExpiresAt) { this.googleTokenExpiresAt = googleTokenExpiresAt; }
     public String getTimeZone() { return timeZone; }
     public void setTimeZone(String timeZone) { this.timeZone = timeZone; }
+    public String getAuthProvider() { return authProvider != null ? authProvider : "LOCAL"; }
+    public void setAuthProvider(String authProvider) { this.authProvider = authProvider; }
+    public boolean isGoogleAuthUser() { return "GOOGLE".equalsIgnoreCase(this.authProvider); }
 
     public void resetDailyCountersIfNewDay() {
         LocalDate today = LocalDate.now();
@@ -127,6 +133,7 @@ public class User {
         public Builder passwordHash(String v) { obj.passwordHash = v; return this; }
         public Builder dob(LocalDate v)       { obj.dob = v; return this; }
         public Builder bloodGroup(String v)   { obj.bloodGroup = v; return this; }
+        public Builder authProvider(String v) { obj.authProvider = v; return this; }
         public User build()                   { return obj; }
     }
 }

@@ -6,6 +6,8 @@ public class CalendarStatusResponse {
     private String timeZone;
     private String message;
     private int syncedEventsCount;
+    private boolean isGoogleUser;
+    private boolean sessionExpired;
 
     public CalendarStatusResponse() {}
 
@@ -14,6 +16,15 @@ public class CalendarStatusResponse {
         this.timeZone = timeZone;
         this.message = message;
         this.syncedEventsCount = syncedEventsCount;
+    }
+
+    public CalendarStatusResponse(boolean connected, String timeZone, String message, int syncedEventsCount, boolean isGoogleUser, boolean sessionExpired) {
+        this.connected = connected;
+        this.timeZone = timeZone;
+        this.message = message;
+        this.syncedEventsCount = syncedEventsCount;
+        this.isGoogleUser = isGoogleUser;
+        this.sessionExpired = sessionExpired;
     }
 
     public boolean isConnected() {
@@ -46,5 +57,21 @@ public class CalendarStatusResponse {
 
     public void setSyncedEventsCount(int syncedEventsCount) {
         this.syncedEventsCount = syncedEventsCount;
+    }
+
+    public boolean isGoogleUser() {
+        return isGoogleUser;
+    }
+
+    public void setGoogleUser(boolean googleUser) {
+        isGoogleUser = googleUser;
+    }
+
+    public boolean isSessionExpired() {
+        return sessionExpired;
+    }
+
+    public void setSessionExpired(boolean sessionExpired) {
+        this.sessionExpired = sessionExpired;
     }
 }

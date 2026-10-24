@@ -213,23 +213,34 @@ public class AuthServiceImpl implements AuthService {
             name = email.split("@")[0];
         }
 
+        int ttl = (request.getExpiresIn() != null && request.getExpiresIn() > 0) ? request.getExpiresIn() : 3540;
         User user = userRepository.findByEmail(email).orElse(null);
         if (user == null) {
             user = User.builder()
                     .name(name)
                     .email(email)
                     .passwordHash(passwordEncoder.encode(java.util.UUID.randomUUID().toString()))
+                    .authProvider("GOOGLE")
                     .build();
             user.setGoogleConnected(true);
             user.setGoogleAccessToken(rawToken);
+            user.setGoogleTokenExpiresAt(java.time.LocalDateTime.now().plusSeconds(ttl));
+            if (request.getTimeZone() != null && !request.getTimeZone().isBlank()) {
+                user.setTimeZone(request.getTimeZone().trim());
+            }
             user = userRepository.save(user);
         } else {
             if (user.getLockoutUntil() != null && user.getLockoutUntil().isBefore(java.time.LocalDateTime.now())) {
                 user.setLockoutUntil(null);
             }
             user.setFailedLoginAttempts(0);
+            user.setAuthProvider("GOOGLE");
             user.setGoogleConnected(true);
             user.setGoogleAccessToken(rawToken);
+            user.setGoogleTokenExpiresAt(java.time.LocalDateTime.now().plusSeconds(ttl));
+            if (request.getTimeZone() != null && !request.getTimeZone().isBlank()) {
+                user.setTimeZone(request.getTimeZone().trim());
+            }
             user = userRepository.save(user);
         }
 

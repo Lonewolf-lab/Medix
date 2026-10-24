@@ -50,7 +50,10 @@ public class GoogleCalendarServiceImpl implements GoogleCalendarService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
+        boolean isGoogleUser = user.isGoogleAuthUser();
         boolean isConnected = user.isGoogleConnected() && user.getGoogleAccessToken() != null;
+        boolean sessionExpired = false;
+
         if (isConnected) {
             boolean expired = user.getGoogleTokenExpiresAt() != null && LocalDateTime.now().isAfter(user.getGoogleTokenExpiresAt());
             if (!expired && (user.getGoogleTokenExpiresAt() == null || !isTokenValid(user.getGoogleAccessToken()))) {
@@ -58,19 +61,33 @@ public class GoogleCalendarServiceImpl implements GoogleCalendarService {
             }
 
             if (expired) {
-                user.setGoogleConnected(false);
                 user.setGoogleAccessToken(null);
                 user.setGoogleTokenExpiresAt(null);
+                if (!isGoogleUser) {
+                    user.setGoogleConnected(false);
+                }
                 userRepository.save(user);
                 isConnected = false;
+                sessionExpired = true;
             }
+        }
+
+        String message;
+        if (isConnected) {
+            message = "Google Calendar is connected and syncing.";
+        } else if (isGoogleUser) {
+            message = sessionExpired ? "Google Calendar session expired. Click to re-sync." : "Google Calendar is ready to connect.";
+        } else {
+            message = "Google Calendar is not connected.";
         }
 
         return new CalendarStatusResponse(
                 isConnected,
                 user.getTimeZone(),
-                isConnected ? "Google Calendar is connected and syncing." : "Google Calendar is not connected.",
-                0
+                message,
+                0,
+                isGoogleUser,
+                sessionExpired
         );
     }
 

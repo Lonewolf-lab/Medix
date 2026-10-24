@@ -32,7 +32,7 @@ export default function GoogleAuthButton({ mode = "login" }) {
       setLoading(true);
       const client = window.google.accounts.oauth2.initTokenClient({
         client_id: clientId.trim(),
-        scope: "email profile openid",
+        scope: "email profile openid https://www.googleapis.com/auth/calendar.events",
         callback: async (response) => {
           if (response.error) {
             setLoading(false);
@@ -43,8 +43,17 @@ export default function GoogleAuthButton({ mode = "login" }) {
           }
 
           try {
-            await loginWithGoogle(response.access_token);
-            toast.success(mode === "register" ? "Account created via Google!" : "Welcome back to Medix!");
+            const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            await loginWithGoogle({
+              credential: response.access_token,
+              expiresIn: response.expires_in ? parseInt(response.expires_in, 10) : 3540,
+              timeZone,
+            });
+            toast.success(
+              mode === "register"
+                ? "Account created via Google! Google Calendar connected."
+                : "Welcome back to Medix! Google Calendar connected."
+            );
             navigate("/dashboard", { replace: true });
           } catch (err) {
             toast.error(err.response?.data?.message || err.message || "Failed to sign in with Google.");
